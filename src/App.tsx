@@ -38,6 +38,7 @@ import {
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SiteAudit } from './components/SiteAudit';
+import { ROICalculator } from './components/ROICalculator';
 import { OpenAI, Gemini, Claude, Meta, Grok, Perplexity } from '@lobehub/icons';
 import logoImg from './assets/logo.png';
 import aiReceptionistImg from './assets/ai-receptionist.jpg';
@@ -446,7 +447,6 @@ export default function App() {
         </div>
       </section>
 
-
       <section
         className="py-12 bg-white relative overflow-hidden border-y border-gray-100"
         id="stats"
@@ -482,8 +482,6 @@ export default function App() {
         </div>
       </section>
 
-
-
       <section className="py-24 bg-white overflow-hidden" id="problem">
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="max-w-3xl mx-auto text-center">
@@ -503,7 +501,51 @@ export default function App() {
         </div>
       </section>
 
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+      </div>
 
+      <section className="py-24 bg-warm-cream" id="comparison">
+        <div className="max-w-5xl mx-auto px-4 w-full">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-7xl font-extrabold mb-6 tracking-tight">
+              Why AdHello?
+            </h2>
+          </div>
+          <div className="bg-white rounded-[3.5rem] overflow-hidden border border-gray-100 shadow-sm">
+            <div className="grid grid-cols-2 divide-x divide-gray-100 border-b border-gray-100">
+              <div className="p-10 text-center text-brand-dark/40 font-black bg-gray-50 text-sm md:text-base uppercase tracking-[0.2em]">
+                The Old Way (Agencies & DIY)
+              </div>
+              <div className="p-10 text-center text-brand-dark font-black bg-primary/20 text-lg md:text-xl uppercase tracking-[0.1em]">
+                The AdHello Way
+              </div>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {[
+                { old: "Pay $3,000+ upfront for a website", new: "$97/month. No setup fees." },
+                { old: "Wait weeks for simple text changes", new: "Updates handled for you" },
+                { old: "Miss calls when you're on a job", new: "AI Webchat captures leads 24/7" },
+                { old: "Guess what marketing works", new: "AI Growth Coach tells you exactly what to do" },
+                { old: "Locked into a 12-month contract", new: "Cancel anytime" }
+              ].map((row, i) => (
+                <div key={i} className="grid grid-cols-2 divide-x divide-gray-100 group hover:bg-yellow-50/30 transition-colors">
+                  <div className="p-8 text-center text-lg md:text-xl text-gray-500 font-medium">
+                    {row.old}
+                  </div>
+                  <div className="p-8 text-center text-lg md:text-xl font-black text-brand-dark flex items-center justify-center gap-3">
+                    <CheckCircle2 className="text-green-500 w-6 h-6 shrink-0" /> {row.new}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+      </div>
 
       <section className="py-24 bg-warm-cream relative overflow-hidden" id="what-you-get">
         <div className="max-w-7xl mx-auto px-4 relative z-10 w-full">
@@ -560,92 +602,8 @@ export default function App() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v4 opacity-20"></div>
+        <div className="hand-divider hand-divider-v2 opacity-20"></div>
       </div>
-
-      <section className="py-24 bg-white" id="pricing">
-        <div className="max-w-7xl mx-auto px-4 w-full">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-brand-dark mb-6 tracking-tight">
-              Start Simple. Scale When You're Ready.
-            </h2>
-            <p className="text-brand-dark/60 max-w-2xl mx-auto text-xl md:text-2xl">
-              AdHello grows with your business. Start with the foundation, add tools as you need them. No pressure. No lock-in.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Tier 1 */}
-            <div className="bg-warm-cream rounded-[3rem] p-10 flex flex-col h-full border-2 border-primary relative">
-              <div className="absolute top-0 right-10 transform -translate-y-1/2 bg-primary text-brand-dark font-black px-6 py-2 rounded-full text-sm tracking-widest uppercase shadow-lg">
-                Most Popular
-              </div>
-              <h3 className="text-3xl font-black text-brand-dark mb-2">Starter</h3>
-              <div className="flex items-baseline gap-2 mb-6">
-                <span className="text-5xl font-extrabold text-brand-dark">$97</span>
-                <span className="text-brand-dark/60 font-bold">/month</span>
-              </div>
-              <p className="text-brand-dark/70 text-lg mb-8 font-medium">The foundation every home service business needs.</p>
-              <ul className="space-y-4 mb-10 flex-1">
-                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> Smart website built for you</li>
-                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> AI Webchat (24/7 lead capture)</li>
-                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> Basic analytics dashboard</li>
-                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> AI Growth Coach</li>
-                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> Hosting & updates included</li>
-              </ul>
-              <button onClick={openChat} className="w-full py-4 bg-brand-dark hover:bg-brand-dark/90 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
-                Start Here
-              </button>
-            </div>
-
-            {/* Tier 2 */}
-            <div className="bg-white rounded-[3rem] p-10 flex flex-col h-full border border-gray-100 relative opacity-80">
-              <div className="absolute top-0 right-10 transform -translate-y-1/2 bg-gray-200 text-brand-dark/60 font-black px-6 py-2 rounded-full text-sm tracking-widest uppercase">
-                Coming Soon
-              </div>
-              <h3 className="text-3xl font-black text-brand-dark mb-2">Growth</h3>
-              <div className="flex items-baseline gap-2 mb-6">
-                <span className="text-5xl font-extrabold text-brand-dark">TBD</span>
-              </div>
-              <p className="text-brand-dark/70 text-lg mb-8 font-medium">For businesses ready to scale their marketing.</p>
-              <ul className="space-y-4 mb-10 flex-1">
-                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Everything in Starter</li>
-                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Ad Briefs (AI-generated ad strategies ready to run)</li>
-                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Content Studio — create images, video, and audio for your brand</li>
-                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Advanced analytics & competitor tracking</li>
-                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Credits system — use what you need, buy more as you grow</li>
-              </ul>
-              <button onClick={openChat} className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
-                Join the Waitlist
-              </button>
-            </div>
-
-            {/* Tier 3 */}
-            <div className="bg-brand-dark rounded-[3rem] p-10 flex flex-col h-full border border-brand-dark relative">
-              <div className="absolute top-0 right-10 transform -translate-y-1/2 bg-white text-brand-dark font-black px-6 py-2 rounded-full text-sm tracking-widest uppercase">
-                By Application
-              </div>
-              <h3 className="text-3xl font-black text-white mb-2">Managed</h3>
-              <div className="flex items-baseline gap-2 mb-6">
-                <span className="text-5xl font-extrabold text-white">Custom</span>
-              </div>
-              <p className="text-white/70 text-lg mb-8 font-medium">We run your entire growth engine for you.</p>
-              <ul className="space-y-4 mb-10 flex-1">
-                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Everything in Growth</li>
-                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Done-for-you ad management</li>
-                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Lead generation campaigns</li>
-                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Conversion optimization</li>
-                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Dedicated growth strategist</li>
-                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Monthly performance reporting</li>
-                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Agent Automation</li>
-              </ul>
-              <p className="text-white/50 text-sm mb-6 italic">This isn't for everyone — it's for businesses serious about dominating their local market.</p>
-              <button onClick={openChat} className="w-full py-4 bg-white hover:bg-gray-100 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg mt-auto">
-                Apply for Managed
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <section className="py-24 bg-yellow-50" id="how-it-works">
         <div className="max-w-7xl mx-auto px-4 w-full">
@@ -731,45 +689,17 @@ export default function App() {
         <div className="hand-divider hand-divider-v2 opacity-20"></div>
       </div>
 
-      <section className="py-24 bg-warm-cream" id="comparison">
-        <div className="max-w-5xl mx-auto px-4 w-full">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-7xl font-extrabold mb-6 tracking-tight">
-              Why AdHello?
-            </h2>
-          </div>
-          <div className="bg-white rounded-[3.5rem] overflow-hidden border border-gray-100 shadow-sm">
-            <div className="grid grid-cols-2 divide-x divide-gray-100 border-b border-gray-100">
-              <div className="p-10 text-center text-brand-dark/40 font-black bg-gray-50 text-sm md:text-base uppercase tracking-[0.2em]">
-                The Old Way (Agencies & DIY)
-              </div>
-              <div className="p-10 text-center text-brand-dark font-black bg-primary/20 text-lg md:text-xl uppercase tracking-[0.1em]">
-                The AdHello Way
-              </div>
-            </div>
-            <div className="divide-y divide-gray-100">
-              {[
-                { old: "Pay $3,000+ upfront for a website", new: "$97/month. No setup fees." },
-                { old: "Wait weeks for simple text changes", new: "Updates handled for you" },
-                { old: "Miss calls when you're on a job", new: "AI Webchat captures leads 24/7" },
-                { old: "Guess what marketing works", new: "AI Growth Coach tells you exactly what to do" },
-                { old: "Locked into a 12-month contract", new: "Cancel anytime" }
-              ].map((row, i) => (
-                <div key={i} className="grid grid-cols-2 divide-x divide-gray-100 group hover:bg-yellow-50/30 transition-colors">
-                  <div className="p-8 text-center text-lg md:text-xl text-gray-500 font-medium">
-                    {row.old}
-                  </div>
-                  <div className="p-8 text-center text-lg md:text-xl font-black text-brand-dark flex items-center justify-center gap-3">
-                    <CheckCircle2 className="text-green-500 w-6 h-6 shrink-0" /> {row.new}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <SiteAudit />
 
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="hand-divider hand-divider-v4 opacity-20"></div>
+      </div>
 
+      <ROICalculator />
+
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+      </div>
 
       <section className="py-24 bg-white" id="niches">
         <div className="max-w-7xl mx-auto px-4 w-full">
@@ -797,7 +727,9 @@ export default function App() {
         </div>
       </section>
 
-
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+      </div>
 
       <section className="py-24 bg-yellow-50" id="testimonials">
         <div className="max-w-7xl mx-auto px-4 w-full">
@@ -840,6 +772,94 @@ export default function App() {
                   <p className="text-sm text-brand-dark/60 font-bold">HVAC Owner</p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+      </div>
+
+      <section className="py-24 bg-white" id="pricing">
+        <div className="max-w-7xl mx-auto px-4 w-full">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-brand-dark mb-6 tracking-tight">
+              Start Simple. Scale When You're Ready.
+            </h2>
+            <p className="text-brand-dark/60 max-w-2xl mx-auto text-xl md:text-2xl">
+              AdHello grows with your business. Start with the foundation, add tools as you need them. No pressure. No lock-in.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Tier 1 */}
+            <div className="bg-warm-cream rounded-[3rem] p-10 flex flex-col h-full border-2 border-primary relative">
+              <div className="absolute top-0 right-10 transform -translate-y-1/2 bg-primary text-brand-dark font-black px-6 py-2 rounded-full text-sm tracking-widest uppercase shadow-lg">
+                Most Popular
+              </div>
+              <h3 className="text-3xl font-black text-brand-dark mb-2">Starter</h3>
+              <div className="flex items-baseline gap-2 mb-6">
+                <span className="text-5xl font-extrabold text-brand-dark">$97</span>
+                <span className="text-brand-dark/60 font-bold">/month</span>
+              </div>
+              <p className="text-brand-dark/70 text-lg mb-8 font-medium">The foundation every home service business needs.</p>
+              <ul className="space-y-4 mb-10 flex-1">
+                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> Smart website built for you</li>
+                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> AI Webchat (24/7 lead capture)</li>
+                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> Basic analytics dashboard</li>
+                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> AI Growth Coach</li>
+                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> Hosting & updates included</li>
+              </ul>
+              <button onClick={openChat} className="w-full py-4 bg-brand-dark hover:bg-brand-dark/90 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
+                Start Here
+              </button>
+            </div>
+
+            {/* Tier 2 */}
+            <div className="bg-white rounded-[3rem] p-10 flex flex-col h-full border border-gray-100 relative opacity-80">
+              <div className="absolute top-0 right-10 transform -translate-y-1/2 bg-gray-200 text-brand-dark/60 font-black px-6 py-2 rounded-full text-sm tracking-widest uppercase">
+                Coming Soon
+              </div>
+              <h3 className="text-3xl font-black text-brand-dark mb-2">Growth</h3>
+              <div className="flex items-baseline gap-2 mb-6">
+                <span className="text-5xl font-extrabold text-brand-dark">TBD</span>
+              </div>
+              <p className="text-brand-dark/70 text-lg mb-8 font-medium">For businesses ready to scale their marketing.</p>
+              <ul className="space-y-4 mb-10 flex-1">
+                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Everything in Starter</li>
+                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Ad Briefs (AI-generated ad strategies ready to run)</li>
+                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Content Studio — create images, video, and audio for your brand</li>
+                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Advanced analytics & competitor tracking</li>
+                <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Credits system — use what you need, buy more as you grow</li>
+              </ul>
+              <button onClick={openChat} className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
+                Join the Waitlist
+              </button>
+            </div>
+
+            {/* Tier 3 */}
+            <div className="bg-brand-dark rounded-[3rem] p-10 flex flex-col h-full border border-brand-dark relative">
+              <div className="absolute top-0 right-10 transform -translate-y-1/2 bg-white text-brand-dark font-black px-6 py-2 rounded-full text-sm tracking-widest uppercase">
+                By Application
+              </div>
+              <h3 className="text-3xl font-black text-white mb-2">Managed</h3>
+              <div className="flex items-baseline gap-2 mb-6">
+                <span className="text-5xl font-extrabold text-white">Custom</span>
+              </div>
+              <p className="text-white/70 text-lg mb-8 font-medium">We run your entire growth engine for you.</p>
+              <ul className="space-y-4 mb-10 flex-1">
+                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Everything in Growth</li>
+                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Done-for-you ad management</li>
+                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Lead generation campaigns</li>
+                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Conversion optimization</li>
+                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Dedicated growth strategist</li>
+                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Monthly performance reporting</li>
+                <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Agent Automation</li>
+              </ul>
+              <p className="text-white/50 text-sm mb-6 italic">This isn't for everyone — it's for businesses serious about dominating their local market.</p>
+              <button onClick={openChat} className="w-full py-4 bg-white hover:bg-gray-100 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg mt-auto">
+                Apply for Managed
+              </button>
             </div>
           </div>
         </div>
@@ -958,12 +978,17 @@ export default function App() {
                   </a>
                 </li>
                 <li>
-                  <a className="hover:text-primary-dark transition-colors" href="#what-you-get">
+                  <a className="hover:text-primary-dark transition-colors" href="/#what-you-get">
                     What's Included
                   </a>
                 </li>
                 <li>
-                  <a className="hover:text-primary-dark transition-colors" href="#pricing">
+                  <Link className="hover:text-primary-dark transition-colors" to="/templates">
+                    View Templates
+                  </Link>
+                </li>
+                <li>
+                  <a className="hover:text-primary-dark transition-colors" href="/#pricing">
                     Pricing
                   </a>
                 </li>

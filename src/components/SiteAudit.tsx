@@ -42,7 +42,7 @@ export function SiteAudit() {
   const handleScan = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) return;
-    
+
     let targetUrl = url;
     if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
       targetUrl = 'https://' + targetUrl;
@@ -81,7 +81,7 @@ export function SiteAudit() {
       });
 
       setProgress(100);
-      
+
       const responseText = response.text;
       if (!responseText) {
         throw new Error("No response from AI");
@@ -102,14 +102,14 @@ export function SiteAudit() {
     } catch (error: any) {
       console.error("Error analyzing website:", error);
       setStatus('idle');
-      
+
       let errorMessage = "Failed to analyze website. Please check the URL and try again.";
       if (error.message?.includes("blocked")) {
         errorMessage = "The website analysis was blocked. This can happen with some protected sites.";
       } else if (error.message?.includes("fetch")) {
         errorMessage = "Could not reach the website. Please ensure it is publicly accessible.";
       }
-      
+
       alert(errorMessage);
     }
   };
@@ -151,16 +151,6 @@ export function SiteAudit() {
   return (
     <section className="full-screen-section bg-warm-cream py-24 text-brand-dark font-sans" id="site-audit">
       <div className="max-w-4xl mx-auto px-4 w-full">
-        
-        {/* Tabs */}
-        <div className="flex justify-center mb-16">
-          <div className="bg-white border border-gray-100 rounded-full p-1 flex items-center gap-1 shadow-sm">
-            <div className="px-6 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 bg-warm-cream text-brand-dark shadow-sm">
-              <Globe className="w-4 h-4" />
-              Site Audit
-            </div>
-          </div>
-        </div>
 
         {status === 'idle' && (
           <div className="text-center animate-in fade-in duration-500">
@@ -251,7 +241,7 @@ export function SiteAudit() {
                 <Globe className="w-10 h-10 text-primary" />
               </div>
             </div>
-            
+
             <h2 className="text-3xl md:text-4xl font-bold text-brand-dark mb-4">
               Analyzing your website...
             </h2>
@@ -260,7 +250,7 @@ export function SiteAudit() {
             </p>
 
             <div className="w-full max-w-md mx-auto h-2 bg-gray-100 rounded-full overflow-hidden mb-8">
-              <div 
+              <div
                 className="h-full bg-primary transition-all duration-500 ease-out rounded-full"
                 style={{ width: `${progress}%` }}
               ></div>
@@ -274,7 +264,7 @@ export function SiteAudit() {
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-3xl font-extrabold text-brand-dark">Audit Results</h2>
-              <button 
+              <button
                 onClick={() => setStatus('idle')}
                 className="text-sm font-bold text-brand-dark/60 hover:text-brand-dark transition-colors"
               >
@@ -313,7 +303,7 @@ export function SiteAudit() {
                 <div>
                   <h3 className="text-2xl font-extrabold text-brand-dark mb-3">AEO Readiness Score</h3>
                   <p className="text-brand-dark/70 leading-relaxed text-lg font-medium mb-6">{report.summary}</p>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
                       { label: 'Mobile-First', score: report.mobileFirstScore },
@@ -328,7 +318,7 @@ export function SiteAudit() {
                           </span>
                         </div>
                         <div className="w-full h-1.5 bg-white rounded-full overflow-hidden">
-                          <div 
+                          <div
                             className={`h-full transition-all duration-1000 ${item.score >= 80 ? 'bg-green-500' : item.score >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
                             style={{ width: `${item.score}%` }}
                           ></div>
@@ -396,9 +386,9 @@ export function SiteAudit() {
                 </div>
               ))}
             </div>
-            
+
             <div className="mt-12 text-center">
-              <button 
+              <button
                 onClick={() => {
                   try {
                     // @ts-ignore
