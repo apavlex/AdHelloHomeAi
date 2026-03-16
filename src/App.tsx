@@ -507,7 +507,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 relative z-10 w-full">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-extrabold text-brand-dark mb-6 tracking-tight">
-              Everything You Need to Win Locally — Starting at $80/Month
+              Everything You Need to Win Locally — Starting at $97/Month
             </h2>
             <p className="text-brand-dark/70 text-xl md:text-2xl">
               One platform. One price. Built to grow with you.
@@ -624,7 +624,7 @@ export default function App() {
                     <p className="text-sm text-white/70 italic">"Your search rank has improved by 14%. You are now the top-cited business for local service queries."</p>
                   </div>
                   <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20">
-                    <p className="text-sm text-primary font-bold">New Suggestion: "I've drafted a new promotion to get you more leads this weekend. Click to activate."</p>
+                    <p className="text-sm text-primary font-bold">New Suggestion: "I've drafted a new promotion to get you more leads this weekend. Click to approve."</p>
                   </div>
                 </div>
               </div>
@@ -720,8 +720,6 @@ export default function App() {
         </div>
       </section>
 
-      <TransformationSlider />
-
       <div className="max-w-7xl mx-auto px-4">
         <div className="hand-divider hand-divider-v2 opacity-20"></div>
       </div>
@@ -776,8 +774,6 @@ export default function App() {
           </AnimatePresence>
         </div>
       </section>
-
-      <AssessmentCTA />
 
       <div className="max-w-7xl mx-auto px-4">
         <div className="hand-divider hand-divider-v4 opacity-20"></div>
@@ -947,10 +943,10 @@ export default function App() {
                 <div className={`w-6 h-6 bg-primary rounded-full transition-transform duration-300 ${billingCycle === "annual" ? "translate-x-8" : "translate-x-0"}`}></div>
               </button>
               <div className="flex items-center gap-2">
-                <span className={`text-sm font-black transition-colors ${billingCycle === 'annual' ? 'text-brand-dark' : 'text-brand-dark/40'}`}>Annual</span>
+                <span className={`text-sm font-black transition-colors ${billingCycle === 'annual' ? 'text-brand-dark' : 'text-brand-dark/40'}`}>Annual (optional)</span>
                 <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">2 Months Free</span>
               </div>
-              </div>
+            </div>
             </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">

@@ -62,7 +62,7 @@ export function BeforeAfterSlider({
       onMouseDown={() => setIsDragging(true)}
       onTouchStart={() => setIsDragging(true)}
       style={{ 
-        aspectRatio: '16/22',
+        aspectRatio: '16/10',
         ['--slider-pos' as any]: `${sliderPosition}%`
       }} 
     >
