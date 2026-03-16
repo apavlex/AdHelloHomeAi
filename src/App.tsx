@@ -83,6 +83,39 @@ const HERO_VARIANTS = [
   }
 ];
 
+const PORTFOLIO_EXAMPLES = [
+  {
+    id: 'painter',
+    name: 'Painting',
+    beforeImage: '/old-site.png',
+    afterImage: '/new-site.png'
+  },
+  {
+    id: 'plumbing',
+    name: 'Plumbing',
+    beforeImage: '/old-plumbing-site.png',
+    afterImage: '/templates/template-proplumb.png'
+  },
+  {
+    id: 'hvac',
+    name: 'HVAC',
+    beforeImage: '/old-hvac-site.png',
+    afterImage: '/templates/template-joes-home.png'
+  },
+  {
+    id: 'electrical',
+    name: 'Electrical',
+    beforeImage: '/old-electrical-site.png',
+    afterImage: '/templates/template-portland-electric-home.png'
+  },
+  {
+    id: 'roofing',
+    name: 'Roofing',
+    beforeImage: '/old-roofing-site.png',
+    afterImage: '/templates/template-roofing-home.png'
+  }
+];
+
 export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -91,6 +124,7 @@ export default function App() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [activeStudioTab, setActiveStudioTab] = useState<'audit' | 'brief'>('audit');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const [portfolioIndex, setPortfolioIndex] = useState(0);
 
   const scrollToAudit = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -483,14 +517,42 @@ export default function App() {
               Stop losing leads to a slow, outdated website. See the difference a smart, lead-generating site makes.
             </p>
           </div>
+
+          <div className="flex justify-center mb-10">
+            <div className="bg-white/50 backdrop-blur-sm p-1.5 rounded-2xl flex flex-wrap items-center justify-center border border-brand-dark/5 shadow-xl">
+              {PORTFOLIO_EXAMPLES.map((example, idx) => (
+                <button
+                  key={example.id}
+                  onClick={() => setPortfolioIndex(idx)}
+                  className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all ${
+                    portfolioIndex === idx 
+                      ? 'bg-white text-brand-dark shadow-lg scale-105' 
+                      : 'text-brand-dark/40 hover:text-brand-dark/60'
+                  }`}
+                >
+                  {example.name}
+                </button>
+              ))}
+            </div>
+          </div>
           
           <div className="relative">
-            <BeforeAfterSlider 
-              beforeImage="/old-site.png"
-              afterImage="/new-site.png"
-              beforeLabel="Old Site"
-              afterLabel="AdHello Smart Site"
-            />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={portfolioIndex}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.02 }}
+                transition={{ duration: 0.4 }}
+              >
+                <BeforeAfterSlider 
+                  beforeImage={PORTFOLIO_EXAMPLES[portfolioIndex].beforeImage}
+                  afterImage={PORTFOLIO_EXAMPLES[portfolioIndex].afterImage}
+                  beforeLabel="Old Site"
+                  afterLabel="AdHello Smart Site"
+                />
+              </motion.div>
+            </AnimatePresence>
             
             {/* Decorative Elements */}
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-yellow-200 rounded-full mix-blend-multiply filter blur-2xl opacity-60 pointer-events-none"></div>

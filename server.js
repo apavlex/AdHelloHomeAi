@@ -1,7 +1,9 @@
 import http from 'http';
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { GoogleGenerativeAI } from "@google/genai";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,69 +49,84 @@ const server = http.createServer(async (req, res) => {
         }
 
         const kieApiKey = process.env.KIE_API_KEY;
+        const geminiApiKey = process.env.GEMINI_API_KEY;
         
-        // Call Kie.ai
-        const kieResponse = await fetch('https://api.kie.ai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${kieApiKey || 'MY_KIE_API_KEY'}`
+        const prompt = `Analyze the website ${url} and provide an AEO (Answer Engine Optimization) report in JSON format.
+        
+        CRITICAL: Be extremely stringent. Most sites are NOT ready for the AI-first search era. 
+        If a site is just standard SEO, score it poorly (40-60) as it lacks semantic structure for AI agents.
+
+        The JSON must have this exact structure:
+        {
+          "score": number (0-100),
+          "mobileFirstScore": number (0-100),
+          "leadsEstimatesScore": number (0-100),
+          "googleAiReadyScore": number (0-100),
+          "summary": "string",
+          "brandAnalysis": "string",
+          "technicalAudit": {
+            "mobileSpeed": { "label": "Mobile Load Speed", "status": "pass|fail|warning", "value": "string", "reason": "string" },
+            "contactForm": { "label": "Contact Form", "status": "pass|fail|warning", "value": "string", "reason": "string" },
+            "sslCertificate": { "label": "SSL Certificate", "status": "pass|fail|warning", "value": "string", "reason": "string" },
+            "metaDescription": { "label": "Meta Description", "status": "pass|fail|warning", "value": "string", "reason": "string" },
+            "googleBusinessProfile": { "label": "Google Business Profile", "status": "pass|fail|warning", "value": "string", "reason": "string" },
+            "reviewSentiment": { "label": "Review Sentiment", "status": "pass|fail|warning", "value": "string", "reason": "string" }
           },
-          body: JSON.stringify({
-            model: 'gpt-4o',
-            messages: [
-              {
-                role: 'system',
-                content: 'You are an expert AEO (Answer Engine Optimization) auditor. You provide detailed website analysis in strict JSON format.'
+          "strengths": [{"indicator": "string", "description": "string"}],
+          "weaknesses": [{"indicator": "string", "description": "string"}],
+          "recommendations": [{"title": "string", "description": "string", "action": "string"}]
+        }`;
+
+        let reportContent = null;
+        let usedModel = 'Kie.ai';
+
+        // Attempt Kie.ai first
+        if (kieApiKey && kieApiKey !== 'MY_KIE_API_KEY') {
+          try {
+            console.log('Attempting analysis with Kie.ai...');
+            const kieResponse = await fetch('https://api.kie.ai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${kieApiKey}`
               },
-              {
-                role: 'user',
-                content: `Analyze the website ${url} and provide an AEO report in JSON format.
-                
-                CRITICAL: Be extremely stringent. Most sites are NOT ready for the AI-first search era. 
-                If a site is just standard SEO, score it poorly (40-60) as it lacks semantic structure for AI agents.
+              body: JSON.stringify({
+                model: 'gpt-4o',
+                messages: [{ role: 'user', content: prompt }],
+                response_format: { type: 'json_object' }
+              })
+            });
 
-                SSL VERIFICATION:
-                - Check if the site is flagged as "Not Secure" or has certificate errors.
-                - Even if it uses https://, if the certificate is invalid, expired, or untrusted, mark "sslCertificate" as "fail".
-                - If no valid SSL is found, mark as "fail".
-
-                The JSON must have this exact structure:
-                {
-                  "score": number (0-100),
-                  "mobileFirstScore": number (0-100),
-                  "leadsEstimatesScore": number (0-100),
-                  "googleAiReadyScore": number (0-100),
-                  "summary": "string",
-                  "brandAnalysis": "string",
-                  "technicalAudit": {
-                    "mobileSpeed": { "label": "Mobile Load Speed", "status": "pass|fail|warning", "value": "string", "reason": "string" },
-                    "contactForm": { "label": "Contact Form", "status": "pass|fail|warning", "value": "string", "reason": "string" },
-                    "sslCertificate": { "label": "SSL Certificate", "status": "pass|fail|warning", "value": "string", "reason": "string" },
-                    "metaDescription": { "label": "Meta Description", "status": "pass|fail|warning", "value": "string", "reason": "string" },
-                    "googleBusinessProfile": { "label": "Google Business Profile", "status": "pass|fail|warning", "value": "string", "reason": "string" },
-                    "reviewSentiment": { "label": "Review Sentiment", "status": "pass|fail|warning", "value": "string", "reason": "string" }
-                  },
-                  "strengths": [{"indicator": "string", "description": "string"}],
-                  "weaknesses": [{"indicator": "string", "description": "string"}],
-                  "recommendations": [{"title": "string", "description": "string", "action": "string"}]
-                }`
-              }
-            ],
-            response_format: { type: 'json_object' }
-          })
-        });
-
-        if (!kieResponse.ok) {
-          const errorData = await kieResponse.json().catch(() => ({}));
-          throw new Error(`Kie.ai API failed: ${kieResponse.status} ${JSON.stringify(errorData)}`);
+            if (kieResponse.ok) {
+              const data = await kieResponse.json();
+              reportContent = data.choices[0].message.content;
+            } else {
+              console.warn(`Kie.ai failed with status: ${kieResponse.status}`);
+            }
+          } catch (e) {
+            console.error('Kie.ai error:', e.message);
+          }
         }
 
-        const data = await kieResponse.json();
+        // Fallback to Gemini if Kie.ai failed or no key
+        if (!reportContent) {
+          console.log('Using Gemini fallback for analysis...');
+          usedModel = 'Gemini';
+          const genAI = new GoogleGenerativeAI(geminiApiKey || 'MY_GEMINI_API_KEY');
+          const model = genAI.getGenerativeModel({ 
+            model: 'gemini-1.5-flash',
+            generationConfig: { responseMimeType: 'application/json' }
+          });
+          
+          const result = await model.generateContent(prompt);
+          reportContent = result.response.text();
+        }
+
+        console.log(`Website analysis complete using ${usedModel}`);
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(data.choices[0].message.content);
+        res.end(reportContent);
       } catch (error) {
-        console.error('Analysis error:', error);
+        console.error('Critical analysis error:', error);
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: error.message || 'Failed to analyze website' }));
       }
