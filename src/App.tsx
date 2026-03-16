@@ -90,7 +90,7 @@ export default function App() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [heroIndex, setHeroIndex] = useState(0);
   const [activeStudioTab, setActiveStudioTab] = useState<'audit' | 'brief'>('audit');
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
 
   const scrollToAudit = (e: React.MouseEvent) => {
     e.preventDefault();
