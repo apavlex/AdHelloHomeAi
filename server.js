@@ -3,7 +3,7 @@ import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { GoogleGenerativeAI } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -112,7 +112,7 @@ const server = http.createServer(async (req, res) => {
         if (!reportContent) {
           console.log('Using Gemini fallback for analysis...');
           usedModel = 'Gemini';
-          const genAI = new GoogleGenerativeAI(geminiApiKey || 'MY_GEMINI_API_KEY');
+          const genAI = new GoogleGenAI(geminiApiKey || 'MY_GEMINI_API_KEY');
           const model = genAI.getGenerativeModel({ 
             model: 'gemini-1.5-flash',
             generationConfig: { responseMimeType: 'application/json' }
@@ -167,8 +167,8 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}/`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running at http://0.0.0.0:${PORT}/`);
   console.log(`Serving files from ${DIST_DIR}`);
 }).on('error', (err) => {
   if (err.code === 'EPERM') {
