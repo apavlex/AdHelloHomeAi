@@ -7,7 +7,7 @@ interface LogoProps {
 }
 
 export function Logo({ variant = 'dark', className = "" }: LogoProps) {
-  const logoSrc = variant === 'light' ? '/logo-light.png' : '/logo-dark.png';
+  const logoSrc = variant === 'light' ? '/logo-dark.png' : '/logo-light.png';
   
   return (
     <div className={`flex items-center gap-2 ${className}`}>
