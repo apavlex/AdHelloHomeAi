@@ -75,6 +75,7 @@ const HERO_VARIANTS = [
     subheadline: "Marketing that grows your business for you. AdHello automates your search optimization 24/7, finding the best ways to capture more roofing leads.",
     image: "https://drive.google.com/thumbnail?id=1oCWDHteOB-GWTxZAA73MktTXMb0dD6to&sz=w1000"
   },
+  {
     tagline: "Built for Flooring",
     headline: "Step up your business with more flooring leads.",
     subheadline: "While you’re installing hardwood or laying tile, your smart website helps book your next job. Built to convert local traffic from Google, Maps, and AI search.",
@@ -934,37 +935,20 @@ export default function App() {
               AdHello grows with your business. Start with the foundation, add tools as you need them. No pressure. No lock-in.
             </p>
 
-<<<<<<< HEAD
-            {/* Billing Toggle */}
-            <div className="flex items-center justify-center gap-4 mb-16">
-              <span className={`text-lg font-bold ${billingCycle === 'monthly' ? 'text-brand-dark' : 'text-brand-dark/40'}`}>Monthly</span>
-              <button
-                onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annual' : 'monthly')}
-                className="w-16 h-8 bg-brand-dark rounded-full relative p-1 transition-all duration-300"
-              >
-                <div className={`w-6 h-6 bg-primary rounded-full transition-all duration-300 ${billingCycle === 'annual' ? 'translate-x-8' : 'translate-x-0'}`}></div>
-              </button>
-              <div className="flex items-center gap-2">
-                <span className={`text-lg font-bold ${billingCycle === 'annual' ? 'text-brand-dark' : 'text-brand-dark/40'}`}>Annual</span>
-                <span className="bg-green-100 text-green-700 text-xs font-black px-2 py-1 rounded-full uppercase tracking-wider">
-                  2 Months Free
-                </span>
-=======
             <div className="flex items-center justify-center gap-4 mb-16">
               <span className={`text-sm font-black transition-colors ${billingCycle === 'monthly' ? 'text-brand-dark' : 'text-brand-dark/40'}`}>Monthly</span>
               <button 
                 onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annual' : 'monthly')}
                 className="w-16 h-8 bg-brand-dark rounded-full relative p-1 transition-all duration-300"
               >
-                <div className={`w-6 h-6 bg-[#fbe169] rounded-full transition-transform duration-300 ${billingCycle === 'annual' ? 'translate-x-8' : 'translate-x-0'}`}></div>
+                <div className={`w-6 h-6 bg-primary rounded-full transition-transform duration-300 ${billingCycle === "annual" ? "translate-x-8" : "translate-x-0"}`}></div>
               </button>
               <div className="flex items-center gap-2">
                 <span className={`text-sm font-black transition-colors ${billingCycle === 'annual' ? 'text-brand-dark' : 'text-brand-dark/40'}`}>Annual</span>
                 <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">2 Months Free</span>
->>>>>>> a2ae907 (Fix memory leaks in before-after slider, update pricing to 7 with annual toggle, and modernize logo branding)
+              </div>
               </div>
             </div>
-          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Tier 1 */}
@@ -973,26 +957,15 @@ export default function App() {
                 Most Popular
               </div>
               <h3 className="text-3xl font-black text-brand-dark mb-2">Starter</h3>
-<<<<<<< HEAD
-              <div className="flex flex-col mb-6">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-extrabold text-brand-dark">
-                    {billingCycle === 'monthly' ? '$97' : '$80'}
-=======
               <div className="mb-6">
                 <div className="flex items-baseline gap-2">
                   <span className="text-5xl font-extrabold text-brand-dark">
                     ${billingCycle === 'monthly' ? '97' : '80'}
->>>>>>> a2ae907 (Fix memory leaks in before-after slider, update pricing to 7 with annual toggle, and modernize logo branding)
                   </span>
                   <span className="text-brand-dark/60 font-bold">/month</span>
                 </div>
                 {billingCycle === 'annual' && (
-<<<<<<< HEAD
-                  <span className="text-brand-dark/40 text-sm font-bold mt-1">Billed annually ($970/year)</span>
-=======
                   <p className="text-brand-dark/40 text-xs font-bold mt-1">Billed annually ($970/year)</p>
->>>>>>> a2ae907 (Fix memory leaks in before-after slider, update pricing to 7 with annual toggle, and modernize logo branding)
                 )}
               </div>
               <p className="text-brand-dark/70 text-lg mb-8 font-medium">The foundation every home service business needs.</p>
