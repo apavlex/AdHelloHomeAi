@@ -99,6 +99,9 @@ const server = http.createServer(async (req, res) => {
 
         // Attempt Kie.ai first
         if (KIE_API_KEY) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout
+
           try {
             console.log('Attempting analysis with Kie.ai...');
             const kieResponse = await fetch('https://api.kie.ai/v1/chat/completions', {
@@ -111,8 +114,11 @@ const server = http.createServer(async (req, res) => {
                 model: 'gpt-4o',
                 messages: [{ role: 'user', content: prompt }],
                 response_format: { type: 'json_object' }
-              })
+              }),
+              signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
 
             if (kieResponse.ok) {
               const data = await kieResponse.json();
@@ -122,12 +128,20 @@ const server = http.createServer(async (req, res) => {
               console.warn(`Kie.ai failed with status: ${kieResponse.status}`);
             }
           } catch (e) {
-            console.error('Kie.ai error:', e.message);
+            clearTimeout(timeoutId);
+            if (e.name === 'AbortError') {
+              console.error('Kie.ai request timed out after 45s');
+            } else {
+              console.error('Kie.ai error:', e.message);
+            }
           }
         }
 
         // Fallback to Gemini
         if (!reportContent && GEMINI_API_KEY) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout for fallback
+
           try {
             console.log('Attempting analysis with Gemini fallback...');
             const genAI = new GoogleGenAI(GEMINI_API_KEY);
@@ -136,11 +150,25 @@ const server = http.createServer(async (req, res) => {
               generationConfig: { responseMimeType: 'application/json' }
             });
             
-            const result = await model.generateContent(prompt);
+            // Note: GoogleGenAI SDK doesn't natively take an AbortSignal in generateContent yet in most versions
+            // but we can wrap it in a Promise.race for protection
+            const geminiPromise = model.generateContent(prompt);
+            const timeoutPromise = new Promise((_, reject) => 
+               setTimeout(() => reject(new Error('GeminiTimeout')), 30000)
+            );
+
+            const result = await Promise.race([geminiPromise, timeoutPromise]);
+            
             reportContent = result.response.text();
             usedModel = 'Gemini';
+            clearTimeout(timeoutId);
           } catch (e) {
-            console.error('Gemini fallback error:', e.message);
+            clearTimeout(timeoutId);
+            if (e.message === 'GeminiTimeout') {
+              console.error('Gemini attempt timed out after 30s');
+            } else {
+              console.error('Gemini fallback error:', e.message);
+            }
           }
         }
 

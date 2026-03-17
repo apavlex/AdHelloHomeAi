@@ -43,7 +43,6 @@ import { SiteAudit } from './components/SiteAudit';
 import { AdBrief } from './components/AdBrief';
 import { ROICalculator } from './components/ROICalculator';
 import { SalesChatbot } from './components/SalesChatbot';
-import { TransformationSlider } from './components/TransformationSlider';
 import { OpenAI, Gemini, Claude, Meta, Grok, Perplexity } from '@lobehub/icons';
 import { Link } from 'react-router-dom';
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
@@ -708,82 +707,102 @@ export default function App() {
         <div className="hand-divider hand-divider-v2 opacity-20"></div>
       </div>
 
-      <section className="py-24 bg-yellow-50" id="how-it-works">
-        <div className="max-w-7xl mx-auto px-4 w-full">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-6xl font-extrabold text-brand-dark mb-6">
-              From Sign Up to More Leads in 7 Days
-            </h2>
+      <section className="py-24 bg-yellow-50/30 relative overflow-hidden" id="how-it-works">
+        {/* Background decorative elements */}
+        <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-200/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
+
+        <div className="max-w-7xl mx-auto px-4 w-full relative z-10">
+          <div className="text-center mb-20">
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-brand-dark mb-6 tracking-tight"
+            >
+              Your Path to <span className="text-primary">Dominating</span> Local Search
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-xl text-brand-dark/60 max-w-2xl mx-auto font-medium"
+            >
+              We build the foundation, you bring the expertise, and together we scale your business into the AI era.
+            </motion.p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center relative">
-            <div className="bg-white p-2 rounded-[3.5rem] shadow-xl text-center overflow-hidden flex flex-col h-full border border-gray-100 relative z-10 hover:translate-y-[-8px] transition-transform duration-500">
-              <div className="h-56 w-full relative rounded-t-[3rem] overflow-hidden">
-                <img
-                  alt="Person searching on smartphone"
-                  className="w-full h-full object-cover"
-                  src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                />
-              </div>
-              <div className="p-10 pt-8 text-left">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-10 h-10 bg-primary rounded-full flex-shrink-0 flex items-center justify-center text-lg font-black text-brand-dark shadow-sm">
-                    1
-                  </div>
-                  <h4 className="text-2xl font-black text-brand-dark">
-                    We Build Your Site
-                  </h4>
-                </div>
-                <p className="text-lg text-brand-dark/60 leading-relaxed font-bold">
-                  Tell us about your business. We build a professional, lead-focused website tailored to your services and service area. No homework for you.
-                </p>
-              </div>
-            </div>
 
-            <div className="bg-primary p-2 rounded-[3.5rem] shadow-2xl text-center overflow-hidden flex flex-col transform lg:scale-110 z-30 h-full border-4 border-white hover:scale-[1.12] transition-transform duration-500">
-              <div className="h-56 w-full relative rounded-t-[3rem] overflow-hidden">
-                <img
-                  alt="AI Webchat Assistant"
-                  className="w-full h-full object-cover"
-                  src="/ai-receptionist.jpg"
-                />
-              </div>
-              <div className="p-10 pt-8 text-left">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-10 h-10 bg-white rounded-full flex-shrink-0 flex items-center justify-center text-lg font-black text-brand-dark shadow-sm">
-                    2
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+            {[
+              {
+                step: 1,
+                title: "The Professional Foundation",
+                desc: "We build your high-converting, AI-ready website in just 7 days. No tech headaches or complex builders—just a professional, foundational asset that belongs in the modern era.",
+                image: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                highlight: false
+              },
+              {
+                step: 2,
+                title: "Capture Every Lead",
+                desc: "Launch your AI receptionist to instantly stop lead leakage. Your intelligent assistant greets visitors, qualifies leads, and books jobs 24/7—while you're on a call or asleep.",
+                image: "/ai-receptionist.jpg",
+                highlight: true
+              },
+              {
+                step: 3,
+                title: "A Scalable Growth Journey",
+                desc: "This is where the real journey begins. We provide the tools, AI-driven insights, and continuous support to help your business grow and become more optimized every single day.",
+                image: "/dashboard.jpg",
+                highlight: false
+              }
+            ].map((card, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.2, duration: 0.5 }}
+                className={`group relative flex flex-col h-full rounded-[3.5rem] overflow-hidden transition-all duration-500 hover:translate-y-[-12px] ${
+                  card.highlight 
+                    ? 'bg-white shadow-2xl z-20 border-2 border-primary ring-4 ring-primary/5' 
+                    : 'bg-white/40 backdrop-blur-md border border-white/50 shadow-xl'
+                }`}
+              >
+                <div className="h-64 w-full relative overflow-hidden">
+                  <img
+                    alt={card.title}
+                    className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
+                    src={card.image}
+                  />
+                  <div className={`absolute inset-0 bg-gradient-to-t ${card.highlight ? 'from-primary/20' : 'from-brand-dark/10'} to-transparent`} />
+                  <div className="absolute top-6 left-6 w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-transform duration-500">
+                    <span className="text-xl font-black text-brand-dark">{card.step}</span>
                   </div>
-                  <h4 className="text-2xl font-black text-brand-dark">
-                    We Activate Your Webchat
-                  </h4>
                 </div>
-                <p className="text-lg text-brand-dark/80 leading-relaxed font-bold">
-                  Your AI receptionist goes live instantly. It greets visitors, answers questions, and captures leads around the clock.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white p-2 rounded-[3.5rem] shadow-xl text-center overflow-hidden flex flex-col h-full border border-gray-100 z-10 hover:translate-y-[-8px] transition-transform duration-500">
-              <div className="h-56 w-full relative rounded-t-[3rem] overflow-hidden">
-                <img
-                  alt="AdHello Business Growth Dashboard"
-                  className="w-full h-full object-cover"
-                  src="/dashboard.jpg"
-                />
-              </div>
-              <div className="p-10 pt-8 text-left">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-10 h-10 bg-primary rounded-full flex-shrink-0 flex items-center justify-center text-lg font-black text-brand-dark shadow-sm">
-                    3
-                  </div>
-                  <h4 className="text-2xl font-black text-brand-dark">
-                    The AI Engine Takes Over
+                
+                <div className="p-10 flex-1 flex flex-col">
+                  <h4 className="text-2xl md:text-3xl font-black text-brand-dark mb-4 leading-tight">
+                    {card.title}
                   </h4>
+                  <p className={`text-lg leading-relaxed font-bold ${card.highlight ? 'text-brand-dark/80' : 'text-brand-dark/60'}`}>
+                    {card.desc}
+                  </p>
+                  
+                  {card.highlight && (
+                    <div className="mt-8 pt-6 border-t border-primary/10">
+                      <div className="flex items-center gap-2 text-primary font-black text-sm uppercase tracking-widest">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                        </span>
+                        Live Optimization
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <p className="text-lg text-brand-dark/60 leading-relaxed font-bold">
-                  This is where it gets easy. Our self-guided AI engine continuously optimizes your site, improves your SEO/AEO rank, and suggests new ways to get leads. You focus on your jobs; the AI handles the growth.
-                </p>
-              </div>
-            </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
