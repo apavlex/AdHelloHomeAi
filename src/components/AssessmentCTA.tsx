@@ -44,18 +44,11 @@ export function AssessmentCTA() {
 
             {/* Text Content */}
             <div className="flex-1 min-w-0">
-              <div className="inline-flex items-center gap-1.5 mb-1 px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-full">
-                <Sparkles className="w-2.5 h-2.5 text-primary animate-pulse" />
-                <span className="text-[8px] font-bold text-white/60 tracking-widest uppercase">Limited Availability</span>
-              </div>
-              
-              <h2 className="text-sm md:text-base font-black leading-tight tracking-tight uppercase truncate">
-                <span className="text-primary italic mr-1">FREE</span>
-                <span className="text-white">Website Assessment Video</span>
+              <h2 className="text-base md:text-lg font-black leading-tight tracking-tight text-white">
+                Get a <span className="text-primary italic">FREE</span> Assessment Video from Alex
               </h2>
-              
-              <p className="text-white/50 text-[10px] md:text-xs font-medium truncate hidden sm:block">
-                Get a <span className="text-white italic">personal video</span> from <span className="text-white font-bold">Alex Pavlenko</span> <span className="italic">reviewing your site</span>.
+              <p className="text-xs md:text-sm font-medium text-white/50">
+                Reviewing your website to help you grow.
               </p>
             </div>
           </div>
