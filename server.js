@@ -21,8 +21,8 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // API Key fallbacks (environment variables from .env or platform should take precedence)
-const KIE_API_KEY = process.env.KIE_API_KEY || '2866f7739ece403e80cc57c0919ae685';
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyCYvhcdAmtLa_24U1ijCpTBUyhWKKegkw4'; 
+const KIE_API_KEY = process.env.KIE_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
 console.log(`[STARTUP] AdHello AI Server initializing...`);
 console.log(`[STARTUP] Node Version: ${process.version}`);
