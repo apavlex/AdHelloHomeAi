@@ -20,16 +20,16 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('[CRITICAL] Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// API Key fallbacks (environment variables from .env or platform should take precedence)
+// API Keys — set these in your .env.local or Cloud Run environment variables
 const KIE_API_KEY = process.env.KIE_API_KEY;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 console.log(`[STARTUP] AdHello AI Server initializing...`);
 console.log(`[STARTUP] Node Version: ${process.version}`);
 console.log(`[STARTUP] Target Port: ${PORT}`);
 console.log(`[STARTUP] Serving static files from: ${DIST_DIR}`);
-console.log(`[STARTUP] KIE_API_KEY status: ${KIE_API_KEY ? 'Present' : 'MISSING'}`);
-console.log(`[STARTUP] GEMINI_API_KEY status: ${GEMINI_API_KEY ? 'Present' : 'MISSING'}`);
+console.log(`[STARTUP] KIE_API_KEY status: ${KIE_API_KEY ? 'Present ✓' : 'MISSING ✗ — set KIE_API_KEY env var'}`);
+console.log(`[STARTUP] GEMINI_API_KEY status: ${GEMINI_API_KEY ? 'Present ✓' : 'MISSING ✗ — set GEMINI_API_KEY env var'}}`);
 
 // MIME types for static files
 const MIME_TYPES = {
@@ -124,7 +124,7 @@ const server = http.createServer(async (req, res) => {
                 'Authorization': `Bearer ${KIE_API_KEY}`
               },
               body: JSON.stringify({
-                model: 'gpt-5-4',
+                model: 'gpt-4o',
                 messages: [{ role: 'user', content: prompt }],
                 response_format: { type: 'json_object' }
               }),
@@ -164,8 +164,9 @@ const server = http.createServer(async (req, res) => {
 
             const result = await Promise.race([geminiPromise, timeoutPromise]);
             
-            if (result?.text) {
-              reportContent = result.text;
+            const geminiText = result?.candidates?.[0]?.content?.parts?.[0]?.text || result?.text;
+            if (geminiText) {
+              reportContent = geminiText;
               usedModel = 'Gemini';
             }
           } catch (e) {
