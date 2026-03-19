@@ -1262,7 +1262,7 @@ export default function App() {
 
       <footer className="bg-warm-cream text-brand-dark/60 py-12 border-t border-brand-dark/5">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-10">
             <div>
               <div className="flex items-center gap-3 mb-8">
                 <Logo variant="dark" className="h-12 w-auto" />
@@ -1353,6 +1353,28 @@ export default function App() {
                 <li>
                   <a className="hover:text-primary-dark transition-colors" href="#">
                     Terms of Service
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-brand-dark text-xl font-extrabold mb-6">
+                Presso Coffee
+              </h4>
+              <ul className="space-y-4 text-base font-medium">
+                <li>
+                  <a className="hover:text-primary-dark transition-colors" href="/presso-home.html">
+                    Presso × AdHello
+                  </a>
+                </li>
+                <li>
+                  <a className="hover:text-primary-dark transition-colors" href="/presso-partners.html">
+                    Local Sponsors
+                  </a>
+                </li>
+                <li>
+                  <a className="hover:text-primary-dark transition-colors" href="/presso-brands.html">
+                    Brand Partners
                   </a>
                 </li>
               </ul>
