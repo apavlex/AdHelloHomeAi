@@ -43,7 +43,61 @@ import { SiteAudit } from './components/SiteAudit';
 import { AdBrief } from './components/AdBrief';
 import { ROICalculator } from './components/ROICalculator';
 import { SalesChatbot } from './components/SalesChatbot';
-import { OpenAI, Gemini, Claude, Meta, Grok, Perplexity } from '@lobehub/icons';
+// Inline AI brand icon components (replaces @lobehub/icons to avoid peer-dep build errors)
+const OpenAI = ({ size = 32 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.896zm16.597 3.855l-5.843-3.371 2.019-1.168a.076.076 0 0 1 .071 0l4.83 2.786a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.401-.674zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08-4.778 2.758a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"/>
+  </svg>
+);
+
+const GeminiColor = ({ size = 32 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="gemini-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#4285F4"/>
+        <stop offset="100%" stopColor="#9B72CB"/>
+      </linearGradient>
+    </defs>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="url(#gemini-grad)"/>
+    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2.5c4.142 0 7.5-3.358 7.5-7.5S16.142 4.5 12 4.5 4.5 7.858 4.5 12s3.358 7.5 7.5 7.5zM12 7l4.5 5H7.5L12 7zm0 10l-4.5-5h9L12 17z" fill="url(#gemini-grad)"/>
+  </svg>
+);
+const Gemini = { Color: GeminiColor };
+
+const ClaudeColor = ({ size = 32 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <rect width="24" height="24" rx="4" fill="#CC9B7A"/>
+    <text x="12" y="16.5" textAnchor="middle" fontSize="13" fontWeight="bold" fill="white" fontFamily="serif">A</text>
+  </svg>
+);
+const Claude = { Color: ClaudeColor };
+
+const MetaColor = ({ size = 32 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="meta-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#0082FB"/>
+        <stop offset="100%" stopColor="#00B2FF"/>
+      </linearGradient>
+    </defs>
+    <path d="M6.915 4.03c-1.968 0-3.683 1.28-4.871 3.113C.704 9.208 0 11.883 0 14.449c0 .706.07 1.369.21 1.973.096.40.31 1.12.79 1.49.25.19.57.28.9.28.66 0 1.26-.36 1.76-.78.51-.43.98-.97 1.43-1.58.09-.12.17-.24.26-.36l.05-.07c.43-.62.82-1.29 1.15-1.97.07-.14.13-.28.19-.42L7 13c.19.3.41.6.66.87.5.55 1.12.97 1.86 1.09.22.04.44.06.66.06 1.42 0 2.75-.85 3.87-2.16.26-.30.51-.63.74-.97.23.34.48.67.74.97 1.12 1.31 2.45 2.16 3.87 2.16.22 0 .44-.02.66-.06.74-.12 1.36-.54 1.86-1.09.25-.27.47-.57.66-.87l.27.47c.06.14.12.28.19.42.33.68.72 1.35 1.15 1.97l.05.07c.09.12.17.24.26.36.45.61.92 1.15 1.43 1.58.5.42 1.1.78 1.76.78.33 0 .65-.09.9-.28.48-.37.69-1.09.79-1.49.14-.604.21-1.267.21-1.973 0-2.566-.704-5.241-2.044-7.306C20.768 5.31 19.053 4.03 17.085 4.03c-1.41 0-2.66.73-3.67 1.88-.48.55-.9 1.2-1.28 1.91-.02.04-.04.08-.06.12-.38-.71-.8-1.36-1.28-1.91C9.815 4.76 8.565 4.03 7.155 4.03H6.915z" fill="url(#meta-grad)"/>
+  </svg>
+);
+const Meta = { Color: MetaColor };
+
+const PerplexityColor = ({ size = 32 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <rect width="24" height="24" rx="4" fill="#20808D"/>
+    <path d="M12 4l3.5 4h-2v4h4V9.5l3 3-3 3V13h-4v4h2L12 20l-3.5-3H11v-4H7v2.5l-3-3 3-3V11h4V7H9L12 4z" fill="white"/>
+  </svg>
+);
+const Perplexity = { Color: PerplexityColor };
+
+const Grok = ({ size = 32 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+);
 import { Link } from 'react-router-dom';
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { AssessmentCTA } from './components/AssessmentCTA';
