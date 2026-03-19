@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import SEO from './components/SEO';
 import {
   Zap,
   ArrowRight,
@@ -50,6 +51,12 @@ export default function AeoLandingPage() {
 
   return (
     <div className="min-h-screen bg-warm-cream text-brand-dark font-sans selection:bg-primary/40">
+      <SEO
+        title="AEO Optimization for Contractors — AdHello.ai | Get Found on ChatGPT and Perplexity"
+        description="AI search engines like ChatGPT, Perplexity, and Google AI Overviews are stealing your leads. AdHello.ai AEO optimization makes your business the answer AI gives to local customers."
+        canonical="https://adhello.ai/aeo"
+        schema={aeoSchema}
+      />
       {/* Navigation */}
       <nav className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-xl z-50 border-b border-yellow-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">

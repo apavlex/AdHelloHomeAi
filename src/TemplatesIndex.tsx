@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, LayoutTemplate, Star, CheckCircle2 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { TEMPLATES, CATEGORIES, getTemplatesByCategory } from './data/templates';
+import SEO from './components/SEO';
 
 export default function TemplatesIndex() {
     const { category = 'all' } = useParams();
@@ -46,8 +47,23 @@ export default function TemplatesIndex() {
         }));
     };
 
+    const templatesSchema = {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "url": "https://adhello.ai/templates",
+      "name": "Contractor Website Templates — AdHello.ai",
+      "description": "Browse website templates built for home service businesses. SEO and AEO optimized to rank on Google and AI search engines.",
+      "isPartOf": { "@id": "https://adhello.ai/#website" }
+    };
+
     return (
         <div className="min-h-screen bg-warm-cream font-sans selection:bg-primary/40 pb-24">
+            <SEO
+              title="Website Templates for Home Service Contractors — AdHello.ai"
+              description="Browse professionally designed website templates for painters, electricians, plumbers, HVAC, roofers, flooring and movers. SEO and AEO optimized out of the box."
+              canonical="https://adhello.ai/templates"
+              schema={templatesSchema}
+            />
             {/* Header */}
             <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-[100]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -29,6 +29,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { GoogleGenAI, Type } from "@google/genai";
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
+import SEO from './components/SEO';
 
 type Tab = 'brief' | 'audit';
 
@@ -319,6 +320,12 @@ export default function AdStudio() {
 
   return (
     <div className="min-h-screen bg-[#121417] text-white font-sans selection:bg-primary/30">
+      <SEO
+        title="Ad Studio — AI-Powered Ad Creative for Contractors | AdHello.ai"
+        description="Generate platform-ready ad creatives for Google, Facebook, Instagram, and TikTok in seconds. Upload one photo and let AdHello.ai AI build your complete ad strategy."
+        canonical="https://adhello.ai/studio"
+        schema={studioSchema}
+      />
       {/* Kie Test Overlay */}
       {kieTestResult && (
         <div className="fixed top-24 right-4 z-[100] bg-[#1C1F26] border border-white/10 p-4 rounded-2xl shadow-2xl max-w-xs animate-in fade-in slide-in-from-right-4">

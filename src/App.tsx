@@ -109,6 +109,7 @@ import { Link } from 'react-router-dom';
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { AssessmentCTA } from './components/AssessmentCTA';
 import { Logo } from './components/Logo';
+import SEO from './components/SEO';
 
 const HERO_VARIANTS = [
   {
@@ -255,6 +256,12 @@ export default function App() {
 
   return (
     <div className="selection:bg-primary/40">
+      <SEO
+        title="AdHello.ai — AI-Powered Websites &amp; Marketing for Home Service Businesses"
+        description="AdHello.ai builds conversion-optimized websites and AI marketing for local contractors — painters, electricians, plumbers, roofers and more. Get found on Google and AI search engines from day one."
+        canonical="https://adhello.ai/"
+        schema={homeSchema}
+      />
       <div className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-xl border-b border-yellow-100 z-[100]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <header className="flex items-center justify-between h-16 sm:h-20">

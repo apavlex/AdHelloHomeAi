@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, Star, ChevronRight, Monitor, Smartphone, Zap }
 import * as LucideIcons from 'lucide-react';
 import { getTemplateById, getRelatedTemplates } from './data/templates';
 import logoImg from './assets/logo.png';
+import SEO from './components/SEO';
 
 // Fallback dynamic icon renderer
 const IconComponent = ({ name, className }: { name: string, className?: string }) => {
@@ -45,6 +46,11 @@ export default function TemplateDetails() {
 
     return (
         <div className="min-h-screen bg-warm-cream font-sans selection:bg-primary/40 pb-24">
+            <SEO
+              title={`${template?.name || 'Website Template'} — AdHello.ai Contractor Templates`}
+              description={`Preview the ${template?.name || ''} website template by AdHello.ai — built for local home service contractors with SEO and AEO optimization.`}
+              canonical={`https://adhello.ai/templates/${category}/${templateId}`}
+            />
             {/* Header */}
             <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-[100]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
