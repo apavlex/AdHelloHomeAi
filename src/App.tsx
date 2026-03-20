@@ -973,15 +973,15 @@ export default function App() {
                 <Star className="w-6 h-6 fill-current" /><Star className="w-6 h-6 fill-current" /><Star className="w-6 h-6 fill-current" /><Star className="w-6 h-6 fill-current" /><Star className="w-6 h-6 fill-current" />
               </div>
               <p className="text-xl text-brand-dark/80 font-medium italic mb-8 leading-relaxed">
-                "I used to pay an agency $500 a month just to host my site and they never answered my emails. AdHello built me a better site in a week, the AI chat books jobs while I'm sleeping, and I'm paying a fraction of the cost. It's a no-brainer."
+                "I had a Wix site that looked terrible on phones and I had no idea how to fix it. AdHello had a new site live in days. Now I'm getting calls from people who say they found me on Google — and I've never once touched the thing. Worth every penny."
               </p>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Mike T." className="w-full h-full object-cover" />
+                  <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Derek M." className="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <h4 className="font-black text-brand-dark">Mike T.</h4>
-                  <p className="text-sm text-brand-dark/60 font-bold">Local Plumber</p>
+                  <h4 className="font-black text-brand-dark">Derek M.</h4>
+                  <p className="text-sm text-brand-dark/60 font-bold">Exterior Painter, Vancouver WA</p>
                 </div>
               </div>
             </div>
@@ -990,15 +990,15 @@ export default function App() {
                 <Star className="w-6 h-6 fill-current" /><Star className="w-6 h-6 fill-current" /><Star className="w-6 h-6 fill-current" /><Star className="w-6 h-6 fill-current" /><Star className="w-6 h-6 fill-current" />
               </div>
               <p className="text-xl text-brand-dark/80 font-medium italic mb-8 leading-relaxed">
-                "The Growth Coach is wild. I asked it how to get more AC tune-up jobs before summer, and it gave me an exact script to text my past customers. Booked 4 jobs the next day. Best investment I make for my business."
+                "I was skeptical about AI stuff but my partner convinced me to try it. The Growth Coach told me exactly what to post, when to run ads, and even wrote the copy. We had our best April ever — 30% more booked jobs than last year."
               </p>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Sarah L." className="w-full h-full object-cover" />
+                  <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Jessica R." className="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <h4 className="font-black text-brand-dark">Sarah L.</h4>
-                  <p className="text-sm text-brand-dark/60 font-bold">HVAC Owner</p>
+                  <h4 className="font-black text-brand-dark">Jessica R.</h4>
+                  <p className="text-sm text-brand-dark/60 font-bold">HVAC Owner, Portland OR</p>
                 </div>
               </div>
             </div>
