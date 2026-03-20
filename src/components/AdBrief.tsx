@@ -150,30 +150,20 @@ export function AdBrief() {
       The image should be a close visual match to the original product photo but optimized for ${adConcept.platform}. 
       High-end commercial photography, 8k resolution, vibrant lighting.`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
+      // Use Imagen 3 for image generation
+      const response = await ai.models.generateImages({
+        model: 'imagen-3.0-generate-002',
+        prompt: prompt,
         config: {
-          imageConfig: {
-            aspectRatio: "1:1"
-          }
+          numberOfImages: 1,
+          aspectRatio: "1:1",
+          outputMimeType: "image/jpeg"
         }
       });
 
       let imageUrl = '';
-      if (response.candidates?.[0]?.content?.parts) {
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData) {
-            imageUrl = `data:image/png;base64,${part.inlineData.data}`;
-            break;
-          }
-        }
+      if (response.generatedImages?.[0]?.image?.imageBytes) {
+        imageUrl = `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`;
       }
 
       if (!imageUrl) {
@@ -215,7 +205,7 @@ export function AdBrief() {
       setAnalysisProgress(30);
       
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-2.0-flash",
         contents: [
           {
             parts: [
