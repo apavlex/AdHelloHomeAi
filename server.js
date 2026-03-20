@@ -188,6 +188,111 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // API Endpoint for ad brief image analysis
+  if (req.method === 'POST' && req.url === '/api/ad-brief') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const { imageBase64, mimeType } = JSON.parse(body);
+        if (!imageBase64) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'imageBase64 is required' }));
+        }
+
+        const geminiKey = process.env.GEMINI_API_KEY;
+        if (!geminiKey) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'GEMINI_API_KEY is missing. Please configure it in your environment.' }));
+        }
+
+        const { GoogleGenAI } = await import('@google/genai');
+        const genAI = new GoogleGenAI({ apiKey: geminiKey });
+
+        console.log('[AD-BRIEF] Starting image analysis with gemini-2.0-flash');
+
+        const result = await genAI.models.generateContent({
+          model: 'gemini-2.0-flash',
+          contents: [
+            {
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: mimeType || 'image/jpeg',
+                    data: imageBase64
+                  }
+                },
+                {
+                  text: `Analyze this product/service image and provide a comprehensive marketing brief for a home service or local business. Return ONLY valid JSON with this exact structure:
+{
+  "productAnalysis": "A detailed 2-3 sentence description of what is shown in the image and what service/product it represents.",
+  "visualPrompt": "A highly detailed visual description for generating similar ad images.",
+  "targetAudience": ["Audience segment 1", "Audience segment 2", "Audience segment 3"],
+  "marketInsights": ["Key market insight 1", "Key market insight 2"],
+  "competitiveAdvantages": ["Advantage 1", "Advantage 2"],
+  "adConcepts": [
+    { "platform": "Instagram", "headline": "Catchy headline under 10 words", "body": "Persuasive 1-2 sentence ad copy", "cta": "Call to action" },
+    { "platform": "Facebook", "headline": "Catchy headline under 10 words", "body": "Persuasive 1-2 sentence ad copy", "cta": "Call to action" },
+    { "platform": "Google", "headline": "Search ad headline under 30 chars", "body": "Description under 90 chars", "cta": "Call to action" }
+  ]
+}`
+                }
+              ]
+            }
+          ],
+          config: { responseMimeType: 'application/json' }
+        });
+
+        const text = result.text;
+        // Strip markdown fences if present
+        const clean = text.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+        const parsed = JSON.parse(clean);
+
+        console.log('[AD-BRIEF] Analysis complete');
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(parsed));
+      } catch (err) {
+        console.error('[AD-BRIEF] Error:', err.message);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message || 'Ad brief analysis failed' }));
+      }
+    });
+    return;
+  }
+
+  // API Endpoint for ad image generation (Imagen 3)
+  if (req.method === 'POST' && req.url === '/api/generate-ad-image') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const { prompt } = JSON.parse(body);
+        const geminiKey = process.env.GEMINI_API_KEY;
+        if (!geminiKey) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'GEMINI_API_KEY is missing.' }));
+        }
+        const { GoogleGenAI } = await import('@google/genai');
+        const genAI = new GoogleGenAI({ apiKey: geminiKey });
+        console.log('[AD-IMAGE] Generating image with imagen-3.0-generate-002');
+        const response = await genAI.models.generateImages({
+          model: 'imagen-3.0-generate-002',
+          prompt,
+          config: { numberOfImages: 1, aspectRatio: '1:1', outputMimeType: 'image/jpeg' }
+        });
+        const imageBytes = response.generatedImages?.[0]?.image?.imageBytes;
+        if (!imageBytes) throw new Error('No image generated');
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ imageBase64: imageBytes }));
+      } catch (err) {
+        console.error('[AD-IMAGE] Error:', err.message);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message || 'Image generation failed' }));
+      }
+    });
+    return;
+  }
+
   // Serve static files
   let filePath = path.join(DIST_DIR, req.url === '/' ? 'index.html' : req.url);
   filePath = filePath.split('?')[0];
