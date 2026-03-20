@@ -60,7 +60,7 @@ interface AdBriefData {
 
 export function AdBrief() {
   const [briefStep, setBriefStep] = useState<'gate' | 'upload' | 'analyzing' | 'results'>(
-    () => sessionStorage.getItem('adhello-gate-passed') === '1' ? 'upload' : 'gate'
+    () => 'upload'
   );
   const [gateName, setGateName] = useState('');
   const [gateEmail, setGateEmail] = useState('');

@@ -322,7 +322,7 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
   const [status, setStatus] = useState<'idle' | 'analyzing' | 'complete'>('idle');
   // Lead gate state
   const [gateStep, setGateStep] = useState<'gate' | 'scan'>(
-    () => sessionStorage.getItem('adhello-gate-passed') === '1' ? 'scan' : 'gate'
+    () => 'scan'
   );
   const [gateName, setGateName] = useState('');
   const [gateEmail, setGateEmail] = useState('');
