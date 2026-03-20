@@ -612,6 +612,116 @@ IMPORTANT: Return only raw JSON with no markdown fences or extra text.`;
     return;
   }
 
+  // API Endpoint — email the full AEO+GEO report to the business
+  if (req.method === 'POST' && req.url === '/api/send-report') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const { name, email, url, aeoReport, geoReport } = JSON.parse(body);
+        const resendKey = process.env.RESEND_API_KEY;
+        if (!resendKey) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ ok: false, reason: 'No RESEND_API_KEY' }));
+        }
+
+        const score = aeoReport?.score ?? 0;
+        const geoScore = geoReport?.geoScore ?? 0;
+        const scoreColor = score >= 80 ? '#22c55e' : score >= 50 ? '#E8B84B' : '#ef4444';
+        const geoColor = geoScore >= 80 ? '#22c55e' : geoScore >= 50 ? '#E8B84B' : '#ef4444';
+
+        const strengthsList = (aeoReport?.strengths || []).slice(0, 3)
+          .map(s => `<li style="margin-bottom:6px;color:#374151">✅ ${s.indicator} — ${s.description}</li>`).join('');
+        const weaknessList = (aeoReport?.weaknesses || []).slice(0, 3)
+          .map(w => `<li style="margin-bottom:6px;color:#374151">⚠️ ${w.indicator} — ${w.description}</li>`).join('');
+        const quickWins = (geoReport?.quickWins || []).slice(0, 3)
+          .map(q => `<li style="margin-bottom:6px;color:#374151">🎯 <strong>${q.action}</strong> — Impact: ${q.impact}</li>`).join('');
+        const criticalIssues = (geoReport?.criticalIssues || []).slice(0, 3)
+          .map(i => `<li style="margin-bottom:6px;color:#dc2626">🚨 ${i}</li>`).join('');
+
+        const { Resend } = await import('resend');
+        const resend = new Resend(resendKey);
+
+        await resend.emails.send({
+          from: 'AdHello.ai <results@adhello.ai>',
+          to: email,
+          bcc: 'alex@adhello.ai',
+          subject: `Your Free AEO + GEO Report for ${url} — AdHello.ai`,
+          html: `
+            <div style="font-family:sans-serif;max-width:580px;margin:0 auto;padding:0;background:#f9f9f6">
+              <!-- Header -->
+              <div style="background:#0d1520;padding:32px 40px;border-radius:16px 16px 0 0;text-align:center">
+                <h1 style="color:#E8B84B;margin:0 0 6px;font-size:24px;font-weight:900">AdHello.ai</h1>
+                <p style="color:rgba(255,255,255,0.5);margin:0;font-size:13px">AI-Powered Marketing for Home Service Businesses</p>
+              </div>
+
+              <!-- Body -->
+              <div style="background:white;padding:36px 40px">
+                <h2 style="color:#0d1520;font-size:22px;margin:0 0 8px">Hi ${name},</h2>
+                <p style="color:#555;margin:0 0 24px;line-height:1.6">Here's your free AEO + GEO report for <strong>${url}</strong>. We analyzed your site for AI search readiness, citation potential, and technical optimization.</p>
+
+                <!-- Score cards -->
+                <div style="display:flex;gap:16px;margin-bottom:28px">
+                  <div style="flex:1;background:#f9f9f6;border-radius:12px;padding:20px;text-align:center;border:2px solid ${scoreColor}20">
+                    <div style="font-size:48px;font-weight:900;color:${scoreColor};line-height:1">${score}</div>
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-top:4px">AEO Score</div>
+                  </div>
+                  <div style="flex:1;background:#f9f9f6;border-radius:12px;padding:20px;text-align:center;border:2px solid ${geoColor}20">
+                    <div style="font-size:48px;font-weight:900;color:${geoColor};line-height:1">${geoScore}</div>
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-top:4px">GEO Score</div>
+                  </div>
+                </div>
+
+                <!-- Summary -->
+                ${aeoReport?.summary ? `<p style="color:#555;line-height:1.7;background:#f9f9f6;padding:16px;border-radius:10px;margin-bottom:24px">${aeoReport.summary}</p>` : ''}
+
+                ${strengthsList ? `
+                <h3 style="color:#0d1520;font-size:15px;margin:0 0 10px">✅ What's Working</h3>
+                <ul style="margin:0 0 24px;padding-left:0;list-style:none">${strengthsList}</ul>` : ''}
+
+                ${weaknessList ? `
+                <h3 style="color:#0d1520;font-size:15px;margin:0 0 10px">⚠️ Areas to Improve</h3>
+                <ul style="margin:0 0 24px;padding-left:0;list-style:none">${weaknessList}</ul>` : ''}
+
+                ${criticalIssues ? `
+                <h3 style="color:#dc2626;font-size:15px;margin:0 0 10px">🚨 Critical Issues</h3>
+                <ul style="margin:0 0 24px;padding-left:0;list-style:none">${criticalIssues}</ul>` : ''}
+
+                ${quickWins ? `
+                <h3 style="color:#0d1520;font-size:15px;margin:0 0 10px">🎯 Quick Wins</h3>
+                <ul style="margin:0 0 24px;padding-left:0;list-style:none">${quickWins}</ul>` : ''}
+
+                <!-- GEO summary -->
+                ${geoReport?.geoSummary ? `<p style="color:#555;line-height:1.7;background:#f0fdf4;padding:16px;border-radius:10px;border-left:3px solid #22c55e;margin-bottom:28px">${geoReport.geoSummary}</p>` : ''}
+
+                <!-- CTA -->
+                <div style="background:#0d1520;border-radius:14px;padding:28px;text-align:center;margin-top:8px">
+                  <p style="color:rgba(255,255,255,0.7);margin:0 0 16px;font-size:14px">Want AdHello to fix these issues and get your business showing up on Google, ChatGPT, and Perplexity?</p>
+                  <a href="https://calendar.app.google/QQsVbiAt4QdCX8mx8" style="display:inline-block;background:#E8B84B;color:#0d1520;font-weight:900;padding:14px 32px;border-radius:999px;text-decoration:none;font-size:15px">Book a Free Strategy Call →</a>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div style="padding:20px 40px;text-align:center">
+                <p style="color:#aaa;font-size:11px;margin:0">AdHello.ai · Camas, WA · <a href="https://adhello.ai" style="color:#E8B84B">adhello.ai</a></p>
+                <p style="color:#ccc;font-size:10px;margin:6px 0 0">You received this because you requested a free site audit at adhello.ai</p>
+              </div>
+            </div>
+          `
+        });
+
+        console.log(`[REPORT] Emailed report to ${email} for ${url}`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true }));
+      } catch (err) {
+        console.error('[REPORT] Email error:', err.message);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false }));
+      }
+    });
+    return;
+  }
+
   // Serve static files
   let filePath = path.join(DIST_DIR, req.url === '/' ? 'index.html' : req.url);
   filePath = filePath.split('?')[0];

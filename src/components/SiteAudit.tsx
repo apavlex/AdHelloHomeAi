@@ -443,6 +443,21 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
           if (geo.error) { setGeoStatus('error'); return; }
           setGeoReport(geo);
           setGeoStatus('complete');
+
+          // Email the full report to the business if we have their info
+          if (gateEmail && gateName) {
+            fetch('/api/send-report', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: gateName,
+                email: gateEmail,
+                url: targetUrl,
+                aeoReport: data,
+                geoReport: geo,
+              })
+            }).catch(() => {});
+          }
         })
         .catch(() => setGeoStatus('error'));
 
