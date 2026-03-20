@@ -411,7 +411,7 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000);
+      const timeoutId = setTimeout(() => controller.abort(), 55000); // 55s timeout
 
       const response = await fetch('/api/analyze', {
         method: 'POST',
@@ -480,7 +480,7 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
 
       if (error.name === 'AbortError') {
         errorMessage = "Analysis Timeout";
-        detailMessage = "The analysis took too long. Please try a different URL.";
+        detailMessage = "The AI analysis took too long (>55s). This sometimes happens on first load — please try again. If it keeps happening, the site may be blocking our scanner.";
       } else {
         try {
           const parsed = JSON.parse(error.message);

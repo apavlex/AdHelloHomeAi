@@ -373,8 +373,21 @@ If they want to talk to a human, tell them to click the phone icon in the chat h
     return;
   }
 
-  // API Endpoint for networking events — reads public iCal feed (no API key needed)
+  // API Endpoint for networking events — reads public iCal feed + hardcoded fallback
   if (req.method === 'GET' && req.url === '/api/events') {
+    // Hardcoded fallback events (always shown if still in future)
+    const FALLBACK_EVENTS = [
+      {
+        id: '01avmdgt3eamai522ls90r3ane',
+        title: 'Coffee/Tea Business Networking & AI',
+        description: 'Join fellow small business owners, founders, and professionals for an in-person networking event focused on how AI is already changing local business.',
+        location: 'Presso Coffee Co, 2011 SE 192nd Ave Ste 103, Camas, WA 98607, USA',
+        start: '2026-04-02T18:00:00-07:00',
+        end: '2026-04-02T20:00:00-07:00',
+        url: 'https://calendar.google.com/calendar/embed?src=c_02916cf18d360ab381023fabc7b420ec226d7579ae2a08ce0507e574cc1c1a96%40group.calendar.google.com&ctz=America%2FLos_Angeles'
+      }
+    ].filter(e => new Date(e.start).getTime() > Date.now());
+
     try {
       const icalUrl = 'https://calendar.google.com/calendar/ical/c_02916cf18d360ab381023fabc7b420ec226d7579ae2a08ce0507e574cc1c1a96%40group.calendar.google.com/public/basic.ics';
       const calPageUrl = 'https://calendar.google.com/calendar/embed?src=c_02916cf18d360ab381023fabc7b420ec226d7579ae2a08ce0507e574cc1c1a96%40group.calendar.google.com&ctz=America%2FLos_Angeles';
@@ -446,13 +459,14 @@ If they want to talk to a human, tell them to click the phone icon in the chat h
       // Sort by start time
       events.sort((a, b) => new Date(a.start) - new Date(b.start));
 
-      console.log(`[EVENTS] iCal parsed: ${events.length} upcoming events`);
+      const finalEvents = events.length > 0 ? events.slice(0, 5) : FALLBACK_EVENTS;
+      console.log(`[EVENTS] iCal parsed: ${events.length} events, serving: ${finalEvents.length}`);
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ events: events.slice(0, 5) }));
+      res.end(JSON.stringify({ events: finalEvents }));
     } catch (err) {
-      console.error('[EVENTS] Error:', err.message);
+      console.error('[EVENTS] iCal error:', err.message, '— using fallback');
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ events: [] }));
+      res.end(JSON.stringify({ events: FALLBACK_EVENTS }));
     }
     return;
   }
