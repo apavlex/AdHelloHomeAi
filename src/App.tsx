@@ -556,7 +556,7 @@ export default function App() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+        <div className="hand-divider hand-divider-v2"></div>
       </div>
 
       <section className="py-24 bg-warm-cream" id="comparison">
@@ -614,7 +614,7 @@ export default function App() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+        <div className="hand-divider hand-divider-v2"></div>
       </div>
 
       <section className="py-24 bg-warm-cream relative overflow-hidden" id="what-you-get">
@@ -675,7 +675,7 @@ export default function App() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+        <div className="hand-divider hand-divider-v2"></div>
       </div>
 
       <section className="py-24 bg-brand-dark text-white overflow-hidden relative">
@@ -751,7 +751,7 @@ export default function App() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+        <div className="hand-divider hand-divider-v2"></div>
       </div>
 
       <section className="py-24 bg-yellow-50/30 relative overflow-hidden" id="how-it-works">
@@ -855,7 +855,7 @@ export default function App() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+        <div className="hand-divider hand-divider-v2"></div>
       </div>
 
       <section className="bg-warm-cream py-16" id="studio">
@@ -947,14 +947,14 @@ export default function App() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v4 opacity-20"></div>
+        <div className="hand-divider hand-divider-v4"></div>
       </div>
 
       <ROICalculator />
       <SalesChatbot />
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+        <div className="hand-divider hand-divider-v2"></div>
       </div>
 
       <section className="py-24 bg-white" id="niches">
@@ -1008,7 +1008,7 @@ export default function App() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+        <div className="hand-divider hand-divider-v2"></div>
       </div>
 
       <section className="py-24 bg-yellow-50" id="testimonials">
@@ -1058,7 +1058,7 @@ export default function App() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+        <div className="hand-divider hand-divider-v2"></div>
       </div>
 
       <section className="py-24 bg-white" id="pricing">
@@ -1170,7 +1170,7 @@ export default function App() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2 opacity-20"></div>
+        <div className="hand-divider hand-divider-v2"></div>
       </div>
 
       <section className="py-24 bg-white" id="faq">
