@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Globe, Eye, Target, Sparkles, CheckCircle2, Circle, Loader2, Wrench, AlertTriangle, XCircle, Share2, Download, Link as LinkIcon, Copy, Check } from 'lucide-react';
 import { GoogleGenAI, Type } from '@google/genai';
-// @ts-ignore
-import html2pdf from 'html2pdf.js';
 
 interface AuditCheck {
   label: string;
@@ -165,69 +163,87 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
   const handleShare = () => {
     if (!report) return;
     try {
-      // Use UTF-8 safe base64 encoding
       const jsonStr = JSON.stringify(report);
-      const encoded = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (_, p1) => 
+      const encoded = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (_, p1) =>
         String.fromCharCode(parseInt(p1, 16))
       ));
       const shareUrl = `${window.location.origin}${window.location.pathname}?report=${encoded}`;
-      
-      navigator.clipboard.writeText(shareUrl).then(() => {
+
+      // Try clipboard API first, fall back to textarea trick
+      const copyToClipboard = (text: string) => {
+        if (navigator.clipboard && window.isSecureContext) {
+          return navigator.clipboard.writeText(text);
+        }
+        // Fallback for non-HTTPS or restricted contexts
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        return Promise.resolve();
+      };
+
+      copyToClipboard(shareUrl).then(() => {
         setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
+        setTimeout(() => setCopySuccess(false), 2500);
+      }).catch(err => {
+        console.error("Clipboard failed:", err);
+        // Last resort: prompt user to copy manually
+        window.prompt("Copy this link:", shareUrl);
       });
     } catch (err) {
       console.error("Failed to share report", err);
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     if (!reportRef.current || !report) return;
-    
     setIsDownloading(true);
-    try {
-      const element = reportRef.current;
-      const opt = {
-        margin: [10, 10] as [number, number],
-        filename: `AEO-Report-${report.url?.replace(/https?:\/\//, '').replace(/\//g, '-') || 'site'}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { 
-          scale: 2, 
-          useCORS: true,
-          logging: false,
-          backgroundColor: isStudio ? '#121417' : '#ffffff',
-          onclone: (clonedDoc: Document) => {
-            // Remove oklch color functions which html2canvas doesn't support
-            const elements = clonedDoc.getElementsByTagName('*');
-            for (let i = 0; i < elements.length; i++) {
-              const el = elements[i] as HTMLElement;
-              const style = window.getComputedStyle(el);
-              
-              // Check common color properties
-              ['color', 'backgroundColor', 'borderColor'].forEach(prop => {
-                const val = (el.style as any)[prop] || style.getPropertyValue(prop);
-                if (val && val.includes('oklch')) {
-                  // Fallback to a safe color if oklch is detected
-                  if (prop === 'color') el.style.color = '#2d3436';
-                  if (prop === 'backgroundColor') el.style.backgroundColor = 'transparent';
-                  if (prop === 'borderColor') el.style.borderColor = '#eeeeee';
-                }
-              });
-            }
-          }
-        },
-        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
-      };
 
-      await html2pdf().set(opt).from(element).save();
-    } catch (err) {
-      console.error("Failed to generate PDF", err);
-      alert("PDF generation failed due to modern CSS features. Opening print dialog as a fallback...");
-      // Fallback to print if library fails
-      window.print();
-    } finally {
-      setIsDownloading(false);
+    // Inject a temporary print stylesheet that overrides oklch/Tailwind v4 colors
+    const styleId = 'adhello-print-style';
+    let style = document.getElementById(styleId) as HTMLStyleElement | null;
+    if (!style) {
+      style = document.createElement('style');
+      style.id = styleId;
+      document.head.appendChild(style);
     }
+    style.textContent = `
+      @media print {
+        body * { visibility: hidden; }
+        #audit-report-print, #audit-report-print * { visibility: visible; }
+        #audit-report-print { position: fixed; top: 0; left: 0; width: 100%; }
+        * {
+          color: #1a1a1a !important;
+          background-color: #ffffff !important;
+          border-color: #e0e0e0 !important;
+          box-shadow: none !important;
+        }
+        .text-white { color: #1a1a1a !important; }
+        .bg-brand-dark, .bg-primary { background-color: #f5f5f5 !important; }
+        .text-primary { color: #b8922a !important; }
+        .print\:hidden { display: none !important; }
+        @page { margin: 15mm; size: A4; }
+      }
+    `;
+
+    // Mark the report element
+    if (reportRef.current) {
+      reportRef.current.id = 'audit-report-print';
+    }
+
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => {
+        if (style) style.textContent = '';
+        if (reportRef.current) reportRef.current.removeAttribute('id');
+        setIsDownloading(false);
+      }, 1000);
+    }, 200);
   };
 
   const renderSteps = () => {
