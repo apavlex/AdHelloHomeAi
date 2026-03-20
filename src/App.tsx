@@ -254,6 +254,39 @@ export default function App() {
     }, 1000);
   };
 
+  const homeSchema = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": "https://adhello.ai/#website",
+      "url": "https://adhello.ai/",
+      "name": "AdHello.ai",
+      "description": "AI-powered websites and marketing for local home service businesses.",
+      "publisher": { "@id": "https://adhello.ai/#organization" }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      "@id": "https://adhello.ai/#service",
+      "name": "AdHello.ai",
+      "url": "https://adhello.ai/",
+      "telephone": "+1-360-773-1505",
+      "description": "AI-powered websites and marketing for local home service businesses — painters, electricians, plumbers, roofers, flooring and movers.",
+      "areaServed": { "@type": "GeoCircle", "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 45.5231, "longitude": -122.6765 }, "geoRadius": "80000" },
+      "serviceType": ["Website Design", "Local SEO", "AI Search Optimization", "Lead Generation"]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What is AdHello.ai?", "acceptedAnswer": { "@type": "Answer", "text": "AdHello.ai builds AI-powered websites and handles local SEO and AEO for home service businesses — painters, electricians, plumbers, roofers, flooring companies, and movers." } },
+        { "@type": "Question", "name": "How does AdHello.ai get more leads for contractors?", "acceptedAnswer": { "@type": "Answer", "text": "AdHello.ai builds a professional website optimized for Google and AI search engines like ChatGPT and Perplexity, so local customers find your business first." } },
+        { "@type": "Question", "name": "Does AdHello.ai work for painters and electricians?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. AdHello.ai specializes in home service businesses including painters, electricians, plumbers, HVAC, roofers, flooring contractors, and movers." } },
+        { "@type": "Question", "name": "What is AEO and why does it matter for contractors?", "acceptedAnswer": { "@type": "Answer", "text": "AEO (Answer Engine Optimization) makes your business appear as a trusted answer in AI-powered search results on ChatGPT, Perplexity, and Google AI Overviews — not just traditional search." } }
+      ]
+    }
+  ];
+
   return (
     <div className="selection:bg-primary/40">
       <SEO
