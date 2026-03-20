@@ -447,6 +447,115 @@ If they want to talk to a human, tell them to click the phone icon in the chat h
     return;
   }
 
+  // API Endpoint for GEO (Generative Engine Optimization) audit
+  if (req.method === 'POST' && req.url === '/api/geo-analyze') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      const globalTimeout = setTimeout(() => {
+        if (!res.writableEnded) {
+          res.writeHead(503, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'GEO analysis timeout', detail: 'Analysis took too long. Please try again.' }));
+        }
+      }, 28000);
+
+      try {
+        const { url } = JSON.parse(body);
+        if (!url) {
+          clearTimeout(globalTimeout);
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'URL is required' }));
+        }
+
+        if (!GEMINI_API_KEY) {
+          clearTimeout(globalTimeout);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'GEMINI_API_KEY is missing.' }));
+        }
+
+        console.log(`[GEO] Starting GEO audit for: ${url}`);
+
+        const geoPrompt = `You are an expert in GEO (Generative Engine Optimization) — the practice of optimizing websites to be cited by AI-powered search engines like ChatGPT, Perplexity, Gemini, and Google AI Overviews.
+
+Analyze the website at this URL: ${url}
+
+Based on what you know or can infer about this site, provide a comprehensive GEO audit. Return ONLY valid JSON with this exact structure:
+
+{
+  "geoScore": number (0-100, the overall GEO readiness score),
+  "citabilityScore": number (0-100),
+  "brandAuthorityScore": number (0-100),
+  "eeeatScore": number (0-100),
+  "technicalScore": number (0-100),
+  "schemaScore": number (0-100),
+  "platformScore": number (0-100),
+  "geoSummary": "string (2-3 sentence executive summary of GEO health)",
+  "crawlerAccess": [
+    { "name": "GPTBot", "operator": "OpenAI", "status": "allowed" or "blocked" or "unknown", "impact": "string" },
+    { "name": "ClaudeBot", "operator": "Anthropic", "status": "allowed" or "blocked" or "unknown", "impact": "string" },
+    { "name": "PerplexityBot", "operator": "Perplexity", "status": "allowed" or "blocked" or "unknown", "impact": "string" },
+    { "name": "Google-Extended", "operator": "Google", "status": "allowed" or "blocked" or "unknown", "impact": "string" },
+    { "name": "Applebot-Extended", "operator": "Apple", "status": "allowed" or "blocked" or "unknown", "impact": "string" }
+  ],
+  "platformReadiness": [
+    { "platform": "Google AI Overviews", "score": number, "gap": "string", "action": "string" },
+    { "platform": "ChatGPT Search", "score": number, "gap": "string", "action": "string" },
+    { "platform": "Perplexity AI", "score": number, "gap": "string", "action": "string" },
+    { "platform": "Gemini", "score": number, "gap": "string", "action": "string" }
+  ],
+  "criticalIssues": ["string", "string"],
+  "quickWins": [
+    { "action": "string", "impact": "High" or "Medium", "effort": "string" },
+    { "action": "string", "impact": "High" or "Medium", "effort": "string" },
+    { "action": "string", "impact": "High" or "Medium", "effort": "string" }
+  ],
+  "llmsTxtStatus": "present" or "missing" or "unknown",
+  "schemaTypes": ["string"],
+  "missingSchemas": ["string"],
+  "brandPresence": {
+    "wikipedia": "present" or "missing",
+    "wikidata": "present" or "missing",
+    "youtube": "present" or "missing",
+    "reddit": "present" or "missing",
+    "linkedin": "present" or "missing"
+  }
+}
+
+IMPORTANT: Return only raw JSON with no markdown fences or extra text.`;
+
+        const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        const geoPromise = genAI.models.generateContent({
+          model: 'gemini-2.0-flash',
+          contents: [{ role: 'user', parts: [{ text: geoPrompt }] }],
+          config: { responseMimeType: 'application/json' }
+        });
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('GeminiTimeout')), 20000));
+
+        const result = await Promise.race([geoPromise, timeoutPromise]);
+        const raw = result.text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+
+        try {
+          JSON.parse(raw);
+        } catch (e) {
+          throw new Error('AI returned invalid JSON for GEO report');
+        }
+
+        if (res.writableEnded) return;
+        clearTimeout(globalTimeout);
+        console.log('[GEO] Audit complete');
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(raw);
+      } catch (err) {
+        if (res.writableEnded) return;
+        clearTimeout(globalTimeout);
+        console.error('[GEO] Error:', err.message);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'GEO analysis failed', detail: err.message }));
+      }
+    });
+    return;
+  }
+
   // Serve static files
   let filePath = path.join(DIST_DIR, req.url === '/' ? 'index.html' : req.url);
   filePath = filePath.split('?')[0];
