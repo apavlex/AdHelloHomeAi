@@ -554,11 +554,6 @@ export default function App() {
           </div>
         </div>
       </section>
-
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2"></div>
-      </div>
-
       <section className="py-24 bg-warm-cream" id="comparison">
         <div className="max-w-6xl mx-auto px-4 w-full">
           <div className="text-center mb-16">
@@ -612,11 +607,6 @@ export default function App() {
           </div>
         </div>
       </section>
-
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2"></div>
-      </div>
-
       <section className="py-24 bg-warm-cream relative overflow-hidden" id="what-you-get">
         <div className="max-w-7xl mx-auto px-4 relative z-10 w-full">
           <div className="text-center mb-16">
@@ -673,11 +663,6 @@ export default function App() {
           </div>
         </div>
       </section>
-
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2"></div>
-      </div>
-
       <section className="py-24 bg-brand-dark text-white overflow-hidden relative">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
         <div className="max-w-7xl mx-auto px-4 relative z-10">
@@ -749,11 +734,6 @@ export default function App() {
           </div>
         </div>
       </section>
-
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2"></div>
-      </div>
-
       <section className="py-24 bg-yellow-50/30 relative overflow-hidden" id="how-it-works">
         {/* Background decorative elements */}
         <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
@@ -853,11 +833,6 @@ export default function App() {
           </div>
         </div>
       </section>
-
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2"></div>
-      </div>
-
       <section className="bg-warm-cream py-16" id="studio">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-center mb-6">
@@ -945,18 +920,8 @@ export default function App() {
           </div>
         </div>
       </section>
-
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v4"></div>
-      </div>
-
       <ROICalculator />
       <SalesChatbot />
-
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2"></div>
-      </div>
-
       <section className="py-24 bg-white" id="niches">
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="text-center mb-16">
@@ -1006,11 +971,6 @@ export default function App() {
           </div>
         </div>
       </section>
-
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2"></div>
-      </div>
-
       <section className="py-24 bg-yellow-50" id="testimonials">
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="text-center mb-16">
@@ -1056,11 +1016,6 @@ export default function App() {
           </div>
         </div>
       </section>
-
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2"></div>
-      </div>
-
       <section className="py-24 bg-white" id="pricing">
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="text-center mb-16">
@@ -1168,11 +1123,6 @@ export default function App() {
           </div>
         </div>
       </section>
-
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="hand-divider hand-divider-v2"></div>
-      </div>
-
       <section className="py-24 bg-white" id="faq">
         <div className="max-w-4xl mx-auto px-4 w-full">
           <div className="text-center mb-12">
