@@ -51,6 +51,7 @@ const MIME_TYPES = {
 
 const server = http.createServer(async (req, res) => {
   console.log(`${req.method} ${req.url}`);
+  // v2.1 — iCal events + GEO audit + lead gate + email
 
   // API Endpoint for website analysis
   if (req.method === 'POST' && req.url === '/api/analyze') {
@@ -378,6 +379,7 @@ If they want to talk to a human, tell them to click the phone icon in the chat h
       }
 
       const ical = await response.text();
+      console.log('[EVENTS] iCal length:', ical.length, 'chars, contains VEVENT:', ical.includes('VEVENT'));
       const now = Date.now();
       const events = [];
 
