@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, X, Send, Phone, Loader2, Sparkles, Calendar } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
-
 interface Message {
   role: 'user' | 'model';
   text: string;
@@ -32,45 +30,28 @@ export function SalesChatbot() {
 
     const userMessage = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+    const updatedMessages = [...messages, { role: 'user' as const, text: userMessage }];
+    setMessages(updatedMessages);
     setIsLoading(true);
 
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error("API Key missing");
-      }
-
-      const ai = new GoogleGenAI({ apiKey });
-      const chat = ai.chats.create({
-        model: "gemini-3-flash-preview",
-        config: {
-          systemInstruction: `You are a helpful, professional, and friendly sales assistant for AdHello.ai. 
-          AdHello.ai provides smart websites, AI Webchat, and AI Growth Coaching for home service businesses (HVAC, Plumbing, Electrical, Roofing, etc.).
-          
-          YOUR GOAL: Discover the user's needs and guide them to book a demo meeting.
-          
-          DISCOVERY QUESTIONS TO ASK:
-          - What kind of home service business do you run?
-          - How are you currently getting leads?
-          - What is your biggest challenge with your current website or marketing?
-          
-          Once you understand their pain points, explain how AdHello solves them (e.g., 24/7 lead capture, SEO automation, sites live in 7 days) and suggest booking a demo.
-          
-          FORMATTING RULES:
-          - DO NOT use markdown bolding (like **text**).
-          - Use plain text only.
-          - Keep responses concise and conversational.
-          
-          If they want to talk to a human, tell them they can click the phone icon in the chat header or call (360) 773-1505.`,
-        },
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: messages, // send history for context
+          userMessage
+        })
       });
 
-      const result = await chat.sendMessage({ message: userMessage });
-      const responseText = result.text;
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || `Server error ${response.status}`);
+      }
 
-      setMessages(prev => [...prev, { role: 'model', text: responseText }]);
-    } catch (error) {
+      const { text } = await response.json();
+      setMessages(prev => [...prev, { role: 'model', text }]);
+    } catch (error: any) {
       console.error("Chat error:", error);
       setMessages(prev => [...prev, { role: 'model', text: "I'm sorry, I'm having a little trouble connecting right now. Please try again or call us at (360) 773-1505!" }]);
     } finally {

@@ -304,6 +304,66 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // API Endpoint for sales chatbot
+  if (req.method === 'POST' && req.url === '/api/chat') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const { messages, userMessage } = JSON.parse(body);
+        const geminiKey = process.env.GEMINI_API_KEY;
+        if (!geminiKey) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'GEMINI_API_KEY is missing.' }));
+        }
+        const { GoogleGenAI } = await import('@google/genai');
+        const genAI = new GoogleGenAI({ apiKey: geminiKey });
+
+        const systemInstruction = `You are a helpful, professional, and friendly sales assistant for AdHello.ai.
+AdHello.ai provides smart websites, AI-powered local SEO, and AEO optimization for home service businesses (HVAC, Plumbing, Electrical, Roofing, Flooring, Painting, etc.).
+
+YOUR GOAL: Discover the user needs and guide them to book a demo meeting.
+
+DISCOVERY QUESTIONS TO ASK:
+- What kind of home service business do you run?
+- How are you currently getting leads?
+- What is your biggest challenge with your current website or marketing?
+
+Once you understand their pain points, explain how AdHello solves them (e.g., 24/7 lead capture, SEO automation, AI search optimization, sites live in 7 days) and suggest booking a demo at https://calendar.app.google/QQsVbiAt4QdCX8mx8
+
+FORMATTING RULES:
+- DO NOT use markdown bolding (like **text**).
+- Use plain text only.
+- Keep responses concise and conversational (2-3 sentences max).
+
+If they want to talk to a human, tell them to click the phone icon in the chat header or call (360) 773-1505.`;
+
+        // Build conversation history for context
+        const history = (messages || []).map(m => ({
+          role: m.role === 'user' ? 'user' : 'model',
+          parts: [{ text: m.text }]
+        }));
+
+        const result = await genAI.models.generateContent({
+          model: 'gemini-2.0-flash',
+          contents: [
+            { role: 'user', parts: [{ text: systemInstruction + '\n\nConversation so far:\n' + history.map(h => h.role + ': ' + h.parts[0].text).join('\n') + '\n\nUser: ' + userMessage }] }
+          ]
+        });
+
+        const responseText = result.text;
+        console.log('[CHAT] Response generated');
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ text: responseText }));
+      } catch (err) {
+        console.error('[CHAT] Error:', err.message);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
   // Serve static files
   let filePath = path.join(DIST_DIR, req.url === '/' ? 'index.html' : req.url);
   filePath = filePath.split('?')[0];
