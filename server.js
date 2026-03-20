@@ -556,19 +556,57 @@ IMPORTANT: Return only raw JSON with no markdown fences or extra text.`;
     return;
   }
 
-  // API Endpoint — capture site audit leads
+  // API Endpoint — capture site audit leads and email notification
   if (req.method === 'POST' && req.url === '/api/lead') {
     let body = '';
     req.on('data', chunk => { body += chunk.toString(); });
     req.on('end', async () => {
       try {
         const { name, email, source } = JSON.parse(body);
-        console.log(`[LEAD] New lead: ${name} <${email}> via ${source || 'unknown'}`);
+        const ts = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+        console.log(`[LEAD] New lead: ${name} <${email}> via ${source || 'unknown'} at ${ts}`);
 
-        // Send notification email via Gemini (simple log for now — add email service later)
-        // Store in memory log with timestamp
-        const lead = { name, email, source, ts: new Date().toISOString() };
-        console.log('[LEAD] Captured:', JSON.stringify(lead));
+        // Send email via Gmail SMTP using App Password
+        const gmailUser = process.env.GMAIL_USER || 'alex@adhello.ai';
+        const gmailPass = process.env.GMAIL_APP_PASSWORD;
+
+        if (gmailPass) {
+          try {
+            const nodemailer = await import('nodemailer');
+            const transporter = nodemailer.default.createTransport({
+              service: 'gmail',
+              auth: { user: gmailUser, pass: gmailPass }
+            });
+
+            await transporter.sendMail({
+              from: `AdHello.ai Leads <${gmailUser}>`,
+              to: 'alex@adhello.ai',
+              subject: `🔥 New Lead: ${name} — Site Audit Request`,
+              html: `
+                <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+                  <div style="background:#0d1520;border-radius:16px;padding:24px;margin-bottom:16px">
+                    <h2 style="color:#E8B84B;margin:0 0 4px;font-size:20px">New Site Audit Lead</h2>
+                    <p style="color:rgba(255,255,255,0.5);margin:0;font-size:13px">via AdHello.ai — ${source || 'site-audit'}</p>
+                  </div>
+                  <table style="width:100%;border-collapse:collapse">
+                    <tr><td style="padding:12px 0;border-bottom:1px solid #f0f0f0;color:#666;font-size:13px;width:120px">Business</td><td style="padding:12px 0;border-bottom:1px solid #f0f0f0;font-weight:700;color:#0d1520">${name}</td></tr>
+                    <tr><td style="padding:12px 0;border-bottom:1px solid #f0f0f0;color:#666;font-size:13px">Email</td><td style="padding:12px 0;border-bottom:1px solid #f0f0f0;font-weight:700;color:#0d1520"><a href="mailto:${email}" style="color:#E8B84B">${email}</a></td></tr>
+                    <tr><td style="padding:12px 0;color:#666;font-size:13px">Time</td><td style="padding:12px 0;font-weight:700;color:#0d1520">${ts} PT</td></tr>
+                  </table>
+                  <div style="margin-top:20px">
+                    <a href="mailto:${email}?subject=Your AdHello.ai Site Audit&body=Hi ${name}," style="display:inline-block;background:#E8B84B;color:#0d1520;font-weight:900;padding:12px 24px;border-radius:999px;text-decoration:none;font-size:14px">Reply to ${name} →</a>
+                  </div>
+                  <p style="color:#aaa;font-size:11px;margin-top:20px">AdHello.ai · Camas, WA</p>
+                </div>
+              `
+            });
+            console.log('[LEAD] Email notification sent to alex@adhello.ai');
+          } catch (emailErr) {
+            console.error('[LEAD] Email send failed:', emailErr.message);
+          }
+        } else {
+          console.log('[LEAD] GMAIL_APP_PASSWORD not set — skipping email notification');
+        }
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: true }));
