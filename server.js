@@ -620,21 +620,21 @@ IMPORTANT: Return only raw JSON with no markdown fences or extra text.`;
     req.on('data', chunk => { body += chunk.toString(); });
     req.on('end', async () => {
       try {
-        const { name, email, url, geoReport, geoReport } = JSON.parse(body);
+        const { name, email, url, aeoReport, geoReport } = JSON.parse(body);
         const resendKey = process.env.RESEND_API_KEY;
         if (!resendKey) {
           res.writeHead(200, { 'Content-Type': 'application/json' });
           return res.end(JSON.stringify({ ok: false, reason: 'No RESEND_API_KEY' }));
         }
 
-        const score = geoReport?.score ?? 0;
+        const score = aeoReport?.score ?? 0;
         const geoScore = geoReport?.geoScore ?? 0;
         const scoreColor = score >= 80 ? '#22c55e' : score >= 50 ? '#E8B84B' : '#ef4444';
         const geoColor = geoScore >= 80 ? '#22c55e' : geoScore >= 50 ? '#E8B84B' : '#ef4444';
 
-        const strengthsList = (geoReport?.strengths || []).slice(0, 3)
+        const strengthsList = (aeoReport?.strengths || []).slice(0, 3)
           .map(s => `<li style="margin-bottom:6px;color:#374151">✅ ${s.indicator} — ${s.description}</li>`).join('');
-        const weaknessList = (geoReport?.weaknesses || []).slice(0, 3)
+        const weaknessList = (aeoReport?.weaknesses || []).slice(0, 3)
           .map(w => `<li style="margin-bottom:6px;color:#374151">⚠️ ${w.indicator} — ${w.description}</li>`).join('');
         const quickWins = (geoReport?.quickWins || []).slice(0, 3)
           .map(q => `<li style="margin-bottom:6px;color:#374151">🎯 <strong>${q.action}</strong> — Impact: ${q.impact}</li>`).join('');
@@ -675,7 +675,7 @@ IMPORTANT: Return only raw JSON with no markdown fences or extra text.`;
                 </div>
 
                 <!-- Summary -->
-                ${geoReport?.summary ? `<p style="color:#555;line-height:1.7;background:#f9f9f6;padding:16px;border-radius:10px;margin-bottom:24px">${geoReport.summary}</p>` : ''}
+                ${aeoReport?.summary ? `<p style="color:#555;line-height:1.7;background:#f9f9f6;padding:16px;border-radius:10px;margin-bottom:24px">${aeoReport.summary}</p>` : ''}
 
                 ${strengthsList ? `
                 <h3 style="color:#0d1520;font-size:15px;margin:0 0 10px">✅ What's Working</h3>
