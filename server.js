@@ -364,20 +364,32 @@ If they want to talk to a human, tell them to click the phone icon in the chat h
     return;
   }
 
-  // API Endpoint for networking events from Google Calendar (public iCal feed — no API key needed)
+  // API Endpoint for networking events — reads from EVENTS_JSON env var (set in Cloud Run)
+  // Falls back to fetching from Google Calendar API if env var not set
   if (req.method === 'GET' && req.url === '/api/events') {
     try {
+      // Primary: read from env var (set manually in Cloud Run for reliability)
+      const eventsJson = process.env.EVENTS_JSON;
+      if (eventsJson) {
+        const events = JSON.parse(eventsJson);
+        const now = Date.now();
+        const upcoming = events.filter(e => new Date(e.start).getTime() > now);
+        console.log(`[EVENTS] Serving ${upcoming.length} events from EVENTS_JSON env`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ events: upcoming }));
+      }
+
+      // Fallback: try Google Calendar API
       const calendarId = 'c_02916cf18d360ab381023fabc7b420ec226d7579ae2a08ce0507e574cc1c1a96%40group.calendar.google.com';
-      // Use public iCal/json feed — works without API key on public calendars
+      const apiKey = process.env.GEMINI_API_KEY;
       const now = new Date().toISOString();
       const maxTime = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString();
-      const calUrl = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=AIzaSyDtMMD5stD7xGB6xnRGGVMkxM0HwM1TrhQ&timeMin=${now}&timeMax=${maxTime}&singleEvents=true&orderBy=startTime&maxResults=5`;
+      const calUrl = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=${apiKey}&timeMin=${now}&timeMax=${maxTime}&singleEvents=true&orderBy=startTime&maxResults=5`;
 
       const response = await fetch(calUrl);
-
       if (!response.ok) {
         const errText = await response.text();
-        console.log('[EVENTS] Calendar API error:', response.status, errText.slice(0, 200));
+        console.log('[EVENTS] Calendar API error:', response.status, errText.slice(0, 300));
         res.writeHead(200, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ events: [] }));
       }
@@ -393,7 +405,7 @@ If they want to talk to a human, tell them to click the phone icon in the chat h
         url: e.htmlLink || `https://calendar.google.com/calendar/embed?src=${calendarId}&ctz=America%2FLos_Angeles`
       }));
 
-      console.log(`[EVENTS] Fetched ${events.length} upcoming events`);
+      console.log(`[EVENTS] Calendar API returned ${events.length} events`);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ events }));
     } catch (err) {
