@@ -320,22 +320,21 @@ function GeoReportPanel({ geo, isStudio }: { geo: GeoReport; isStudio: boolean }
 export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
   const [url, setUrl] = useState('');
   const [status, setStatus] = useState<'idle' | 'analyzing' | 'complete'>('idle');
-  // Email capture modal state
+  const [progress, setProgress] = useState(0);
+  const [report, setReport] = useState<Report | null>(null);
+  const [geoReport, setGeoReport] = useState<GeoReport | null>(null);
+  const [geoStatus, setGeoStatus] = useState<'idle' | 'loading' | 'complete' | 'error'>('idle');
+  const [activeTab, setActiveTab] = useState<'aeo' | 'geo'>('aeo');
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  // Email capture modal
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [modalName, setModalName] = useState('');
   const [modalEmail, setModalEmail] = useState('');
   const [modalSubmitting, setModalSubmitting] = useState(false);
   const [modalDone, setModalDone] = useState(false);
-  // Aliases so report-email code still works
   const gateName = modalName;
   const gateEmail = modalEmail;
-  const [progress, setProgress] = useState(0);
-  const [report, setReport] = useState<Report | null>(null);
-  const [geoReport, setGeoReport] = useState<GeoReport | null>(null);
-  const [geoStatus, setGeoStatus] = useState<'idle' | 'loading' | 'complete' | 'error'>('idle');
-  // (tab state removed — single combined report)
-  const [copySuccess, setCopySuccess] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -360,14 +359,11 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
     if (status === 'analyzing') {
       interval = setInterval(() => {
         setProgress((prev) => {
-          if (prev >= 99) return 99;
-          // Slow down as we approach 99 — keeps bar moving without false finish
-          if (prev >= 90) return prev + 0.2;
-          if (prev >= 75) return prev + 0.8;
-          if (prev >= 50) return prev + 1.5;
-          return prev + 3;
+          if (prev >= 99) { clearInterval(interval); return 99; }
+          if (prev >= 95) return prev + 0.1;
+          return prev + 5;
         });
-      }, 400);
+      }, 500);
     }
     return () => clearInterval(interval);
   }, [status]);
@@ -376,14 +372,13 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
 
   const handleModalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!gateName.trim() || !gateEmail.trim()) return;
+    if (!modalName.trim() || !modalEmail.trim()) return;
     setModalSubmitting(true);
     try {
-      // Send lead to server
       await fetch('/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: gateName, email: gateEmail, source: 'site-audit' })
+        body: JSON.stringify({ name: modalName, email: modalEmail, source: 'site-audit' })
       });
     } catch (_) {}
     sessionStorage.setItem('adhello-gate-passed', '1');
@@ -407,16 +402,16 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
     setGeoReport(null);
     setGeoStatus('idle');
     setErrorInfo(null);
-    setActiveTab('geo');
+    setActiveTab('aeo');
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 55000); // 55s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 45000);
 
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: targetUrl, lite: false }),
+        body: JSON.stringify({ url: targetUrl }),
         signal: controller.signal,
       });
 
@@ -436,7 +431,6 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
       setProgress(100);
       setReport(data);
       setStatus('complete');
-      // Show email capture modal after 3s if not already done
       if (!sessionStorage.getItem('adhello-gate-passed')) {
         setTimeout(() => setShowEmailModal(true), 3000);
       }
@@ -453,19 +447,11 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
           if (geo.error) { setGeoStatus('error'); return; }
           setGeoReport(geo);
           setGeoStatus('complete');
-
-          // Email the full report to the business if we have their info
           if (gateEmail && gateName) {
             fetch('/api/send-report', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                name: gateName,
-                email: gateEmail,
-                url: targetUrl,
-                geoReport: data,
-                geoReport: geo,
-              })
+              body: JSON.stringify({ name: gateName, email: gateEmail, url: targetUrl, aeoReport: data, geoReport: geo })
             }).catch(() => {});
           }
         })
@@ -480,7 +466,7 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
 
       if (error.name === 'AbortError') {
         errorMessage = "Analysis Timeout";
-        detailMessage = "The AI analysis took too long (>55s). This sometimes happens on first load — please try again. If it keeps happening, the site may be blocking our scanner.";
+        detailMessage = "The analysis took too long. Please try a different URL.";
       } else {
         try {
           const parsed = JSON.parse(error.message);
@@ -603,14 +589,13 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
           </div>
         )}
 
-        {/* ── GATE FORM ── */}
         {status === 'idle' && !errorInfo && (
           <div className="text-center animate-in fade-in duration-500">
             <h2 className={`text-5xl md:text-6xl font-extrabold mb-4 ${isStudio ? 'text-white' : 'text-brand-dark'}`}>
               Get Found by <span className="text-primary">AI & Customers</span>
             </h2>
             <p className={`text-lg md:text-xl max-w-2xl mx-auto mb-6 leading-relaxed ${isStudio ? 'text-white/60' : 'text-brand-dark/70'}`}>
-              Analyze your website for GEO readiness, AI search visibility, and GEO optimization — all in one scan.
+              Analyze your website for AEO readiness, AI search visibility, and GEO optimization — all in one scan.
             </p>
             <div className={`${isStudio ? 'bg-[#1C1F26] border-white/5' : 'bg-white border-gray-100 shadow-xl'} rounded-[2.5rem] p-6 md:p-8 mb-8 border text-left`}>
               <div className="flex items-center gap-3 mb-6">
@@ -634,7 +619,7 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
               {[
                 { icon: <Eye className="w-6 h-6 text-primary mb-4" />, title: 'Brand Analysis', desc: 'Understand your positioning and messaging' },
-                { icon: <Target className="w-6 h-6 text-primary mb-4" />, title: 'GEO Audit', desc: 'Score your AI search readiness across 6 dimensions' },
+                { icon: <Target className="w-6 h-6 text-primary mb-4" />, title: 'AEO + GEO Audit', desc: 'Score your AI search readiness across 6 dimensions' },
                 { icon: <Sparkles className="w-6 h-6 text-primary mb-4" />, title: 'AI Search Ready', desc: 'Optimize for ChatGPT, Perplexity & AI Overviews' }
               ].map((feature, i) => (
                 <div key={i} className={`${isStudio ? 'bg-[#1C1F26] border-white/5' : 'bg-white border-gray-100 shadow-sm'} rounded-3xl p-6 border`}>
@@ -673,7 +658,7 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
             <div className="hidden print:block mb-10 border-b-2 border-primary pb-6">
               <div className="flex justify-between items-end">
                 <div>
-                  <h1 className="text-4xl font-black text-brand-dark mb-2">GEO Readiness Report</h1>
+                  <h1 className="text-4xl font-black text-brand-dark mb-2">AEO + GEO Readiness Report</h1>
                   <p className="text-brand-dark/60 font-bold">{report.url || url}</p>
                 </div>
                 <div className="text-right">
@@ -701,16 +686,28 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
               </div>
             </div>
 
-            {/* GEO loading indicator (inline, no tab) */}
-            {geoStatus === 'loading' && (
-              <div className={`flex items-center gap-2 mb-4 px-4 py-2 rounded-full w-fit text-xs font-bold ${isStudio ? 'bg-white/5 text-white/50' : 'bg-primary/10 text-brand-dark/60'}`}>
-                <Loader2 className="w-3 h-3 animate-spin text-primary" />
-                Running GEO analysis in background...
-              </div>
-            )}
+            {/* Tab switcher: AEO | GEO */}
+            <div className="flex items-center gap-2 mb-6 print:hidden">
+              <button
+                onClick={() => setActiveTab('aeo')}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-black transition-all ${activeTab === 'aeo' ? 'bg-brand-dark text-white shadow-lg' : `${isStudio ? 'bg-white/5 text-white/40' : 'bg-white text-brand-dark/40 border border-gray-100'} hover:text-brand-dark`}`}
+              >
+                <Target className="w-4 h-4" /> AEO Report
+              </button>
+              <button
+                onClick={() => setActiveTab('geo')}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-black transition-all ${activeTab === 'geo' ? 'bg-brand-dark text-white shadow-lg' : `${isStudio ? 'bg-white/5 text-white/40' : 'bg-white text-brand-dark/40 border border-gray-100'} hover:text-brand-dark`}`}
+              >
+                <Bot className="w-4 h-4" />
+                GEO Report
+                {geoStatus === 'loading' && <Loader2 className="w-3 h-3 animate-spin" />}
+                {geoStatus === 'complete' && <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />}
+              </button>
+            </div>
 
-            {/* ── AEO REPORT ── */}
-            <>
+            {/* ── AEO TAB ── */}
+            {activeTab === 'aeo' && (
+              <>
                 <div className={`${isStudio ? 'bg-[#1C1F26] border-white/5' : 'bg-white border-gray-100 shadow-xl'} rounded-[2.5rem] p-8 border mb-8 print:shadow-none print:border-none`}>
                   <div className={`flex flex-col md:flex-row items-center gap-8 mb-8 pb-8 border-b ${isStudio ? 'border-white/5' : 'border-gray-100'}`}>
                     <div className="relative w-32 h-32 shrink-0">
@@ -725,7 +722,7 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
                     </div>
                     <div>
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className={`text-2xl font-extrabold ${isStudio ? 'text-white' : 'text-brand-dark'}`}>GEO Readiness Score</h3>
+                        <h3 className={`text-2xl font-extrabold ${isStudio ? 'text-white' : 'text-brand-dark'}`}>AEO Readiness Score</h3>
                         {report.score < 70 && <span className="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter animate-pulse print:hidden">Critical Action Required</span>}
                       </div>
                       <p className={`text-sm font-bold mb-2 flex items-center gap-1 ${isStudio ? 'text-primary' : 'text-brand-dark/40'}`}><Globe className="w-3 h-3" />{report.url || url}</p>
@@ -835,44 +832,42 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
                     Get Expert Help Implementing This <Sparkles className="w-5 h-5" />
                   </button>
                 </div>
-            </>
-
-            {/* ── GEO REPORT (shown below AEO when ready) ── */}
-            {(geoStatus === 'complete' && geoReport) && (
-              <GeoReportPanel geo={geoReport} isStudio={isStudio} />
+              </>
             )}
-            {geoStatus === 'error' && (
-              <div className={`mt-6 flex items-center gap-3 px-5 py-4 rounded-2xl border ${isStudio ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-100 text-red-500'}`}>
-                <XCircle className="w-5 h-5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-bold">GEO analysis failed</p>
-                  <p className="text-xs opacity-70">The GEO report could not be generated. AEO results above are still valid.</p>
-                </div>
+
+            {/* ── GEO TAB ── */}
+            {activeTab === 'geo' && (
+              <div>
+                {geoStatus === 'loading' && (
+                  <div className="text-center py-16">
+                    <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
+                    <h3 className={`text-xl font-bold mb-2 ${isStudio ? 'text-white' : 'text-brand-dark'}`}>Running GEO Analysis...</h3>
+                    <p className={`text-sm ${isStudio ? 'text-white/40' : 'text-brand-dark/50'}`}>Checking AI crawler access, schema, brand presence, and platform readiness</p>
+                  </div>
+                )}
+                {geoStatus === 'error' && (
+                  <div className="text-center py-12">
+                    <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                    <h3 className={`text-xl font-bold mb-2 ${isStudio ? 'text-white' : 'text-brand-dark'}`}>GEO Analysis Failed</h3>
+                    <p className={`text-sm ${isStudio ? 'text-white/40' : 'text-brand-dark/50'}`}>Please try scanning again.</p>
+                  </div>
+                )}
+                {geoStatus === 'complete' && geoReport && (
+                  <GeoReportPanel geo={geoReport} isStudio={isStudio} />
+                )}
               </div>
             )}
           </div>
         )}
       </div>
-    {/* ── Email Capture Modal (slide-up after report loads) ── */}
+    {/* Email Capture Modal */}
     {showEmailModal && (
       <div className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0">
-        {/* Backdrop */}
-        <div
-          className="absolute inset-0 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-300"
-          onClick={() => setShowEmailModal(false)}
-        />
-        {/* Modal */}
+        <div className="absolute inset-0 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowEmailModal(false)} />
         <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl animate-in slide-in-from-bottom-8 duration-500 overflow-hidden">
-          {/* Close button */}
-          <button
-            onClick={() => setShowEmailModal(false)}
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-brand-dark/50 hover:text-brand-dark transition-all z-10"
-            aria-label="Close"
-          >
+          <button onClick={() => setShowEmailModal(false)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-brand-dark/50 transition-all z-10">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
-
-          {/* Header strip */}
           <div className="bg-brand-dark px-6 py-5">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
@@ -884,7 +879,6 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
               </div>
             </div>
           </div>
-
           <div className="px-6 py-6">
             {modalDone ? (
               <div className="text-center py-4">
@@ -896,50 +890,18 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
               </div>
             ) : (
               <form onSubmit={handleModalSubmit} className="space-y-3">
-                <div>
-                  <input
-                    type="text"
-                    value={modalName}
-                    onChange={e => setModalName(e.target.value)}
-                    placeholder="Business name"
-                    className="w-full rounded-xl py-3 px-4 font-medium border bg-gray-50 text-brand-dark border-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
-                    required
-                  />
-                </div>
-                <div>
-                  <input
-                    type="email"
-                    value={modalEmail}
-                    onChange={e => setModalEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="w-full rounded-xl py-3 px-4 font-medium border bg-gray-50 text-brand-dark border-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
-                    required
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={modalSubmitting}
-                  className="w-full bg-primary hover:bg-primary-hover text-brand-dark font-black py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md text-sm"
-                >
-                  {modalSubmitting
-                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
-                    : <>📩 Email Me My Report</>
-                  }
+                <input type="text" value={modalName} onChange={e => setModalName(e.target.value)} placeholder="Business name" className="w-full rounded-xl py-3 px-4 font-medium border bg-gray-50 text-brand-dark border-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm" required />
+                <input type="email" value={modalEmail} onChange={e => setModalEmail(e.target.value)} placeholder="your@email.com" className="w-full rounded-xl py-3 px-4 font-medium border bg-gray-50 text-brand-dark border-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm" required />
+                <button type="submit" disabled={modalSubmitting} className="w-full bg-primary hover:bg-primary-hover text-brand-dark font-black py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md text-sm">
+                  {modalSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</> : <>📩 Email Me My Report</>}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowEmailModal(false)}
-                  className="w-full text-brand-dark/40 hover:text-brand-dark/60 text-xs py-1 transition-colors"
-                >
-                  No thanks, I'll just read it here
-                </button>
+                <button type="button" onClick={() => setShowEmailModal(false)} className="w-full text-brand-dark/40 hover:text-brand-dark/60 text-xs py-1 transition-colors">No thanks, I'll just read it here</button>
               </form>
             )}
           </div>
         </div>
       </div>
     )}
-
     </section>
   );
 }
