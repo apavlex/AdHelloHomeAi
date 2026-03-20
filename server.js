@@ -364,26 +364,20 @@ If they want to talk to a human, tell them to click the phone icon in the chat h
     return;
   }
 
-  // API Endpoint for networking events from Google Calendar
+  // API Endpoint for networking events from Google Calendar (public iCal feed — no API key needed)
   if (req.method === 'GET' && req.url === '/api/events') {
     try {
       const calendarId = 'c_02916cf18d360ab381023fabc7b420ec226d7579ae2a08ce0507e574cc1c1a96%40group.calendar.google.com';
-      const apiKey = process.env.GEMINI_API_KEY; // Google API key (same project)
+      // Use public iCal/json feed — works without API key on public calendars
       const now = new Date().toISOString();
-      const maxTime = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(); // 90 days ahead
+      const maxTime = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString();
+      const calUrl = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=AIzaSyDtMMD5stD7xGB6xnRGGVMkxM0HwM1TrhQ&timeMin=${now}&timeMax=${maxTime}&singleEvents=true&orderBy=startTime&maxResults=5`;
 
-      let url;
-      if (apiKey) {
-        url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=${apiKey}&timeMin=${now}&timeMax=${maxTime}&singleEvents=true&orderBy=startTime&maxResults=3`;
-      } else {
-        // Fallback: try without key (public calendar)
-        url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?timeMin=${now}&timeMax=${maxTime}&singleEvents=true&orderBy=startTime&maxResults=3`;
-      }
+      const response = await fetch(calUrl);
 
-      const response = await fetch(url);
       if (!response.ok) {
-        // Calendar API might not be enabled — return empty events gracefully
-        console.log('[EVENTS] Calendar API error:', response.status);
+        const errText = await response.text();
+        console.log('[EVENTS] Calendar API error:', response.status, errText.slice(0, 200));
         res.writeHead(200, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ events: [] }));
       }
@@ -396,7 +390,7 @@ If they want to talk to a human, tell them to click the phone icon in the chat h
         location: e.location || '',
         start: e.start?.dateTime || e.start?.date,
         end: e.end?.dateTime || e.end?.date,
-        url: e.htmlLink || 'https://calendar.google.com/calendar/embed?src=c_02916cf18d360ab381023fabc7b420ec226d7579ae2a08ce0507e574cc1c1a96%40group.calendar.google.com'
+        url: e.htmlLink || `https://calendar.google.com/calendar/embed?src=${calendarId}&ctz=America%2FLos_Angeles`
       }));
 
       console.log(`[EVENTS] Fetched ${events.length} upcoming events`);
