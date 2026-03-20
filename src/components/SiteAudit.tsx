@@ -360,11 +360,14 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
     if (status === 'analyzing') {
       interval = setInterval(() => {
         setProgress((prev) => {
-          if (prev >= 99) { clearInterval(interval); return 99; }
-          if (prev >= 95) return prev + 0.1;
-          return prev + 5;
+          if (prev >= 99) return 99;
+          // Slow down as we approach 99 — keeps bar moving without false finish
+          if (prev >= 90) return prev + 0.2;
+          if (prev >= 75) return prev + 0.8;
+          if (prev >= 50) return prev + 1.5;
+          return prev + 3;
         });
-      }, 500);
+      }, 400);
     }
     return () => clearInterval(interval);
   }, [status]);
