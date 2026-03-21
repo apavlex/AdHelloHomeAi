@@ -395,7 +395,7 @@ export default function App() {
             <div className="text-left order-2 lg:order-1 relative h-auto lg:h-[450px] flex flex-col justify-center">
               <div className="flex flex-col justify-center">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-100 text-yellow-800 text-sm font-bold mb-6 border border-yellow-200 w-fit transition-all duration-500">
-                  The AI Growth Engine for <span className="text-brand-dark font-black">{HERO_VARIANTS[heroIndex].trade}</span>&nbsp;Businesses
+                  The AI Growth Engine for <span className="text-brand-dark font-black">{HERO_VARIANTS[heroIndex].trade}</span>
                 </div>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-brand-dark mb-8 leading-[1.05]">
                   More Leads. Less Headache. <span className="hand-underline">Smart Websites for Local Pros.</span>
