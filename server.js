@@ -288,9 +288,9 @@ const server = http.createServer(async (req, res) => {
         // Use Nano Banana 2 — correct model name is gemini-2.0-flash-exp-image-generation
         // Fallback chain: try newest first, then stable
         const IMAGE_MODELS = [
-          'gemini-2.0-flash-exp-image-generation',
-          'gemini-2.5-flash-image',
-          'gemini-2.0-flash-exp',
+          'gemini-3.1-flash-image-preview',   // Nano Banana 2
+          'gemini-2.5-flash-image',            // Nano Banana
+          'gemini-2.0-flash-exp-image-generation', // Original
         ];
 
         const parts = [];

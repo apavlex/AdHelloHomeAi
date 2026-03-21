@@ -178,13 +178,29 @@ export function AdBrief() {
       const mimeMatch = parts[0].match(/:(.*?);/);
       const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-      const prompt = `Transform this product photo into a professional ${ad.platform} ad image.
-Ad headline: "${ad.headline}"
-Ad body: "${ad.body}"
-Call to action: "${ad.cta}"
-Platform: ${ad.platform}
+      // Pick a random ad style for variety
+      const adStyles = [
+        `lifestyle scene with a real person using or holding the product in a natural environment. Use the uploaded product image as the product shown. Add bold headline text "${ad.headline}" at the top in large white font with a dark background strip. Include 3 bullet benefit points on the side. CTA button "${ad.cta}" at the bottom in a contrasting color. Style: scroll-stopping social ad.`,
+        `split composition: product on one side against a clean colored background, lifestyle element on the other side. Overlaid bold stat or claim text. Headline "${ad.headline}" in large modern typography. Small body copy "${ad.body}". CTA "${ad.cta}" as a pill button. Clean, premium DTC brand aesthetic.`,
+        `full bleed lifestyle photo with the product prominently featured. Person in the background or foreground interacting with it. Large oversized headline "${ad.headline}" overlaid with semi-transparent backing. "${ad.body}" as subtext. Bold "${ad.cta}" button. Style similar to Athletic Greens or Lemme ads.`,
+        `flat lay or product-hero shot with styled props and background that matches the product's vibe. Large bold typography "${ad.headline}" taking up top third. Clean stats or benefit callouts with icons. "${ad.cta}" button styled as a modern pill. Feels like a premium Instagram ad.`,
+        `phone-screen style creative optimized for ${ad.platform}. Product shown in use by a person in a relatable everyday moment. Hook text "${ad.headline}" at top in bold. "${ad.body}" as supporting copy mid-frame. Bright "${ad.cta}" CTA button at bottom. High contrast, scroll-stopping design.`
+      ];
+      const chosenStyle = adStyles[Math.floor(Math.random() * adStyles.length)];
 
-Create a polished, high-quality ad creative. Keep the product as the hero, add clean professional text overlay with the headline and CTA button, use ${ad.platform}-optimized composition and aspect ratio. Style should be modern, premium, and scroll-stopping. The text must be legible and well-designed.`;
+      const prompt = `You are a world-class ad creative designer. Create a high-quality ${ad.platform} advertisement image using the uploaded product photo as the featured product.
+
+STYLE DIRECTION: ${chosenStyle}
+
+CRITICAL RULES:
+- The uploaded product must appear clearly and prominently in the final image — do not replace or obscure it
+- Use the product's actual appearance, colors, and branding from the uploaded image
+- Generate a realistic lifestyle scene or styled composition AROUND the product
+- Include real people if the style calls for it (diverse, relatable, not stock-photo looking)
+- Typography must be bold, large, and legible — not thin or small
+- The overall image must look like a real paid ad from a top DTC brand, not a mockup
+- Aspect ratio: square (1:1) for ${ad.platform === 'Instagram' ? 'Instagram feed' : ad.platform === 'Facebook' ? 'Facebook feed' : 'Google display'}
+- Quality: photorealistic, high-resolution, professionally lit`;
 
       const res = await fetch('/api/generate-ad-image', {
         method: 'POST',
