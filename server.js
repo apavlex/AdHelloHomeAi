@@ -285,27 +285,38 @@ const server = http.createServer(async (req, res) => {
         const { GoogleGenAI } = await import('@google/genai');
         const genAI = new GoogleGenAI({ apiKey: geminiKey });
 
-        // Use Nano Banana 2 (gemini-2.0-flash-exp) with image input if provided
-        console.log('[AD-IMAGE] Generating ad with Nano Banana 2 (gemini-2.0-flash-exp)');
+        // Use Nano Banana 2 — correct model name is gemini-2.0-flash-exp-image-generation
+        // Fallback chain: try newest first, then stable
+        const IMAGE_MODELS = [
+          'gemini-2.0-flash-exp-image-generation',
+          'gemini-2.5-flash-image',
+          'gemini-2.0-flash-exp',
+        ];
 
         const parts = [];
-
-        // Include uploaded product photo as reference if available
         if (imageBase64) {
-          parts.push({
-            inlineData: {
-              data: imageBase64,
-              mimeType: imageMimeType || 'image/jpeg'
-            }
-          });
+          parts.push({ inlineData: { data: imageBase64, mimeType: imageMimeType || 'image/jpeg' } });
         }
         parts.push({ text: prompt });
 
-        const response = await genAI.models.generateContent({
-          model: 'gemini-2.0-flash-exp',
-          contents: [{ parts }],
-          config: { responseModalities: ['IMAGE', 'TEXT'] }
-        });
+        let response = null;
+        let usedModel = '';
+        for (const modelName of IMAGE_MODELS) {
+          try {
+            console.log(`[AD-IMAGE] Trying model: ${modelName}`);
+            response = await genAI.models.generateContent({
+              model: modelName,
+              contents: [{ parts }],
+              config: { responseModalities: ['IMAGE', 'TEXT'] }
+            });
+            usedModel = modelName;
+            console.log(`[AD-IMAGE] Success with model: ${modelName}`);
+            break;
+          } catch (modelErr) {
+            console.log(`[AD-IMAGE] Model ${modelName} failed: ${modelErr.message}`);
+          }
+        }
+        if (!response) throw new Error('All image generation models failed');
 
         // Extract inline image data from response parts
         let imageBytes = null;
