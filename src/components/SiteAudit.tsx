@@ -506,37 +506,121 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
   };
 
   const handleDownload = () => {
-    if (!reportRef.current || !report) return;
+    if (!report) return;
     setIsDownloading(true);
-    const styleId = 'adhello-print-style';
-    let style = document.getElementById(styleId) as HTMLStyleElement | null;
-    if (!style) {
-      style = document.createElement('style');
-      style.id = styleId;
-      document.head.appendChild(style);
-    }
-    style.textContent = `
-      @media print {
-        body * { visibility: hidden; }
-        #audit-report-print, #audit-report-print * { visibility: visible; }
-        #audit-report-print { position: fixed; top: 0; left: 0; width: 100%; }
-        * { color: #1a1a1a !important; background-color: #ffffff !important; border-color: #e0e0e0 !important; box-shadow: none !important; }
-        .text-white { color: #1a1a1a !important; }
-        .bg-brand-dark, .bg-primary { background-color: #f5f5f5 !important; }
-        .text-primary { color: #b8922a !important; }
-        .print\\:hidden { display: none !important; }
-        @page { margin: 15mm; size: A4; }
-      }
-    `;
-    if (reportRef.current) reportRef.current.id = 'audit-report-print';
-    setTimeout(() => {
-      window.print();
+
+    const scoreColor = report.score >= 80 ? '#22c55e' : report.score >= 50 ? '#E8B84B' : '#ef4444';
+    const statusIcon = (s: string) => s === 'pass' ? '✅' : s === 'warning' ? '⚠️' : '❌';
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>GEO Report — ${report.url || url}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #0d1520; background: #fff; padding: 40px; max-width: 800px; margin: 0 auto; }
+  .header { background: #0d1520; color: white; padding: 32px; border-radius: 16px; margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center; }
+  .header h1 { font-size: 22px; font-weight: 900; color: #E8B84B; margin-bottom: 4px; }
+  .header p { font-size: 13px; color: rgba(255,255,255,0.5); }
+  .score-badge { background: ${scoreColor}; color: white; font-size: 42px; font-weight: 900; width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .section { margin-bottom: 28px; }
+  .section-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 12px; }
+  .summary-box { background: #f9f9f6; border-radius: 12px; padding: 16px; font-size: 15px; line-height: 1.6; color: #444; margin-bottom: 8px; }
+  .scores-row { display: flex; gap: 12px; margin-bottom: 28px; }
+  .score-card { flex: 1; background: #f9f9f6; border-radius: 10px; padding: 14px; text-align: center; }
+  .score-card .val { font-size: 26px; font-weight: 900; color: #0d1520; }
+  .score-card .lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-top: 2px; }
+  .item { background: #f9f9f6; border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; display: flex; gap: 10px; align-items: flex-start; }
+  .item-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .item-title { font-size: 14px; font-weight: 700; color: #0d1520; }
+  .item-desc { font-size: 13px; color: #666; margin-top: 2px; line-height: 1.5; }
+  .audit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .audit-item { background: #f9f9f6; border-radius: 10px; padding: 12px 14px; }
+  .audit-label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #888; }
+  .audit-value { font-size: 15px; font-weight: 700; color: #0d1520; margin: 3px 0; }
+  .audit-reason { font-size: 12px; color: #777; line-height: 1.4; }
+  .rec-item { border-left: 3px solid #E8B84B; background: #fffdf5; border-radius: 0 10px 10px 0; padding: 14px 16px; margin-bottom: 8px; }
+  .rec-title { font-size: 14px; font-weight: 700; color: #0d1520; margin-bottom: 4px; }
+  .rec-desc { font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 6px; }
+  .rec-action { font-size: 12px; font-weight: 700; color: #E8B84B; }
+  .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #aaa; font-size: 11px; }
+  .footer strong { color: #E8B84B; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>AdHello.ai — GEO Report</h1>
+      <p>${report.url || url}</p>
+      <p style="margin-top:6px;color:rgba(255,255,255,0.4);font-size:11px">Generated ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+    </div>
+    <div class="score-badge">${report.score}</div>
+  </div>
+
+  <div class="scores-row">
+    <div class="score-card"><div class="val">${report.mobileFirstScore}</div><div class="lbl">Mobile First</div></div>
+    <div class="score-card"><div class="val">${report.leadsEstimatesScore}</div><div class="lbl">Lead Generation</div></div>
+    <div class="score-card"><div class="val">${report.googleAiReadyScore}</div><div class="lbl">AI Ready</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Summary</div>
+    <div class="summary-box">${report.summary}</div>
+    ${report.brandAnalysis ? `<div class="summary-box">${report.brandAnalysis}</div>` : ''}
+  </div>
+
+  <div class="section">
+    <div class="section-title">Technical Audit</div>
+    <div class="audit-grid">
+      ${Object.values(report.technicalAudit).map((c: any) => `
+        <div class="audit-item">
+          <div class="audit-label">${statusIcon(c.status)} ${c.label}</div>
+          <div class="audit-value">${c.value}</div>
+          <div class="audit-reason">${c.reason || ''}</div>
+        </div>`).join('')}
+    </div>
+  </div>
+
+  ${report.strengths?.length ? `<div class="section">
+    <div class="section-title">✅ Strengths</div>
+    ${report.strengths.map((s: any) => `<div class="item"><div class="item-icon">✅</div><div><div class="item-title">${s.indicator}</div><div class="item-desc">${s.description}</div></div></div>`).join('')}
+  </div>` : ''}
+
+  ${report.weaknesses?.length ? `<div class="section">
+    <div class="section-title">⚠️ Areas to Improve</div>
+    ${report.weaknesses.map((w: any) => `<div class="item"><div class="item-icon">⚠️</div><div><div class="item-title">${w.indicator}</div><div class="item-desc">${w.description}</div></div></div>`).join('')}
+  </div>` : ''}
+
+  ${report.recommendations?.length ? `<div class="section">
+    <div class="section-title">🎯 Actionable Recommendations</div>
+    ${report.recommendations.map((r: any) => `<div class="rec-item"><div class="rec-title">${r.title}</div><div class="rec-desc">${r.description}</div><div class="rec-action">→ ${r.action}</div></div>`).join('')}
+  </div>` : ''}
+
+  <div class="footer">
+    Report generated by <strong>AdHello.ai</strong> · adhello.ai · Free GEO audit for home service businesses
+  </div>
+</body>
+</html>`;
+
+    // Open in new window and trigger print-to-PDF
+    const win = window.open('', '_blank');
+    if (win) {
+      win.document.write(html);
+      win.document.close();
       setTimeout(() => {
-        if (style) style.textContent = '';
-        if (reportRef.current) reportRef.current.removeAttribute('id');
+        win.print();
         setIsDownloading(false);
-      }, 1000);
-    }, 200);
+      }, 500);
+    } else {
+      // Fallback: download as HTML file
+      const blob = new Blob([html], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `adhello-geo-report-${(report.url || url).replace(/https?:\/\//, '').replace(/\//g, '-')}.html`;
+      a.click();
+      setIsDownloading(false);
+    }
   };
 
   const renderSteps = () => {
