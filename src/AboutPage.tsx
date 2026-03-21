@@ -1,3 +1,4 @@
+import { EventBanner } from './components/EventBanner';
 import React from 'react';
 import { motion } from 'motion/react';
 import {
