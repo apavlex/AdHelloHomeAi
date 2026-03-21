@@ -668,7 +668,7 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
               {[
                 { icon: <Eye className="w-6 h-6 text-primary mb-4" />, title: 'Brand Analysis', desc: 'Understand your positioning and messaging' },
-                { icon: <Target className="w-6 h-6 text-primary mb-4" />, title: 'AEO + GEO Audit', desc: 'Score your AI search readiness across 6 dimensions' },
+                { icon: <Target className="w-6 h-6 text-primary mb-4" />, title: 'GEO Audit', desc: 'Score your AI search readiness across 6 dimensions' },
                 { icon: <Sparkles className="w-6 h-6 text-primary mb-4" />, title: 'AI Search Ready', desc: 'Optimize for ChatGPT, Perplexity & AI Overviews' }
               ].map((feature, i) => (
                 <div key={i} className={`${isStudio ? 'bg-[#1C1F26] border-white/5' : 'bg-white border-gray-100 shadow-sm'} rounded-3xl p-6 border`}>
