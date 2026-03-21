@@ -64,6 +64,10 @@ export function AdBrief() {
   );
   const [selectedService, setSelectedService] = useState('');
   const [customService, setCustomService] = useState('');
+  const [showNotifyModal, setShowNotifyModal] = useState(false);
+  const [notifyEmail, setNotifyEmail] = useState('');
+  const [notifySubmitting, setNotifySubmitting] = useState(false);
+  const [notifyDone, setNotifyDone] = useState(false);
   const [gateName, setGateName] = useState('');
   const [gateEmail, setGateEmail] = useState('');
   const [gateSubmitting, setGateSubmitting] = useState(false);
@@ -810,20 +814,78 @@ CRITICAL RULES:
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path strokeLinecap="round" strokeLinejoin="round" d="M7 11V7a5 5 0 0110 0v4"/></svg>
                   Start Free Trial — Coming Soon
                 </button>
-                <a
-                  href="https://calendar.app.google/QQsVbiAt4QdCX8mx8"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => setShowNotifyModal(true)}
                   className="text-brand-dark/50 hover:text-primary text-sm font-bold transition-colors underline underline-offset-4 decoration-primary/30"
                 >
                   Get notified when it launches →
-                </a>
+                </button>
               </div>
               <p className="text-brand-dark/30 text-xs mt-5">Free tier: 3 AI ad generations per day · No credit card required</p>
             </div>
           </div>
         </div>
       )}
+    {/* Notify Modal */}
+    {showNotifyModal && (
+      <div className="fixed inset-0 z-[600] flex items-center justify-center px-4">
+        <div className="absolute inset-0 bg-brand-dark/40 backdrop-blur-sm" onClick={() => { setShowNotifyModal(false); setNotifyDone(false); setNotifyEmail(''); }} />
+        <div className="relative w-full max-w-sm bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          <div className="bg-brand-dark px-6 py-5">
+            <p className="text-white font-extrabold text-base">Get notified at launch</p>
+            <p className="text-white/50 text-xs mt-0.5">We'll email you the moment Ad Studio goes live</p>
+          </div>
+          <div className="px-6 py-6">
+            {notifyDone ? (
+              <div className="text-center py-4">
+                <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-7 h-7 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <p className="font-extrabold text-brand-dark text-lg mb-1">You're on the list!</p>
+                <p className="text-brand-dark/50 text-sm">We'll let you know when Ad Studio launches.</p>
+              </div>
+            ) : (
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!notifyEmail.trim()) return;
+                setNotifySubmitting(true);
+                try {
+                  await fetch('/api/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: notifyEmail.trim(), source: 'ad-studio-launch' })
+                  });
+                } catch (_) {}
+                setNotifySubmitting(false);
+                setNotifyDone(true);
+              }} className="space-y-3">
+                <input
+                  type="email"
+                  value={notifyEmail}
+                  onChange={e => setNotifyEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  autoFocus
+                  required
+                  className="w-full rounded-xl py-3 px-4 font-medium border bg-gray-50 text-brand-dark border-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
+                />
+                <button
+                  type="submit"
+                  disabled={notifySubmitting}
+                  className="w-full bg-primary hover:bg-primary-hover text-brand-dark font-black py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-sm disabled:opacity-60"
+                >
+                  {notifySubmitting ? (
+                    <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Saving...</>
+                  ) : 'Notify Me at Launch'}
+                </button>
+                <button type="button" onClick={() => setShowNotifyModal(false)} className="w-full text-brand-dark/40 hover:text-brand-dark/60 text-xs py-1 transition-colors">
+                  No thanks
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

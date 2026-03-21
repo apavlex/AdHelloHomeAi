@@ -826,6 +826,84 @@ IMPORTANT: Return only raw JSON with no markdown fences or extra text.`;
     return;
   }
 
+  // API Endpoint — subscriber sign-up (notify me at launch)
+  if (req.method === 'POST' && reqPath === '/api/subscribe') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const { email, source } = JSON.parse(body);
+        const ts = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+        console.log(`[SUBSCRIBER] New subscriber: ${email} via ${source || 'unknown'} at ${ts}`);
+
+        const resendKey = process.env.RESEND_API_KEY;
+        if (resendKey) {
+          try {
+            const { Resend } = await import('resend');
+            const resend = new Resend(resendKey);
+
+            // Notify alex with subscriber label-friendly subject
+            await resend.emails.send({
+              from: 'AdHello.ai <leads@adhello.ai>',
+              to: 'alex@adhello.ai',
+              subject: `[Subscriber] New Ad Studio signup — ${email}`,
+              html: `
+                <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+                  <div style="background:#0d1520;border-radius:12px;padding:20px 24px;margin-bottom:16px">
+                    <h2 style="color:#E8B84B;margin:0 0 4px;font-size:18px">New Ad Studio Subscriber</h2>
+                    <p style="color:rgba(255,255,255,0.5);margin:0;font-size:12px">via ${source || 'ad-studio-launch'}</p>
+                  </div>
+                  <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+                    <tr><td style="padding:10px 0;border-bottom:1px solid #f0f0f0;color:#888;font-size:13px;width:80px">Email</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-weight:700"><a href="mailto:${email}" style="color:#E8B84B">${email}</a></td></tr>
+                    <tr><td style="padding:10px 0;color:#888;font-size:13px">Time</td><td style="padding:10px 0;font-weight:600;color:#555;font-size:13px">${ts} PT</td></tr>
+                  </table>
+                  <p style="color:#aaa;font-size:11px">AdHello.ai · Camas, WA</p>
+                </div>
+              `
+            });
+
+            // Send confirmation to subscriber
+            await resend.emails.send({
+              from: 'Alex at AdHello.ai <alex@adhello.ai>',
+              to: email,
+              subject: "You're on the list — AdHello Ad Studio",
+              html: `
+                <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:0;background:#f9f9f6">
+                  <div style="background:#0d1520;padding:28px 32px;border-radius:16px 16px 0 0;text-align:center">
+                    <h1 style="color:#E8B84B;margin:0 0 4px;font-size:22px;font-weight:900">AdHello.ai</h1>
+                    <p style="color:rgba(255,255,255,0.4);margin:0;font-size:12px">AI-Powered Marketing for Home Service Businesses</p>
+                  </div>
+                  <div style="background:white;padding:32px">
+                    <h2 style="color:#0d1520;font-size:20px;margin:0 0 12px">You're on the list! 🎉</h2>
+                    <p style="color:#555;line-height:1.6;margin:0 0 20px">Thanks for signing up — we'll email you the moment Ad Studio launches. You'll get early access to save ads, edit with AI, and generate unlimited creatives for your business.</p>
+                    <p style="color:#555;line-height:1.6;margin:0 0 24px">In the meantime, you can still use the free tool at <a href="https://adhello.ai" style="color:#E8B84B">adhello.ai</a> — 3 AI-generated ads per day, no credit card needed.</p>
+                    <div style="background:#f9f9f6;border-radius:12px;padding:16px 20px;border-left:3px solid #E8B84B">
+                      <p style="margin:0;color:#555;font-size:13px">Questions? Reply to this email or DM me on X <a href="https://x.com/alexpavlenko" style="color:#E8B84B">@alexpavlenko</a></p>
+                    </div>
+                  </div>
+                  <div style="padding:16px 32px;text-align:center">
+                    <p style="color:#aaa;font-size:11px;margin:0">AdHello.ai · Camas, WA · <a href="https://adhello.ai" style="color:#E8B84B">adhello.ai</a></p>
+                  </div>
+                </div>
+              `
+            });
+            console.log(`[SUBSCRIBER] Confirmation sent to ${email}`);
+          } catch (emailErr) {
+            console.error('[SUBSCRIBER] Email error:', emailErr.message);
+          }
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true }));
+      } catch (err) {
+        console.error('[SUBSCRIBER] Error:', err.message);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false }));
+      }
+    });
+    return;
+  }
+
   // Serve static files
   let filePath = path.join(DIST_DIR, req.url === '/' ? 'index.html' : req.url);
   filePath = filePath.split('?')[0];
