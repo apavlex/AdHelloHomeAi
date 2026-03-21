@@ -222,7 +222,8 @@ const server = http.createServer(async (req, res) => {
     req.on('data', chunk => { body += chunk.toString(); });
     req.on('end', async () => {
       try {
-        const { imageBase64, mimeType } = JSON.parse(body);
+        const { imageBase64, mimeType, service } = JSON.parse(body);
+        const serviceContext = service ? `The business offers: ${service} services.` : '';
         if (!imageBase64) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           return res.end(JSON.stringify({ error: 'imageBase64 is required' }));
@@ -251,7 +252,9 @@ const server = http.createServer(async (req, res) => {
                   }
                 },
                 {
-                  text: `Analyze this product/service image and provide a comprehensive marketing brief for a home service or local business. Return ONLY valid JSON with this exact structure:
+                  text: `${serviceContext ? `SERVICE TYPE: ${serviceContext}` : ''}
+
+Analyze this image and create a targeted marketing brief. Return ONLY valid JSON with this exact structure:
 {
   "productAnalysis": "A detailed 2-3 sentence description of what is shown in the image and what service/product it represents.",
   "visualPrompt": "A highly detailed visual description for generating similar ad images.",

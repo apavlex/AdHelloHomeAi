@@ -59,9 +59,10 @@ interface AdBriefData {
 }
 
 export function AdBrief() {
-  const [briefStep, setBriefStep] = useState<'gate' | 'upload' | 'analyzing' | 'results'>(
+  const [briefStep, setBriefStep] = useState<'gate' | 'upload' | 'service' | 'analyzing' | 'results'>(
     () => 'upload'
   );
+  const [selectedService, setSelectedService] = useState('');
   const [gateName, setGateName] = useState('');
   const [gateEmail, setGateEmail] = useState('');
   const [gateSubmitting, setGateSubmitting] = useState(false);
@@ -165,7 +166,7 @@ export function AdBrief() {
     } catch (_) {}
     sessionStorage.setItem('adhello-gate-passed', '1');
     setGateSubmitting(false);
-    setBriefStep('upload');
+    setBriefStep('upload'); setSelectedService('');
   };
 
   const generateAdImage = async (adIndex: number, ad: { platform: string; headline: string; body: string; cta: string }) => {
@@ -239,7 +240,7 @@ CRITICAL RULES:
       const response = await fetch('/api/ad-brief', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64Data, mimeType })
+        body: JSON.stringify({ imageBase64: base64Data, mimeType, service: selectedService })
       });
 
       setAnalysisProgress(75);
@@ -362,7 +363,7 @@ CRITICAL RULES:
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              onClick={startAnalysis}
+              onClick={() => setBriefStep('service')}
               className="mt-10 bg-primary hover:bg-primary-hover text-brand-dark px-10 py-5 rounded-full font-black text-xl flex items-center gap-3 mx-auto transition-all hover:scale-105 shadow-2xl shadow-primary/20"
             >
               <Sparkles className="w-6 h-6" />
@@ -393,6 +394,70 @@ CRITICAL RULES:
               <h4 className="text-xl font-bold mb-2 text-brand-dark">Ready-to-Use Ads</h4>
               <p className="text-brand-dark/60 text-sm">Generate platform-specific ad creatives</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {briefStep === 'service' && (
+        <div className="max-w-2xl mx-auto animate-in fade-in duration-500">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl md:text-4xl font-extrabold mb-3 text-brand-dark">
+              What type of service are you advertising?
+            </h2>
+            <p className="text-brand-dark/60 font-medium">
+              This helps us write targeted copy and choose the right ad angle for your audience.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+            {[
+              { label: 'Exterior Painting', icon: '🎨' },
+              { label: 'Interior Painting', icon: '🖌️' },
+              { label: 'Roofing', icon: '🏠' },
+              { label: 'Siding', icon: '🧱' },
+              { label: 'Landscaping', icon: '🌿' },
+              { label: 'Lawn Care', icon: '🌱' },
+              { label: 'HVAC', icon: '❄️' },
+              { label: 'Plumbing', icon: '🔧' },
+              { label: 'Electrical', icon: '⚡' },
+              { label: 'Flooring', icon: '🪵' },
+              { label: 'Kitchen Remodel', icon: '🍳' },
+              { label: 'Bathroom Remodel', icon: '🚿' },
+              { label: 'Windows & Doors', icon: '🪟' },
+              { label: 'Pressure Washing', icon: '💧' },
+              { label: 'Real Estate', icon: '🏡' },
+              { label: 'Home Staging', icon: '🛋️' },
+              { label: 'Cleaning Services', icon: '✨' },
+              { label: 'Other', icon: '🔨' },
+            ].map((s) => (
+              <button
+                key={s.label}
+                onClick={() => setSelectedService(s.label)}
+                className={`flex items-center gap-3 p-4 rounded-2xl border text-left transition-all font-bold text-sm ${
+                  selectedService === s.label
+                    ? 'bg-primary border-primary/50 text-brand-dark shadow-lg scale-[1.02]'
+                    : 'bg-white border-gray-100 text-brand-dark/70 hover:border-primary/30 hover:text-brand-dark shadow-sm'
+                }`}
+              >
+                <span className="text-xl">{s.icon}</span>
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setBriefStep('upload')}
+              className="px-6 py-3 rounded-full border border-gray-200 text-brand-dark/60 font-bold text-sm hover:border-gray-300 transition-colors"
+            >
+              ← Back
+            </button>
+            <button
+              onClick={() => { if (selectedService) startAnalysis(); }}
+              disabled={!selectedService}
+              className="flex-1 bg-primary hover:bg-primary-hover disabled:opacity-40 disabled:cursor-not-allowed text-brand-dark font-black py-3 rounded-full transition-all shadow-md text-sm flex items-center justify-center gap-2"
+            >
+              Generate Ad Brief for {selectedService || '...'}
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </button>
           </div>
         </div>
       )}
