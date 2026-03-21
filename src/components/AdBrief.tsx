@@ -67,7 +67,6 @@ export function AdBrief() {
   const [gateSubmitting, setGateSubmitting] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [resultsTab, setResultsTab] = useState<'insights' | 'concepts'>('insights');
   const [briefData, setBriefData] = useState<AdBriefData | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -427,36 +426,14 @@ export function AdBrief() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-white p-1 rounded-2xl w-fit border border-gray-100 shadow-md print:hidden">
-            <button 
-              onClick={() => setResultsTab('insights')}
-              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all ${
-                resultsTab === 'insights' ? 'bg-primary text-brand-dark shadow-lg' : 'text-brand-dark/40 hover:text-brand-dark/60'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              Market Insights
-            </button>
-            <button 
-              onClick={() => setResultsTab('concepts')}
-              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all ${
-                resultsTab === 'concepts' ? 'bg-primary text-brand-dark shadow-lg' : 'text-brand-dark/40 hover:text-brand-dark/60'
-              }`}
-            >
-              <Sparkles className="w-4 h-4" />
-              Ad Concepts (3)
-            </button>
-          </div>
 
-          <AnimatePresence mode="wait">
-            {resultsTab === 'insights' ? (
-              <motion.div
-                key="insights"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-8"
-              >
+
+          <div className="space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-8"
+            >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
                     <div className="flex items-center gap-3 mb-6">
@@ -527,15 +504,15 @@ export function AdBrief() {
                     ))}
                   </div>
                 </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="concepts"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl"
-              >
+            </motion.div>
+
+            {/* Ad Concepts — shown below insights */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl"
+            >
                 <h3 className="text-2xl font-bold mb-8 text-brand-dark">Ad Brief</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {briefData?.adConcepts.map((ad, i) => (
@@ -605,8 +582,7 @@ export function AdBrief() {
                   ))}
                 </div>
               </motion.div>
-            )}
-          </AnimatePresence>
+          </div>
 
           <div className="text-center py-12 print:hidden">
             <h3 className="text-3xl font-extrabold mb-4 text-brand-dark">Ready to create more?</h3>
