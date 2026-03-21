@@ -36,8 +36,8 @@ export default function AeoLandingPage() {
       answer: "Yes, there are no long-term contracts. You can cancel your $97/month subscription at any time."
     },
     {
-      question: "What is AEO and why does it matter?",
-      answer: "AEO stands for Generative Engine Optimization. It's the process of optimizing your website so that AI search engines like ChatGPT, Google Gemini, and AI Overviews recommend your business when local customers ask questions."
+      question: "What is GEO and why does it matter?",
+      answer: "GEO stands for Generative Engine Optimization. It's the process of optimizing your website so that AI search engines like ChatGPT, Google Gemini, and AI Overviews recommend your business when local customers ask questions."
     }
   ];
 
@@ -193,7 +193,7 @@ export default function AeoLandingPage() {
                   <Search className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-2 text-brand-dark">AEO Optimized</h3>
+                  <h3 className="text-xl font-bold mb-2 text-brand-dark">GEO Optimized</h3>
                   <p className="text-brand-dark/70 font-medium">Generative Engine Optimization ensures AI agents recommend your services.</p>
                 </div>
               </div>

@@ -644,7 +644,7 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
               Get Found by <span className="text-primary">AI & Customers</span>
             </h2>
             <p className={`text-lg md:text-xl max-w-2xl mx-auto mb-6 leading-relaxed ${isStudio ? 'text-white/60' : 'text-brand-dark/70'}`}>
-              Analyze your website for AEO readiness, AI search visibility, and GEO optimization — all in one scan.
+              Analyze your website for GEO readiness and AI search visibility — all in one scan.
             </p>
             <div className={`${isStudio ? 'bg-[#1C1F26] border-white/5' : 'bg-white border-gray-100 shadow-xl'} rounded-[2.5rem] p-6 md:p-8 mb-8 border text-left`}>
               <div className="flex items-center gap-3 mb-6">
@@ -739,7 +739,7 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
                     </div>
                     <div>
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className={`text-2xl font-extrabold ${isStudio ? 'text-white' : 'text-brand-dark'}`}>AEO Readiness Score</h3>
+                        <h3 className={`text-2xl font-extrabold ${isStudio ? 'text-white' : 'text-brand-dark'}`}>GEO Readiness Score</h3>
                         {report.score < 70 && <span className="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter animate-pulse print:hidden">Critical Action Required</span>}
                       </div>
                       <p className={`text-sm font-bold mb-2 flex items-center gap-1 ${isStudio ? 'text-primary' : 'text-brand-dark/40'}`}><Globe className="w-3 h-3" />{report.url || url}</p>

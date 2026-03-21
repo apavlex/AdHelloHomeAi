@@ -218,10 +218,10 @@ export default function App() {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
-        { "@type": "Question", "name": "What is AdHello.ai?", "acceptedAnswer": { "@type": "Answer", "text": "AdHello.ai builds AI-powered websites and handles local SEO and AEO for home service businesses — painters, electricians, plumbers, roofers, flooring companies, and movers." } },
+        { "@type": "Question", "name": "What is AdHello.ai?", "acceptedAnswer": { "@type": "Answer", "text": "AdHello.ai builds AI-powered websites and handles local SEO and GEO for home service businesses — painters, electricians, plumbers, roofers, flooring companies, and movers." } },
         { "@type": "Question", "name": "How does AdHello.ai get more leads for contractors?", "acceptedAnswer": { "@type": "Answer", "text": "AdHello.ai builds a professional website optimized for Google and AI search engines like ChatGPT and Perplexity, so local customers find your business first." } },
         { "@type": "Question", "name": "Does AdHello.ai work for painters and electricians?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. AdHello.ai specializes in home service businesses including painters, electricians, plumbers, HVAC, roofers, flooring contractors, and movers." } },
-        { "@type": "Question", "name": "What is AEO and why does it matter for contractors?", "acceptedAnswer": { "@type": "Answer", "text": "GEO (Generative Engine Optimization) makes your business appear as a trusted answer in AI-powered search results on ChatGPT, Perplexity, and Google AI Overviews — not just traditional search." } }
+        { "@type": "Question", "name": "What is GEO and why does it matter for contractors?", "acceptedAnswer": { "@type": "Answer", "text": "GEO (Generative Engine Optimization) makes your business appear as a trusted answer in AI-powered search results on ChatGPT, Perplexity, and Google AI Overviews — not just traditional search." } }
       ]
     }
   ];
@@ -646,7 +646,7 @@ export default function App() {
                 The technical and difficult parts of growing a website are gone. Your AI Growth Coach analyzes your market and competitors, then suggests specific, actionable ways to get more leads. It's a self-guided system that handles the heavy lifting so you don't have to.
               </p>
               <p className="text-brand-dark/70 text-lg leading-relaxed italic">
-                "How do I get more reviews?" "What's my current AEO rank?" "Suggest a new lead strategy." — It's always ready.
+                "How do I get more reviews?" "What's my GEO score?" "Suggest a new lead strategy." — It's always ready.
               </p>
             </div>
           </div>
