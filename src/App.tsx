@@ -1203,13 +1203,19 @@ export default function App() {
               <div className="flex gap-4">
                 <a
                   className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-brand-dark transition-all text-brand-dark"
-                  href="#"
+                  href="https://x.com/alexpavlenko"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Follow on X"
                 >
-                  <Globe className="w-5 h-5" />
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.258 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
                 </a>
                 <a
                   className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-brand-dark transition-all text-brand-dark"
-                  href="#"
+                  href="https://x.com/messages/compose?recipient_id=alexpavlenko"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="DM on X"
                 >
                   <Mail className="w-5 h-5" />
                 </a>
