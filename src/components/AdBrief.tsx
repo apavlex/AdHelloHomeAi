@@ -210,11 +210,14 @@ CRITICAL RULES:
         body: JSON.stringify({ prompt, imageBase64: base64, imageMimeType: mime })
       });
       const data = await res.json();
-      if (data.imageBase64) {
+      if (data.error === 'rate_limit') {
+        alert(`⚠️ ${data.message}`);
+      } else if (data.imageBase64) {
         setGeneratedAds(prev => ({ ...prev, [adIndex]: `data:${data.mimeType};base64,${data.imageBase64}` }));
       }
     } catch (err) {
       console.error('Ad generation failed:', err);
+      alert('Ad generation failed. Please try again.');
     }
     setGeneratingAd(null);
   };
@@ -668,15 +671,50 @@ CRITICAL RULES:
               </motion.div>
           </div>
 
-          <div className="text-center py-12 print:hidden">
-            <h3 className="text-3xl font-extrabold mb-4 text-brand-dark">Ready to create more?</h3>
-            <p className="text-brand-dark/40 mb-8 font-bold">Start your 7-day free trial to unlock unlimited ad generation and save your work</p>
-            <button 
-              onClick={() => window.open('https://calendar.app.google/QQsVbiAt4QdCX8mx8', '_blank')}
-              className="bg-primary hover:bg-primary-hover text-brand-dark px-10 py-5 rounded-full font-black text-xl transition-all hover:scale-105 shadow-xl shadow-primary/20"
-            >
-              Start 7-Day Free Trial
-            </button>
+          <div className="py-12 print:hidden">
+            <div className="bg-brand-dark rounded-[2.5rem] p-10 text-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[80px] pointer-events-none" />
+              <div className="relative z-10">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-black uppercase tracking-widest mb-5">
+                  Coming Soon
+                </div>
+                <h3 className="text-3xl font-extrabold mb-3 text-white">Unlock the Full Ad Studio</h3>
+                <p className="text-white/50 mb-8 font-medium max-w-xl mx-auto leading-relaxed">
+                  The free tool gives you 3 AI-generated ads per day. With the full Ad Studio you'll be able to:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-2xl mx-auto text-left">
+                  {[
+                    { icon: '💾', title: 'Save Your Ads', desc: 'Keep all generated images in your library' },
+                    { icon: '✏️', title: 'Edit & Refine', desc: 'Tweak copy, colors, and layout with AI' },
+                    { icon: '♾️', title: 'Unlimited Generations', desc: 'No daily limits — create as many as you need' },
+                  ].map((f, i) => (
+                    <div key={i} className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                      <span className="text-2xl mb-2 block">{f.icon}</span>
+                      <p className="text-white font-bold text-sm mb-1">{f.title}</p>
+                      <p className="text-white/40 text-xs leading-relaxed">{f.desc}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <button
+                    disabled
+                    className="bg-primary/30 text-white/40 px-8 py-3.5 rounded-full font-black text-sm cursor-not-allowed flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    Start Free Trial — Coming Soon
+                  </button>
+                  <a
+                    href="https://calendar.app.google/QQsVbiAt4QdCX8mx8"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white/50 hover:text-primary text-sm font-bold transition-colors underline underline-offset-4"
+                  >
+                    Get notified when it launches →
+                  </a>
+                </div>
+                <p className="text-white/25 text-xs mt-4">Free tier: 3 AI ad generations per day · No credit card required</p>
+              </div>
+            </div>
           </div>
         </div>
       )}

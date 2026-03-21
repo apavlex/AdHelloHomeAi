@@ -9,6 +9,24 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 8080;
+
+// IP-based rate limiting for ad image generation (3 per day per IP)
+const adGenRateLimit = new Map(); // ip -> { count, resetAt }
+function checkAdGenLimit(ip) {
+  const now = Date.now();
+  const dayMs = 24 * 60 * 60 * 1000;
+  const entry = adGenRateLimit.get(ip);
+  if (!entry || now > entry.resetAt) {
+    adGenRateLimit.set(ip, { count: 1, resetAt: now + dayMs });
+    return { allowed: true, remaining: 2 };
+  }
+  if (entry.count >= 3) {
+    const hoursLeft = Math.ceil((entry.resetAt - now) / 3600000);
+    return { allowed: false, remaining: 0, hoursLeft };
+  }
+  entry.count++;
+  return { allowed: true, remaining: 3 - entry.count };
+}
 const DIST_DIR = path.join(__dirname, 'dist');
 
 // Global error handlers to prevent silent crashes
@@ -277,6 +295,20 @@ const server = http.createServer(async (req, res) => {
     req.on('end', async () => {
       try {
         const { prompt, imageBase64, imageMimeType } = JSON.parse(body);
+
+        // Rate limit: 3 ad generations per IP per day
+        const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+        const limitResult = checkAdGenLimit(clientIp);
+        if (!limitResult.allowed) {
+          res.writeHead(429, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({
+            error: 'rate_limit',
+            message: `You've used your 3 free ad generations for today. Resets in ${limitResult.hoursLeft} hours.`,
+            hoursLeft: limitResult.hoursLeft
+          }));
+        }
+        console.log(`[AD-IMAGE] IP ${clientIp} — generation ${4 - limitResult.remaining}/3 today`);
+
         const geminiKey = process.env.GEMINI_API_KEY;
         if (!geminiKey) {
           res.writeHead(500, { 'Content-Type': 'application/json' });
