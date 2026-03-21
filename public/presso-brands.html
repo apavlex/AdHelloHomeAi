@@ -266,46 +266,6 @@ footer a{font-size:.78rem;font-weight:700;color:var(--primary-dark);text-decorat
   </head>
 <body>
 <!-- Event Banner -->
-<div id="event-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:#0d1520;color:white;font-family:inherit">
-  <div style="max-width:1280px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
-    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-      <div style="width:22px;height:22px;border-radius:50%;background:#E8B84B;display:flex;align-items:center;justify-content:center;font-size:11px">✦</div>
-      <span style="font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#E8B84B">Event</span>
-    </div>
-    <a id="event-banner-link" href="#" target="_blank" rel="noopener noreferrer" style="flex:1;display:flex;align-items:center;gap:12px;text-decoration:none;min-width:0">
-      <span id="event-banner-title" style="font-size:13px;font-weight:800;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
-      <span id="event-banner-date" style="font-size:11px;color:rgba(255,255,255,.55);white-space:nowrap;flex-shrink:0"></span>
-    </a>
-    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-      <a id="event-banner-rsvp" href="#" target="_blank" rel="noopener noreferrer" style="font-size:11px;font-weight:900;background:#E8B84B;color:#0d1520;padding:5px 12px;border-radius:999px;text-decoration:none">RSVP →</a>
-      <button onclick="this.closest('#event-banner').style.display='none';document.getElementById('main-nav').style.top='0';sessionStorage.setItem('eb-dismissed','1')" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;line-height:1;padding:2px">×</button>
-    </div>
-  </div>
-</div>
-<script>
-(function(){
-  if(sessionStorage.getItem('eb-dismissed')) return;
-  fetch('/api/events').then(r=>r.json()).then(function(d){
-    if(!d.events||!d.events.length) return;
-    var e=d.events[0];
-    var dt=new Date(e.start);
-    var now=new Date();
-    var diff=Math.ceil((dt-now)/(1000*60*60*24));
-    var dateStr=diff<=1?'Today':diff<=2?'Tomorrow':dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'America/Los_Angeles'});
-    var timeStr=dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'America/Los_Angeles'});
-    document.getElementById('event-banner-title').textContent=e.title;
-    document.getElementById('event-banner-date').textContent='📅 '+dateStr+' · '+timeStr+' PT';
-    document.getElementById('event-banner-link').href=e.url||'#';
-    document.getElementById('event-banner-rsvp').href=e.url||'#';
-    var banner=document.getElementById('event-banner');
-    banner.style.display='block';
-    var nav=document.getElementById('main-nav');
-    if(nav) nav.style.top=banner.offsetHeight+'px';
-  }).catch(function(){});
-})();
-</script>
-
-
 <nav id="main-nav" style="position:fixed;top:0;transition:top .3s;left:0;right:0;z-index:100;height:70px;background:rgba(255,252,245,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(243,221,109,.2);display:flex;align-items:center;padding:0 1.5rem">
   <div style="max-width:1200px;width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between">
     <div style="display:flex;align-items:center;gap:10px">

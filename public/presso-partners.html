@@ -266,46 +266,6 @@ footer a{font-size:.78rem;font-weight:700;color:var(--primary-dark);text-decorat
   </head>
 <body>
 <!-- Event Banner -->
-<div id="event-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:#0d1520;color:white;font-family:inherit">
-  <div style="max-width:1280px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
-    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-      <div style="width:22px;height:22px;border-radius:50%;background:#E8B84B;display:flex;align-items:center;justify-content:center;font-size:11px">✦</div>
-      <span style="font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#E8B84B">Event</span>
-    </div>
-    <a id="event-banner-link" href="#" target="_blank" rel="noopener noreferrer" style="flex:1;display:flex;align-items:center;gap:12px;text-decoration:none;min-width:0">
-      <span id="event-banner-title" style="font-size:13px;font-weight:800;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
-      <span id="event-banner-date" style="font-size:11px;color:rgba(255,255,255,.55);white-space:nowrap;flex-shrink:0"></span>
-    </a>
-    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-      <a id="event-banner-rsvp" href="#" target="_blank" rel="noopener noreferrer" style="font-size:11px;font-weight:900;background:#E8B84B;color:#0d1520;padding:5px 12px;border-radius:999px;text-decoration:none">RSVP →</a>
-      <button onclick="this.closest('#event-banner').style.display='none';document.getElementById('main-nav').style.top='0';sessionStorage.setItem('eb-dismissed','1')" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;line-height:1;padding:2px">×</button>
-    </div>
-  </div>
-</div>
-<script>
-(function(){
-  if(sessionStorage.getItem('eb-dismissed')) return;
-  fetch('/api/events').then(r=>r.json()).then(function(d){
-    if(!d.events||!d.events.length) return;
-    var e=d.events[0];
-    var dt=new Date(e.start);
-    var now=new Date();
-    var diff=Math.ceil((dt-now)/(1000*60*60*24));
-    var dateStr=diff<=1?'Today':diff<=2?'Tomorrow':dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'America/Los_Angeles'});
-    var timeStr=dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'America/Los_Angeles'});
-    document.getElementById('event-banner-title').textContent=e.title;
-    document.getElementById('event-banner-date').textContent='📅 '+dateStr+' · '+timeStr+' PT';
-    document.getElementById('event-banner-link').href=e.url||'#';
-    document.getElementById('event-banner-rsvp').href=e.url||'#';
-    var banner=document.getElementById('event-banner');
-    banner.style.display='block';
-    var nav=document.getElementById('main-nav');
-    if(nav) nav.style.top=banner.offsetHeight+'px';
-  }).catch(function(){});
-})();
-</script>
-
-
 <nav id="main-nav" style="position:fixed;top:0;transition:top .3s;left:0;right:0;z-index:100;height:70px;background:rgba(255,252,245,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(243,221,109,.2);display:flex;align-items:center;padding:0 1.5rem">
   <div style="max-width:1200px;width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between">
     <div style="display:flex;align-items:center;gap:10px">
@@ -624,5 +584,80 @@ footer a{font-size:.78rem;font-weight:700;color:var(--primary-dark);text-decorat
 
   
 </footer>
+<!-- Event Banner (matches adhello.ai React EventBanner) -->
+<div id="event-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:#0d1520;color:white;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <div style="max-width:1280px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <div style="width:24px;height:24px;border-radius:50%;background:#E8B84B;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#0d1520"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      </div>
+      <span style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#E8B84B">EVENT</span>
+    </div>
+    <a id="eb-link" href="#" target="_blank" rel="noopener noreferrer" style="flex:1;display:flex;flex-direction:column;gap:2px;text-decoration:none;min-width:0">
+      <span id="eb-title" style="font-size:13px;font-weight:800;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span id="eb-date" style="font-size:11px;color:rgba(255,255,255,.55);white-space:nowrap;flex-shrink:0"></span>
+        <span id="eb-location" style="font-size:11px;color:rgba(255,255,255,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none"></span>
+      </div>
+    </a>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative">
+      <button id="eb-info-btn" onclick="var p=document.getElementById('eb-popup');p.style.display=p.style.display==='none'?'block':'none'" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:14px">&#9432;</button>
+      <div id="eb-popup" style="display:none;position:absolute;right:0;top:36px;width:300px;background:white;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.3);z-index:300;overflow:hidden">
+        <div style="background:#0d1520;padding:16px 20px">
+          <p style="color:#E8B84B;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Upcoming Event</p>
+          <h3 id="eb-popup-title" style="color:white;font-size:15px;font-weight:800;line-height:1.3"></h3>
+        </div>
+        <div style="padding:16px 20px">
+          <div style="margin-bottom:12px"><p style="font-size:11px;font-weight:900;text-transform:uppercase;color:#0d1520;margin-bottom:2px">Date &amp; Time</p><p id="eb-popup-date" style="font-size:13px;color:#444;font-weight:600"></p><p id="eb-popup-time" style="font-size:11px;color:#999"></p></div>
+          <div id="eb-popup-loc-row" style="margin-bottom:16px;display:none"><p style="font-size:11px;font-weight:900;text-transform:uppercase;color:#0d1520;margin-bottom:2px">Location</p><a id="eb-popup-loc" href="#" target="_blank" style="font-size:13px;color:#E8B84B;font-weight:600;text-decoration:none"></a></div>
+          <a id="eb-popup-rsvp" href="#" target="_blank" style="display:block;text-align:center;background:#E8B84B;color:#0d1520;font-weight:900;font-size:13px;padding:12px;border-radius:12px;text-decoration:none">RSVP &mdash; Add to Calendar</a>
+        </div>
+      </div>
+      <a id="eb-rsvp" href="#" target="_blank" rel="noopener noreferrer" style="font-size:11px;font-weight:900;background:#E8B84B;color:#0d1520;padding:6px 14px;border-radius:999px;text-decoration:none;white-space:nowrap">RSVP &rsaquo;</a>
+      <button onclick="document.getElementById('event-banner').style.display='none';var n=document.querySelector('[data-nav=main]');if(n)n.style.top='0';sessionStorage.setItem('eb-dismissed','1')" style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.45);cursor:pointer;font-size:18px;line-height:1">&times;</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  if(sessionStorage.getItem('eb-dismissed')==='1') return;
+  fetch('/api/events').then(function(r){return r.json();}).then(function(d){
+    var events=d.events||[];
+    if(!events.length) return;
+    var e=events[0];
+    var start=new Date(e.start);
+    var end=new Date(e.end);
+    var opts={timeZone:'America/Los_Angeles'};
+    var dateStr=start.toLocaleDateString('en-US',Object.assign({weekday:'short',month:'short',day:'numeric'},opts));
+    var timeStr=start.toLocaleTimeString('en-US',Object.assign({hour:'numeric',minute:'2-digit',hour12:true},opts));
+    var endStr=end.toLocaleTimeString('en-US',Object.assign({hour:'numeric',minute:'2-digit',hour12:true},opts));
+    document.getElementById('eb-title').textContent=e.title;
+    document.getElementById('eb-date').textContent=dateStr+' · '+timeStr+' PT';
+    document.getElementById('eb-link').href=e.url||'#';
+    document.getElementById('eb-rsvp').href=e.url||'#';
+    document.getElementById('eb-popup-title').textContent=e.title;
+    document.getElementById('eb-popup-date').textContent=dateStr;
+    document.getElementById('eb-popup-time').textContent=timeStr+' – '+endStr+' PT';
+    document.getElementById('eb-popup-rsvp').href=e.url||'#';
+    if(e.location){
+      document.getElementById('eb-location').textContent=e.location.split(',')[0];
+      document.getElementById('eb-location').style.display='';
+      document.getElementById('eb-popup-loc').textContent=e.location;
+      document.getElementById('eb-popup-loc').href='https://maps.google.com/?q='+encodeURIComponent(e.location);
+      document.getElementById('eb-popup-loc-row').style.display='block';
+    }
+    var banner=document.getElementById('event-banner');
+    banner.style.display='block';
+    var nav=document.querySelector('[data-nav=main]');
+    if(nav) nav.style.top=banner.offsetHeight+'px';
+    document.addEventListener('click',function(ev){
+      var p=document.getElementById('eb-popup');
+      var b=document.getElementById('eb-info-btn');
+      if(p&&b&&!p.contains(ev.target)&&!b.contains(ev.target)) p.style.display='none';
+    });
+  }).catch(function(){});
+})();
+</script>
+<!-- End Event Banner -->
 </body>
 </html>

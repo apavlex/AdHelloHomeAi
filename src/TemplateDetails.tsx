@@ -1,3 +1,4 @@
+import { EventBanner } from './components/EventBanner';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Star, ChevronRight, Monitor, Smartphone, Zap } from 'lucide-react';
@@ -46,6 +47,7 @@ export default function TemplateDetails() {
 
     return (
         <div className="min-h-screen bg-warm-cream font-sans selection:bg-primary/40 pb-24">
+            <EventBanner />
             <SEO
               title={`${template?.name || 'Website Template'} — AdHello.ai Contractor Templates`}
               description={`Preview the ${template?.name || ''} website template by AdHello.ai — built for local home service contractors with SEO and GEO optimization.`}
