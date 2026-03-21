@@ -212,44 +212,57 @@ export default function AboutPage() {
                 <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-200/20 blur-[120px] rounded-full" />
             </section>
 
-            {/* Footer (Simplified for About) */}
-            <footer className="bg-brand-dark text-white py-20">
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-20">
-                        <div className="max-w-sm">
-                            <img src={logoImg} alt="AdHello.ai" className="h-10 w-auto brightness-0 invert mb-8" />
-                            <p className="text-lg text-white/60 font-bold leading-relaxed">
-                                The AI Growth Engine for Home Service Businesses. Built in the trenches, designed for growth.
-                            </p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-16">
-                            <div>
-                                <h4 className="font-black text-xl mb-6">Navigate</h4>
-                                <ul className="space-y-4 text-white/50 font-bold">
-                                    <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
-                                    <li><a href="/#pricing" className="hover:text-primary transition-colors">Pricing</a></li>
-                                    <li><Link to="/about" className="hover:text-primary transition-colors">About</Link></li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 className="font-black text-xl mb-6">Connect</h4>
-                                <ul className="space-y-4 text-white/50 font-bold">
-                                    <li><a href="tel:3607731505" target="_top" className="hover:text-primary transition-colors">360-773-1505</a></li>
-                                    <li><a href="https://calendar.app.google/QQsVbiAt4QdCX8mx8" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Book Demo Today</a></li>
-                                    <li><a href="#" className="hover:text-primary transition-colors">Legal</a></li>
-                                </ul>
-                            </div>
-                        </div>
+            {/* Footer — matches homepage */}
+            <footer className="bg-warm-cream text-brand-dark/60 py-12 border-t border-brand-dark/5">
+              <div className="max-w-7xl mx-auto px-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-10">
+                  <div>
+                    <div className="flex items-center gap-3 mb-8">
+                      <Logo variant="dark" className="h-12 w-auto" />
                     </div>
-                    <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-                        <p className="text-white/40 font-bold">© {new Date().getFullYear()} AdHello.ai. All rights reserved.</p>
-                        <div className="flex gap-8 text-white/30 font-black text-sm uppercase tracking-widest">
-                            <span>Built by Operators</span>
-                            <span>•</span>
-                            <span>Made in the Lab</span>
-                        </div>
+                    <p className="text-lg leading-relaxed mb-8 italic text-brand-dark/80">
+                      "Websites built for home service businesses that want more leads."
+                    </p>
+                    <div className="flex gap-4">
+                      <a className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-brand-dark transition-all text-brand-dark" href="https://x.com/alexpavlenko" target="_blank" rel="noopener noreferrer" aria-label="Follow on X">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.258 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+                      </a>
+                      <a className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-brand-dark transition-all text-brand-dark" href="https://x.com/messages/compose?recipient_id=alexpavlenko" target="_blank" rel="noopener noreferrer" aria-label="DM on X">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                      </a>
                     </div>
+                  </div>
+                  <div>
+                    <h4 className="text-brand-dark text-xl font-extrabold mb-6">Product</h4>
+                    <ul className="space-y-4 text-base font-medium">
+                      <li><a className="hover:text-primary transition-colors" href="/#how-it-works">How It Works</a></li>
+                      <li><a className="hover:text-primary transition-colors" href="/#what-you-get">What's Included</a></li>
+                      <li><Link className="hover:text-primary transition-colors" to="/templates">View Templates</Link></li>
+                      <li><a className="hover:text-primary transition-colors" href="/presso-home.html">AdHello × Presso</a></li>
+                      <li><a className="hover:text-primary transition-colors" href="/#pricing">Pricing</a></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="text-brand-dark text-xl font-extrabold mb-6">Company</h4>
+                    <ul className="space-y-4 text-base font-medium">
+                      <li><Link className="hover:text-primary transition-colors" to="/about">About</Link></li>
+                      <li><a className="hover:text-primary transition-colors flex items-center gap-2" href="tel:3607731505">(360) 773-1505</a></li>
+                      <li><a className="hover:text-primary transition-colors" href="https://calendar.app.google/QQsVbiAt4QdCX8mx8" target="_blank" rel="noopener noreferrer">Book Demo Today</a></li>
+                      <li><a className="hover:text-primary transition-colors" href="mailto:alex@adhello.ai">Contact Us</a></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="text-brand-dark text-xl font-extrabold mb-6">Legal</h4>
+                    <ul className="space-y-4 text-base font-medium">
+                      <li><a className="hover:text-primary transition-colors" href="#">Privacy Policy</a></li>
+                      <li><a className="hover:text-primary transition-colors" href="#">Terms of Service</a></li>
+                    </ul>
+                  </div>
                 </div>
+                <div className="pt-10 border-t border-brand-dark/5 flex flex-col md:flex-row justify-between items-center gap-6 text-sm font-bold tracking-widest uppercase">
+                  <p>© {new Date().getFullYear()} AdHello.ai. All rights reserved.</p>
+                </div>
+              </div>
             </footer>
         </div>
     );
