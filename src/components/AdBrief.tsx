@@ -195,6 +195,8 @@ STYLE DIRECTION: ${chosenStyle}
 CRITICAL RULES:
 - The uploaded product must appear clearly and prominently in the final image — do not replace or obscure it
 - Use the product's actual appearance, colors, and branding from the uploaded image
+- PROPORTION IS CRITICAL: maintain 100% accurate real-world scale — a 12oz cup must look like a 12oz cup when held by a human hand, a bottle must fit naturally in a palm, packaging must be its true physical size relative to hands, tables, and people. Never make products oversized or disproportionate
+- If a person holds the product, their hand size must be anatomically correct relative to the product size
 - Generate a realistic lifestyle scene or styled composition AROUND the product
 - Include real people if the style calls for it (diverse, relatable, not stock-photo looking)
 - Typography must be bold, large, and legible — not thin or small
