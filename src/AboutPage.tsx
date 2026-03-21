@@ -55,7 +55,7 @@ export default function AboutPage() {
                                 <a className="text-sm font-bold text-brand-dark transition-colors" href="/about">About</a>
                             </nav>
                             <div className="flex items-center gap-8">
-                                <a href="https://app.adhello.ai/login" className="text-sm font-extrabold text-brand-dark hover:text-primary transition-colors">Sign In</a>
+                                
                                 <a href="/" className="bg-primary hover:bg-primary-hover text-brand-dark text-sm font-bold px-6 py-3 rounded-full transition-all duration-300 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] hover:shadow-[0_0_15px_rgba(243,221,109,0.6)] hover:-translate-y-0.5 hover:scale-105 flex items-center gap-2">
                                     Build My Smart Site
                                 </a>
