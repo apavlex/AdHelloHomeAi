@@ -432,7 +432,7 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
       setReport(data);
       setStatus('complete');
       if (!sessionStorage.getItem('adhello-gate-passed')) {
-        setTimeout(() => setShowEmailModal(true), 3000);
+        setTimeout(() => setShowEmailModal(true), 8000);
       }
 
       // Kick off GEO analysis in parallel
@@ -871,7 +871,11 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
           <div className="bg-brand-dark px-6 py-5">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-brand-dark" />
+                <svg className="w-5 h-5 text-brand-dark" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="2" y="4" width="20" height="16" rx="2" fill="currentColor" opacity="0.15"/>
+                  <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M2 7L12 13L22 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
               </div>
               <div>
                 <p className="text-white font-extrabold text-base leading-tight">Get your report in your inbox</p>
