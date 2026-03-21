@@ -410,24 +410,24 @@ CRITICAL RULES:
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
             {[
-              { label: 'Exterior Painting', icon: '🎨' },
-              { label: 'Interior Painting', icon: '🖌️' },
-              { label: 'Roofing', icon: '🏠' },
-              { label: 'Siding', icon: '🧱' },
-              { label: 'Landscaping', icon: '🌿' },
-              { label: 'Lawn Care', icon: '🌱' },
-              { label: 'HVAC', icon: '❄️' },
-              { label: 'Plumbing', icon: '🔧' },
-              { label: 'Electrical', icon: '⚡' },
-              { label: 'Flooring', icon: '🪵' },
-              { label: 'Kitchen Remodel', icon: '🍳' },
-              { label: 'Bathroom Remodel', icon: '🚿' },
-              { label: 'Windows & Doors', icon: '🪟' },
-              { label: 'Pressure Washing', icon: '💧' },
-              { label: 'Real Estate', icon: '🏡' },
-              { label: 'Home Staging', icon: '🛋️' },
-              { label: 'Cleaning Services', icon: '✨' },
-              { label: 'Other', icon: '🔨' },
+              { label: 'Exterior Painting', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 21h20M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg> },
+              { label: 'Interior Painting', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 22v-2c0-1.1.9-2 2-2h14a2 2 0 012 2v2"/><rect x="3" y="6" width="18" height="10" rx="1"/><path d="M8 6V4M12 6V4M16 6V4"/></svg> },
+              { label: 'Roofing', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/></svg> },
+              { label: 'Siding', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="5" rx="1"/><rect x="2" y="10" width="20" height="5" rx="1"/><rect x="2" y="16" width="20" height="5" rx="1"/></svg> },
+              { label: 'Landscaping', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22V12M12 12C12 7 7 4 3 6c0 4 3 7 9 6M12 12c0-5 5-8 9-6-1 4-4 7-9 6"/></svg> },
+              { label: 'Lawn Care', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 22h18M6 22V12M12 22V8M18 22V14"/><path d="M6 12c0-4 3-7 6-7s6 3 6 7"/></svg> },
+              { label: 'HVAC', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M12 9v7M8 12h8"/><path d="M6 6V4M18 6V4"/></svg> },
+              { label: 'Plumbing', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2v4a2 2 0 002 2h4"/><path d="M4 22V12M4 12a4 4 0 014-4h12a2 2 0 012 2v8a2 2 0 01-2 2H8a4 4 0 01-4-4z"/></svg> },
+              { label: 'Electrical', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> },
+              { label: 'Flooring', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="9" height="9"/><rect x="13" y="2" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/></svg> },
+              { label: 'Kitchen Remodel', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M6 7h2M6 12h12M6 17h12M16 2v5"/></svg> },
+              { label: 'Bathroom Remodel', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20v4a4 4 0 01-4 4H6a4 4 0 01-4-4v-4z"/><path d="M7 12V5a2 2 0 114 0v1M4 12V8"/></svg> },
+              { label: 'Windows & Doors', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="1"/><path d="M12 4v16M2 12h10M12 12h10"/></svg> },
+              { label: 'Pressure Washing', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3v7m0 0a6 6 0 106 6"/><path d="M6 10h9a3 3 0 010 6H9"/><path d="M3 8l3-5 3 5"/></svg> },
+              { label: 'Real Estate', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12L12 3l9 9M5 10v10h5v-5h4v5h5V10"/></svg> },
+              { label: 'Home Staging', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 22h18M4 22V10M20 22V10"/><path d="M2 10h20M7 10V6M17 10V6M7 6a5 5 0 0110 0"/><rect x="9" y="14" width="6" height="8"/></svg> },
+              { label: 'Cleaning Services', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 22l4-4m0 0l8-8m-8 8l-1-1m9-7l3-3a2 2 0 000-3l-1-1a2 2 0 00-3 0l-3 3m4 4l-4-4"/></svg> },
+              { label: 'Other', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg> },
             ].map((s) => (
               <button
                 key={s.label}
@@ -438,7 +438,7 @@ CRITICAL RULES:
                     : 'bg-white border-gray-100 text-brand-dark/70 hover:border-primary/30 hover:text-brand-dark shadow-sm'
                 }`}
               >
-                <span className="text-xl">{s.icon}</span>
+                <span className={`w-5 h-5 flex-shrink-0 ${selectedService === s.label ? 'text-brand-dark' : 'text-primary'}`}>{s.icon}</span>
                 {s.label}
               </button>
             ))}
