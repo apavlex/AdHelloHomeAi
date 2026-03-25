@@ -15,6 +15,8 @@ const roofingEmergency = '/templates/template-roofing-emergency.png';
 const roofingCorporate = '/templates/template-roofing-corporate.png';
 const roofingDashboard = '/templates/template-roofing-dashboard.png';
 const roofingHome = '/templates/template-roofing-home.png';
+const brightElectricNew = '/templates/template-bright-electric-new.png';
+const brightElectricOld = '/templates/template-bright-electric-old.png';
 
 export interface TemplateFeature {
     icon: string; // lucide-react icon name as a string, e.g., 'ShieldCheck'
@@ -42,6 +44,7 @@ export const CATEGORIES = [
     { id: 'electrician', name: 'Electricians' },
     { id: 'plumbing', name: 'Plumbers' },
     { id: 'roofing', name: 'Roofers' },
+    { id: 'electrician-pro', name: 'Electricians' },
     // Future categories:
     // { id: 'hvac', name: 'HVAC' },
 ];
@@ -305,6 +308,36 @@ export const TEMPLATES: Template[] = [
                 icon: 'MapPin',
                 title: 'Interactive Coverage Maps',
                 description: 'Visually demonstrate your exact service areas to reassure local searchers you operate in their neighborhood.'
+            }
+        ]
+    }
+,
+    {
+        id: 'bright-electric-pro',
+        name: 'Bright Electric Pro',
+        categoryId: 'electrician',
+        categoryName: 'Electricians',
+        shortDescription: 'A high-converting electrician site with a 10% off offer, same-day scheduling, and a full service grid — built to dominate local search.',
+        fullDescription: 'Bright Electric Pro is a battle-tested website template built for residential and commercial electricians. The before/after comparison shows exactly what AdHello delivers: a modern, conversion-optimized site that drives quote requests with a prominent offer, trust badges, and a comprehensive services gallery — replacing the outdated generic site.',
+        images: [brightElectricNew, brightElectricOld],
+        tags: ['High Converting', 'Offer-Led', 'Service Grid', 'Before & After'],
+        seoKeywords: ['electrician website template', 'electrical contractor web design', 'high converting electrician site', 'local electrician SEO'],
+        seoDescription: 'See the Bright Electric Pro template in action — a before/after transformation showing how AdHello replaces outdated contractor sites with high-converting, lead-generating machines.',
+        features: [
+            {
+                icon: 'Zap',
+                title: 'Offer-Led Hero',
+                description: 'A "Claim 10% Off" banner with urgency drives immediate lead form submissions above the fold.'
+            },
+            {
+                icon: 'Grid',
+                title: '12-Service Gallery',
+                description: 'Comprehensive services grid covers EV chargers, panel upgrades, lighting, and more — great for SEO and conversion.'
+            },
+            {
+                icon: 'Star',
+                title: 'Trust & Reviews Section',
+                description: 'Dedicated testimonials section with star ratings and a "Your Neighbors Trust Us" authority block.'
             }
         ]
     }
