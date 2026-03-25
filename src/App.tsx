@@ -421,7 +421,7 @@ export default function App() {
                 <p className="text-sm font-bold text-brand-dark/40 ml-4 mt-2">No long-term contracts. Setup in 7 days. Built for HVAC, Plumbing, Electrical, Roofing &amp; More.</p>
               </div>
             </div>
-            <div className="relative order-1 lg:order-2 flex flex-col items-center justify-center h-[500px] lg:h-[650px]">
+            <div className="hidden lg:flex relative order-1 lg:order-2 flex-col items-center justify-center h-[500px] lg:h-[650px]">
               <div className="relative z-10 petal-card-shape bg-white p-2 shadow-2xl max-w-lg w-full aspect-[4/5] overflow-hidden">
                 <div className="petal-card-shape w-full h-full overflow-hidden bg-primary/10 relative">
                   <AnimatePresence mode="wait">
