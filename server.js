@@ -27,6 +27,36 @@ function checkAdGenLimit(ip) {
   entry.count++;
   return { allowed: true, remaining: 3 - entry.count };
 }
+
+/**
+ * Sync lead data to the centralized LeadsOS CRM
+ */
+async function syncToLeadsApp(data) {
+  const LEADS_API_URL = 'https://leads.adhello.ai/api/leads/ingest';
+  const API_KEY = process.env.API_INGEST_KEY || 'adhello_secret_123';
+  
+  try {
+    console.log(`[SYNC] Forwarding data to LeadsOS for: ${data.email || data.title}`);
+    const response = await fetch(LEADS_API_URL, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY
+      },
+      body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(`[SYNC] LeadsOS response error: ${response.status} - ${errText}`);
+    } else {
+      console.log(`[SYNC] Successfully synced to LeadsOS`);
+    }
+  } catch (err) {
+    console.error(`[SYNC] Failed to connect to LeadsOS:`, err.message);
+  }
+}
+
 const DIST_DIR = path.join(__dirname, 'dist');
 
 // Global error handlers to prevent silent crashes
@@ -440,6 +470,21 @@ If they want to talk to a human: click the phone icon above or call (360) 773-15
 
         const responseText = result.text;
         console.log('[CHAT] Response generated');
+
+        // Side-sync to Leads App (Non-blocking)
+        setImmediate(() => {
+          syncToLeadsApp({
+            email: 'N/A', // We don't have email yet in simple chat, but merging will happen later if they provide it
+            title: 'Anonymous Chat Prospect',
+            source: 'adhello_chatbot',
+            chatHistory: [
+              { role: 'user', text: userMessage },
+              { role: 'growth_coach', text: responseText }
+            ],
+            message: 'Live chat interaction'
+          });
+        });
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ text: responseText }));
       } catch (err) {
@@ -664,9 +709,22 @@ IMPORTANT: Return only raw JSON with no markdown fences or extra text.`;
     req.on('data', chunk => { body += chunk.toString(); });
     req.on('end', async () => {
       try {
-        const { name, email, source, url: siteUrl, message } = JSON.parse(body);
-        const ts = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+        // Original Lead Logging
         console.log(`[LEAD] New lead: ${name} <${email}> via ${source || 'unknown'} at ${ts}${siteUrl ? ' — '+siteUrl : ''}`);
+
+        // Sync to Leads App (Unified CRM)
+        setImmediate(() => {
+          syncToLeadsApp({
+            title: name,
+            email: email,
+            website: siteUrl || 'N/A',
+            source: source === 'ad-brief' ? 'adhello_brief' : 'adhello_audit',
+            message: message || `User completed ${source === 'ad-brief' ? 'Ad Brief' : 'Audit'}`,
+            // If they just did an audit/brief, we can't easily pass the full JSON here without refactoring the frontend to send it, 
+            // but we can at least log the contact. 
+            // In a real scenario, we'd pass the auditData/adBriefData from the client.
+          });
+        });
 
         // Send email via Resend (free tier: 100 emails/day, no 2FA needed)
         const resendKey = process.env.RESEND_API_KEY;
