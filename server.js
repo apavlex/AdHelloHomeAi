@@ -163,6 +163,7 @@ const server = http.createServer(async (req, res) => {
         
         The JSON must have this exact structure:
         {
+          "companyName": "string",
           "score": number (0-100),
           "mobileFirstScore": number (0-100),
           "leadsEstimatesScore": number (0-100),
@@ -256,6 +257,28 @@ const server = http.createServer(async (req, res) => {
         }
 
         console.log(`[SUCCESS] Analysis complete using ${usedModel}`);
+        
+        // Passive Lead Sync to LeadsOS CRM
+        try {
+          const reportObj = JSON.parse(cleanedContent);
+          const clientIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+          
+          setImmediate(() => {
+            syncToLeadsApp({
+              title: reportObj.companyName || (url.replace(/^(?:https?:\/\/)?(?:www\.)?/i, "").split('/')[0]) || 'Anonymous Audit',
+              email: 'N/A',
+              website: url,
+              source: 'adhello_audit',
+              ip: clientIp,
+              auditData: reportObj,
+              message: `Auto-captured audit for ${url}`,
+              status: 'Discovery Done'
+            });
+          });
+        } catch (e) {
+          console.error('[SYNC] Passive sync failed:', e.message);
+        }
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(cleanedContent);
       } catch (error) {
