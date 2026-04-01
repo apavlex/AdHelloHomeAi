@@ -37,7 +37,9 @@ async function syncToLeadsApp(data) {
   const API_KEY = process.env.API_INGEST_KEY || 'adhello_secret_123';
   
   try {
-    console.log(`[SYNC] Forwarding data to LeadsOS for: ${data.email || data.title}`);
+    console.log(`[SYNC] Connecting to: ${LEADS_API_URL}`);
+    console.log(`[SYNC] Forwarding data for: ${data.email || data.title} (Source: ${data.source})`);
+    
     const response = await fetch(LEADS_API_URL, {
       method: 'POST',
       headers: { 
@@ -55,6 +57,7 @@ async function syncToLeadsApp(data) {
     }
   } catch (err) {
     console.error(`[SYNC] Failed to connect to LeadsOS:`, err.message);
+    console.error(`[SYNC] Target URL was: ${LEADS_API_URL}`);
   }
 }
 
