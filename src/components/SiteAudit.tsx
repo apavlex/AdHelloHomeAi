@@ -380,7 +380,13 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
       await fetch('/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: modalName, email: modalEmail, source: 'site-audit' })
+        body: JSON.stringify({ 
+          name: modalName, 
+          email: modalEmail, 
+          siteUrl: report?.url || url, 
+          auditData: report,
+          source: 'site-audit' 
+        })
       });
     } catch (_) {}
     sessionStorage.setItem('adhello-gate-passed', '1');

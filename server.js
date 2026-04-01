@@ -869,7 +869,7 @@ IMPORTANT: Return only raw JSON with no markdown fences or extra text.`;
     req.on('data', chunk => { body += chunk.toString(); });
     req.on('end', async () => {
       try {
-        const { name, email, siteUrl, message, source, timestamp } = JSON.parse(body);
+        const { name, email, siteUrl, auditData, message, source, timestamp } = JSON.parse(body);
         const ts = timestamp || new Date().toISOString();
         const clientIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 
@@ -884,6 +884,7 @@ IMPORTANT: Return only raw JSON with no markdown fences or extra text.`;
             website: siteUrl || 'N/A',
             source: source === 'ad-brief' ? 'adhello_brief' : 'adhello_audit',
             ip: clientIp, // Pass IP for stitching
+            auditData: auditData || null,
             message: message || `User completed ${source === 'ad-brief' ? 'Ad Brief' : 'Audit'}`,
             status: 'Lead Captured'
           });
