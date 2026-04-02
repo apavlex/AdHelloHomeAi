@@ -136,7 +136,7 @@ export const SmartSiteQuiz: React.FC<SmartSiteQuizProps> = ({ isOpen, onClose })
                           <input 
                             autoFocus
                             type="text" 
-                            placeholder="e.g. Presso Coffee"
+                            placeholder="e.g. Pro Paint Services"
                             value={formData.bizName}
                             onChange={e => setFormData({ ...formData, bizName: e.target.value })}
                             className="w-full bg-gray-50 border-2 border-gray-100 rounded-3xl py-5 pl-14 pr-8 text-xl font-bold focus:border-primary focus:outline-none transition-colors shadow-sm"
@@ -147,7 +147,7 @@ export const SmartSiteQuiz: React.FC<SmartSiteQuizProps> = ({ isOpen, onClose })
                         <label className="block text-xs font-black uppercase tracking-widest text-brand-dark/40 mb-2 ml-2">Industry</label>
                         <input 
                           type="text" 
-                          placeholder="e.g. Specialty Coffee Shop, Contractor, Plumber..."
+                          placeholder="e.g. Roofing, HVAC, Plumber..."
                           value={formData.industry}
                           onChange={e => setFormData({ ...formData, industry: e.target.value })}
                           className="w-full bg-gray-50 border-2 border-gray-100 rounded-3xl py-5 px-8 text-xl font-bold focus:border-primary focus:outline-none transition-colors shadow-sm"

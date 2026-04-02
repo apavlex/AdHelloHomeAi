@@ -7,7 +7,7 @@ import {
     Target,
     Workflow,
     Zap,
-    Coffee,
+    Wrench,
     HardHat,
     LineChart,
     ShieldCheck,
@@ -15,7 +15,7 @@ import {
     Sparkles
 } from 'lucide-react';
 import logoImg from './assets/logo.png';
-import coffeeFoundersImg from './assets/coffee-shop-founders.jpg';
+import projectFoundersImg from './assets/project-founders.jpg';
 import { Link } from 'react-router-dom';
 import SEO from './components/SEO';
 import { useState } from 'react';
@@ -115,7 +115,7 @@ export default function AboutPage() {
                                     The problem for most small business owners is that we are taught to scale our footprint before we’ve mastered our efficiency. We add a second location, a third crew, or a new office, only to realize we’ve just multiplied our headaches.
                                 </p>
                                 <p className="text-2xl text-brand-dark/80 font-medium leading-[1.6]">
-                                    For fifteen years, I lived this. I ran screen-printing, window-covering, coworking, and coffee businesses. I even worked in Real Estate, seeing the gap between those who were simply "busy" and those who were truly "systematized." I realized that most of us are missing the tech-driven efficiency that large-scale corporations use to maintain control.
+                                    For fifteen years, I lived this. I ran screen-printing, window-covering, coworking, and service businesses. I even worked in Real Estate, seeing the gap between those who were simply "busy" and those who were truly "systematized." I realized that most of us are missing the tech-driven efficiency that large-scale corporations use to maintain control.
                                 </p>
                             </div>
 
@@ -128,27 +128,29 @@ export default function AboutPage() {
                                 className="relative rounded-[3.5rem] overflow-hidden border-8 border-white shadow-2xl mb-16 aspect-[4/3]"
                             >
                                 <img
-                                    src="/coffee-shop-founders.jpg"
+                                    src="https://images.unsplash.com/photo-1581578731522-745d05ad9a2d?auto=format&fit=crop&q=80&w=1400"
                                     className="w-full h-full object-cover object-center"
-                                    alt="Presso Coffee Shop and Founders"
+                                    alt="Home Service Professional at Work"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/20 to-transparent pointer-events-none" />
                             </motion.div>
 
                             <div className="bg-warm-cream p-12 rounded-[3rem] border border-yellow-100 relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 p-8 text-primary/10 group-hover:text-primary/20 transition-colors">
-                                    <Coffee size={120} strokeWidth={1} />
+                                    <HardHat size={120} strokeWidth={1} />
                                 </div>
-                                <h2 className="text-4xl font-black text-brand-dark mb-8 relative z-10">The Friday Night Realization</h2>
+                                <h2 className="text-4xl font-black text-brand-dark mb-8 relative z-10">The Job Site Realization</h2>
                                 <div className="space-y-6 text-xl text-brand-dark/70 font-bold leading-relaxed relative z-10">
                                     <p>
-                                        The idea for Adhello.ai came from the back of a coffee shop at 6:00 PM on a Friday.
+                                        The idea for Adhello.ai came from the back of a service truck at 6:00 PM on a Friday.
                                     </p>
                                     <p>
-                                        While my friends and family were heading out for dinner, I was elbows-deep in gray water, trying to clear a clogged main drain so we could open the next morning. It hit me: I had scaled my overhead, but I hadn't scaled my systems. I was an owner, a manager, and a part-time plumber, trading my life for a business that couldn't breathe without me.
+                                        While others were heading out for dinner, I was elbows-deep in a complex install, trying to finish 
+                                        a job so I could make payroll on Monday. It hit me: I had scaled my crew and my overhead, but I hadn't scaled my systems. 
+                                        I was a business owner, a project manager, and a full-time technician, trading my life for a business that couldn't breathe without me.
                                     </p>
                                     <p>
-                                        When my 5-year lease renewals came up, I chose a different path. I decided to stop fighting for more square footage and start building the technology that would allow my businesses to finally evolve.
+                                        I decided to stop fighting for more territory and start building the technology that would allow local service businesses to finally evolve.
                                     </p>
                                 </div>
                             </div>
@@ -160,7 +162,7 @@ export default function AboutPage() {
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl rounded-full" />
                                     <h3 className="text-3xl font-black mb-6">Our Mission</h3>
                                     <p className="text-lg text-white/80 font-bold leading-relaxed">
-                                        At Adhello, we believe the next era of small business growth won't come from just signing more leases—it will come from Digital Efficiency. I still run my flagship coffee shop as a "Living Lab." I don't build software in a vacuum; I build it for the person who is tired of the grind and ready to build a business that finally works for them.
+                                        At Adhello, we believe the next era of small business growth won't come from just signing more leases—it will come from Digital Efficiency. I build software for the person who is tired of the grind and ready to build a business that finally works for them.
                                     </p>
                                     <div className="mt-8 pt-8 border-t border-white/10 flex items-center gap-4">
                                         <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-brand-dark">
@@ -250,7 +252,7 @@ export default function AboutPage() {
                       <li><a className="hover:text-primary transition-colors" href="/#how-it-works">How It Works</a></li>
                       <li><a className="hover:text-primary transition-colors" href="/#what-you-get">What's Included</a></li>
                       <li><Link className="hover:text-primary transition-colors" to="/templates">View Templates</Link></li>
-                      <li><a className="hover:text-primary transition-colors" href="/presso-home.html">AdHello × Presso</a></li>
+                      <li><a className="hover:text-primary transition-colors" href="/service-booking.html">Booking Engine</a></li>
                       <li><a className="hover:text-primary transition-colors" href="/#pricing">Pricing</a></li>
                     </ul>
                   </div>

@@ -1340,8 +1340,8 @@ export default function App() {
                   </Link>
                 </li>
                 <li>
-                  <a className="hover:text-primary-dark transition-colors" href="/presso-home.html">
-                    AdHello × Presso
+                  <a className="hover:text-primary-dark transition-colors" href="/#faq">
+                    Common Questions
                   </a>
                 </li>
                 <li>

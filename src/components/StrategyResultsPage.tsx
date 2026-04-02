@@ -162,7 +162,7 @@ export default function StrategyResultsPage() {
                 </div>
                 <div>
                   <h3 className="text-xl font-black">Personalized AI Prompt</h3>
-                  <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Base44 Compatible</p>
+                  <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Built-In Strategic Roadmap</p>
                 </div>
               </div>
               
@@ -197,6 +197,26 @@ export default function StrategyResultsPage() {
               Why Go Professional <br />
               <span className="text-primary italic">with AdHello.ai?</span>
             </h2>
+            <div className="bg-brand-dark/5 p-8 rounded-[2rem] border border-brand-dark/5 mb-8">
+              <h4 className="text-sm font-black uppercase tracking-widest text-brand-dark/40 mb-6">Compare the Value</h4>
+              <div className="space-y-6">
+                <div className="flex justify-between items-center pb-4 border-b border-brand-dark/5">
+                  <span className="text-brand-dark/60 font-bold">Traditional Agency Setup</span>
+                  <span className="text-xl font-black text-red-600">$5,000+</span>
+                </div>
+                <div className="flex justify-between items-center pb-4 border-b border-brand-dark/5">
+                  <span className="text-brand-dark/60 font-bold">Monthly Retainer & Hosting</span>
+                  <span className="text-xl font-black text-red-600">$497/mo</span>
+                </div>
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-brand-dark font-black">AdHello Concierge Build</span>
+                  <div className="text-right">
+                    <span className="block text-2xl font-black text-green-600">$0 Setup</span>
+                    <span className="text-sm font-bold text-brand-dark/40 italic">Then $97/mo - No Contracts</span>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="space-y-6">
               {[
                 { 
@@ -261,8 +281,11 @@ export default function StrategyResultsPage() {
               ) : (
                 <motion.div key="form" exit={{ opacity: 0, x: -20 }}>
                   <div className="mb-10">
-                    <h3 className="text-2xl font-black mb-2">Claim Your Smart Site</h3>
-                    <p className="text-brand-dark/50 font-bold">Submit this request to have our pros build your site based on this strategy.</p>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-widest mb-4 border border-green-200">
+                      Limited Time: $0 Setup Fee
+                    </div>
+                    <h3 className="text-2xl font-black mb-2">Claim Your Concierge Build</h3>
+                    <p className="text-brand-dark/50 font-bold">We handle everything from strategy to launch. Submit your request below.</p>
                   </div>
 
                   <form onSubmit={handleLeadSubmit} className="space-y-6">
@@ -310,7 +333,7 @@ export default function StrategyResultsPage() {
                       {isSubmitting ? (
                         <>Architecting Request... <div className="w-5 h-5 border-2 border-brand-dark/30 border-t-brand-dark rounded-full animate-spin" /></>
                       ) : (
-                        <>Build My Professional Site <ArrowRight className="w-6 h-6" /></>
+                        <>Start My Professional Intake <ArrowRight className="w-6 h-6" /></>
                       )}
                     </button>
 
@@ -331,19 +354,19 @@ export default function StrategyResultsPage() {
         </section>
 
         {/* DIY Last Resort */}
-        <section className="text-center pt-20 border-t border-brand-dark/5">
+        <section className="text-center pt-20 border-t border-brand-dark/5 pb-10">
           <div className="max-w-xl mx-auto">
-            <h4 className="text-lg font-black text-brand-dark/40 uppercase tracking-widest mb-4">The DIY Route</h4>
-            <p className="text-brand-dark/60 font-medium mb-8">
-              Want to do it all yourself? You can take your prompt and build it manually. Keep in mind you'll need to handle your own hosting, design updates, and SEO maintenance.
+            <h4 className="text-lg font-black text-brand-dark/40 uppercase tracking-widest mb-4 italic">The DIY Road (Last Resort)</h4>
+            <p className="text-brand-dark/40 font-bold mb-8">
+              Want to handle your own hosting, design updates, and manual SEO? Take your strategy and try to build it manually.
             </p>
             <a 
               href="https://base44.ai?ref=adhello" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-brand-dark/40 hover:text-brand-dark font-black transition-colors"
+              className="inline-flex items-center gap-2 text-brand-dark/20 hover:text-brand-dark/40 font-bold transition-colors text-sm"
             >
-              Design Myself on Base44 <MousePointerClick className="w-4 h-4" />
+              Attempt DIY on Base44 (Affiliate Link) <MousePointerClick className="w-4 h-4 opacity-30" />
             </a>
           </div>
         </section>

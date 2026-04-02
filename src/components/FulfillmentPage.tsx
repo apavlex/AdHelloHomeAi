@@ -100,7 +100,6 @@ export default function FulfillmentPage() {
       const bizRaw = searchParams.get('biz') || 'Your Business';
       const formattedBiz = bizRaw
         .replace(/([a-z])([A-Z])/g, '$1 $2')
-        .replace(/(Presso)(Coffee)/gi, '$1 $2')
         .replace(/[-_]/g, ' ')
         .split(' ')
         .filter(Boolean)
@@ -367,7 +366,7 @@ export default function FulfillmentPage() {
       title: 'Connecting the Foundation',
       description: `This first phase is about establishing your digital presence on a rock-solid, GEO-optimized foundation. Most local businesses have websites built on outdated templates that Google's AI cannot understand. We fix this by building a modern, structured web experience that clearly communicates WHO you are, WHERE you serve, and WHAT problems you solve — in the exact language that both humans and search AI respond to.`,
       steps: [
-        { action: 'Purchase your domain on Base44', detail: 'Choose a domain that includes your primary service keyword if possible (e.g. "seattlecoffeeco.com"). This alone is a powerful GEO signal.' },
+        { action: 'Purchase your domain on Base44', detail: 'Choose a domain that includes your primary service keyword if possible (e.g. "seattlepainters.com"). This alone is a powerful GEO signal.' },
         { action: 'Inject the "Modern Bento" vibe prompt into the AI Site Builder', detail: 'Use the Phase 1 Base44 prompt from your blueprint cards above. This generates your exact branded layout in minutes — no designer needed.' },
         { action: 'Connect Google Business Profile for local GEO-signal syncing', detail: 'Link your GBP to your website. Consistent NAP (Name, Address, Phone) data across both is one of the highest-impact local SEO actions you can take.' },
         { action: 'Install Google Analytics 4 + Search Console', detail: 'Track which "near me" searches are already finding you and identify your biggest keyword opportunities in the first 30 days.' }
@@ -394,7 +393,7 @@ export default function FulfillmentPage() {
         { action: 'Publish weekly Authority Articles to the Brand Hub', detail: 'Write a 500-word blog post answering a common customer question (e.g. "How much does [service] cost in [city]?"). These articles are directly picked up by Google AI Overviews and position you as the expert.' },
         { action: 'Record and upload monthly service showcase videos to YouTube', detail: 'A 2–3 minute walkthrough of a recent job is all you need. YouTube is owned by Google — having an active channel dramatically boosts your local search authority.' },
         { action: 'Monitor rank improvements in the AdHello Growth Dashboard', detail: 'Track your position for target keywords monthly. Celebrate wins and identify new keyword opportunities as your authority grows.' },
-        { action: 'Expand GEO targeting to neighboring cities', detail: 'Once you dominate your primary city, create dedicated service-area landing pages for neighboring towns (e.g. "Coffee Catering in Bellevue"). Each page is a new revenue channel.' }
+        { action: 'Expand GEO targeting to neighboring cities', detail: 'Once you dominate your primary city, create dedicated service-area landing pages for neighboring towns (e.g. "Exterior Painting in Bellevue"). Each page is a new revenue channel.' }
       ],
       icon: ShieldCheck
     }

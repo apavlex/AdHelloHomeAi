@@ -22,8 +22,7 @@ export default function BlueprintSalesPage() {
   const navigate = useNavigate();
   const bizRaw = searchParams.get('biz') || 'Your Business';
   const bizName = bizRaw
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/(Presso)(Coffee)/gi, '$1 $2') // Specific fix for Presso Coffee
+    .replace(/(\. )([a-z])/g, (match, p1, p2) => p1 + p2.toUpperCase())
     .replace(/[-_]/g, ' ')
     .split(' ')
     .filter(Boolean)
