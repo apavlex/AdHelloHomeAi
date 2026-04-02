@@ -2,7 +2,7 @@ import express from 'express';
 import 'dotenv/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { GoogleGenAI } from "@google/genai";
+// Removed @google/genai import to use native fetch for stability
 import crypto from 'crypto';
 import Database from 'better-sqlite3';
 import { Resend } from 'resend';
@@ -69,7 +69,42 @@ process.on('uncaughtException', (err) => console.error('[CRITICAL] Uncaught Exce
 process.on('unhandledRejection', (reason) => console.error('[CRITICAL] Unhandled Rejection:', reason));
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const genAI = GEMINI_API_KEY ? new GoogleGenAI(GEMINI_API_KEY) : null;
+
+/**
+ * Helper to call Gemini AI via native fetch REST API.
+ * This avoids dependency hell and works consistently across Node environments.
+ */
+async function callGemini(prompt, modelName = 'gemini-1.5-flash') {
+  if (!GEMINI_API_KEY) {
+    console.warn('[GEMINI] API Key missing. Returning null.');
+    return null;
+  }
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
+      })
+    });
+    const data = await res.json();
+    if (data.error) {
+      console.error('[GEMINI] API Error:', data.error.message);
+      return null;
+    }
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
+  } catch (err) {
+    console.error('[GEMINI] Fetch Exception:', err.message);
+    return null;
+  }
+}
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 if (!resend) console.warn('[MAIL] RESEND_API_KEY missing. Email notifications disabled.');
@@ -160,7 +195,7 @@ app.post('/api/analyze', async (req, res) => {
   };
 
   try {
-    if (genAI) {
+    if (GEMINI_API_KEY) {
       const prompt = `Analyze the website ${targetUrl} based on these OFFICIAL GOOGLE METRICS:
 Performance: ${psiData ? psiData.performance : 'low'}
 SSL Secured: ${actualSsl}
@@ -172,9 +207,10 @@ Return ONLY a raw JSON object (no markdown) with this structure:
 For brandColors: Use the actual dominant colors of the business if possible.
 IMPORTANT: You MUST respect the SSL status: ${actualSsl}. If it is FALSE, the audit score MUST reflect a critical failure. Be brutally honest to sell the solution.`;
 
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      const result = await model.generateContent(prompt);
-      const dataText = (await result.response).text().replace(/```json|```/g, '').trim();
+      const resultText = await callGemini(prompt);
+      if (!resultText) throw new Error('Empty response from Gemini');
+      
+      const dataText = resultText.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(dataText);
       
       return res.json({
@@ -204,7 +240,7 @@ app.post('/api/analyze-strategy', async (req, res) => {
   const colors = vibeColors[vibe] || vibeColors['Modern'];
 
   try {
-    if (genAI) {
+    if (GEMINI_API_KEY) {
       const prompt = `You are a high-conversion website strategist. 
       Business: ${bizName} (${industry})
       Location: ${city}
@@ -232,10 +268,10 @@ app.post('/api/analyze-strategy', async (req, res) => {
         }
       }`;
 
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const raw = response.text().replace(/```json|```/g, '').trim();
+      const resultText = await callGemini(prompt);
+      if (!resultText) throw new Error('Empty response from Gemini');
+      
+      const raw = resultText.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(raw);
       
       return res.json({
@@ -523,26 +559,21 @@ app.post('/api/chatbot', async (req, res) => {
   if (!userMessage) return res.status(400).json({ error: 'Message required' });
 
   let replyText = '';
-  if (genAI) {
-    try {
-      const systemPrompt = `You are the "AdHello Growth Assistant" — an expert in AI-powered marketing and websites for home service businesses (painters, electricians, plumbers, roofers, etc.).
+  try {
+    const systemPrompt = `You are the "AdHello Growth Assistant" — an expert in AI-powered marketing and websites for home service businesses (painters, electricians, plumbers, roofers, etc.).
 Help the user understand how AdHello.ai works. We automate:
 1. Smart Website building (conversion-optimized)
 2. AI Search (GEO) ranking
 3. AI Webchat for 24/7 lead capture
 4. ROI Strategy Blueprints
 Be professional, helpful, and energetic. Keep responses under 3 paragraphs.`;
-      
-      const history = (messages || []).slice(-5).map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text || m.content}`).join('\n\n');
-      const prompt = `${systemPrompt}\n\n${history}\n\nUser: ${userMessage}\n\nAssistant:`;
-
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      replyText = response.text();
-    } catch (err) {
-      console.error('[SITE-CHAT] Gemini error:', err);
-    }
+    
+    const history = (messages || []).slice(-5).map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text || m.content}`).join('\n\n');
+    const prompt = `${systemPrompt}\n\n${history}\n\nUser: ${userMessage}\n\nAssistant:`;
+    
+    replyText = await callGemini(prompt);
+  } catch (err) {
+    console.error('[SITE-CHAT] Gemini error:', err);
   }
 
   if (!replyText) {
@@ -603,7 +634,7 @@ RECOMMENDATIONS: ${recommendations || 'none'}
 
     let replyText = '';
 
-    if (genAI) {
+    if (GEMINI_API_KEY) {
       try {
         const systemPrompt = `You are the "GEO Ranking Coach" for AdHello.ai — an elite local SEO and digital growth expert.
 You are coaching ${bizName} in ${city}. Their AEO score is ${score}/100.
@@ -617,10 +648,7 @@ Be concise (2-4 paragraphs max), conversational, and highly specific. Use bullet
 
         const fullPrompt = `${systemPrompt}\n\n${historyText ? 'Conversation:\n' + historyText + '\n\n' : ''}User: ${message}\n\nCoach:`;
 
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        const result = await model.generateContent(fullPrompt);
-        const response = await result.response;
-        replyText = response.text();
+        replyText = await callGemini(fullPrompt);
       } catch (geminiErr) {
         console.error('[CHAT] Gemini failed:', geminiErr);
       }
