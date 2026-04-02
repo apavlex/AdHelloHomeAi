@@ -66,6 +66,7 @@ export default function FulfillmentPage() {
       const bizRaw = searchParams.get('biz') || 'Your Business';
       const formattedBiz = bizRaw
         .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/(Presso)(Coffee)/gi, '$1 $2') // Specific fix for Presso Coffee
         .replace(/[-_]/g, ' ')
         .split(' ')
         .filter(Boolean)

@@ -23,6 +23,7 @@ export default function BlueprintSalesPage() {
   const bizRaw = searchParams.get('biz') || 'Your Business';
   const bizName = bizRaw
     .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/(Presso)(Coffee)/gi, '$1 $2') // Specific fix for Presso Coffee
     .replace(/[-_]/g, ' ')
     .split(' ')
     .filter(Boolean)
@@ -100,6 +101,8 @@ export default function BlueprintSalesPage() {
             <p className="mt-4 text-sm font-bold text-brand-dark/40 uppercase tracking-widest">One-time payment. Instant Access.</p>
           </motion.div>
         </div>
+
+        <div className="pdf-page-break html2pdf__page-break" />
 
         {/* Section 1: The Problem */}
         <section className="mb-32 relative">
