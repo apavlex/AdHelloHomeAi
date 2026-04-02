@@ -30,7 +30,9 @@ import {
   Send,
   Info,
   ExternalLink,
-  Copy
+  Copy,
+  Clipboard,
+  ChevronDown
 } from 'lucide-react';
 import { Logo } from './Logo';
 // @ts-ignore
@@ -51,6 +53,7 @@ export default function FulfillmentPage() {
   const [score, setScore] = useState('78');
   const [themes, setThemes] = useState<string[]>([]);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [copiedPrompt, setCopiedPrompt] = useState<number | null>(null);
   
   // Chatbot State
   const [isChatOpen, setIsChatOpen] = useState(true);
@@ -59,6 +62,7 @@ export default function FulfillmentPage() {
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const blueprintRef = useRef<HTMLDivElement>(null);
+  const [chatInitialized, setChatInitialized] = useState(false);
 
   // Parse Initial Search Params (only for new generations)
   useEffect(() => {
@@ -66,7 +70,7 @@ export default function FulfillmentPage() {
       const bizRaw = searchParams.get('biz') || 'Your Business';
       const formattedBiz = bizRaw
         .replace(/([a-z])([A-Z])/g, '$1 $2')
-        .replace(/(Presso)(Coffee)/gi, '$1 $2') // Specific fix for Presso Coffee
+        .replace(/(Presso)(Coffee)/gi, '$1 $2')
         .replace(/[-_]/g, ' ')
         .split(' ')
         .filter(Boolean)
@@ -82,6 +86,15 @@ export default function FulfillmentPage() {
       fetchBlueprint(id);
     }
   }, [id, searchParams]);
+
+  // Inject intro message when status becomes complete
+  useEffect(() => {
+    if (status === 'complete' && !chatInitialized) {
+      setChatInitialized(true);
+      const intro = `👋 Welcome! I'm your **GEO Ranking Coach** — trained exclusively on your ${bizName} blueprint.\n\nHere's what I can help you with:\n\n🗺️ **Local GEO Domination** — How to rank #1 in "${city || 'your city'}" searches\n⚡ **Base44 Build Prompts** — Exact copy-paste prompts for each phase\n📈 **Conversion Strategy** — Turn website visitors into booked appointments\n🔗 **Authority Signals** — YouTube, GBP, and omni-channel tactics\n\nWhat would you like to tackle first?`;
+      setChatMessages([{ role: 'assistant', content: intro }]);
+    }
+  }, [status, chatInitialized, bizName, city]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -110,7 +123,9 @@ export default function FulfillmentPage() {
       setBizName(data.bizName);
       setCity(data.city);
       setScore(data.score.toString());
-      setChatMessages(data.messages || []);
+      const msgs = data.messages || [];
+      setChatMessages(msgs);
+      if (msgs.length > 0) setChatInitialized(true);
       setStatus('complete');
     } catch (err) {
       console.error(err);
@@ -120,7 +135,6 @@ export default function FulfillmentPage() {
 
   const handleInitialGeneration = async () => {
     try {
-      // 1. Generate via Gemini
       const response = await fetch('/api/fulfill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -130,7 +144,6 @@ export default function FulfillmentPage() {
       if (!response.ok) throw new Error('Fulfillment failed');
       const data = await response.json();
       
-      // 2. Save to Persistence
       const saveResponse = await fetch('/api/fulfill/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -144,7 +157,6 @@ export default function FulfillmentPage() {
 
       const saveData = await saveResponse.json();
       if (saveData.id) {
-        // 3. Redirect to Persistent URL
         navigate(`/fulfillment/${saveData.id}`, { replace: true });
       }
     } catch (err) {
@@ -168,7 +180,7 @@ export default function FulfillmentPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: userMsg,
-          blueprintInfo: { bizName, city, blueprint }
+          blueprintInfo: { bizName, city, blueprint, score }
         })
       });
       const data = await response.json();
@@ -206,11 +218,83 @@ export default function FulfillmentPage() {
     }
   };
 
+  const copyPrompt = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedPrompt(idx);
+    setTimeout(() => setCopiedPrompt(null), 2000);
+  };
+
   const steps = [
     { label: 'Verifying Transaction & Audit Data', threshold: 25 },
     { label: 'Initializing B2B Web Architect Engine', threshold: 50 },
     { label: 'Architecting Design & Copy Assets', threshold: 75 },
     { label: 'Finalizing Local SEO Implementation', threshold: 99 },
+  ];
+
+  const phaseCards = [
+    { 
+      name: 'Phase 1: Foundation', 
+      icon: Layout, 
+      desc: 'High-velocity modern grid layout optimized for local lead capture and Google AI visibility.',
+      color: 'bg-blue-50 text-blue-600',
+      img: 'https://lh3.googleusercontent.com/aida/ADBb0uijG3rTrsWfhYDANe2sDIZ7QrdTsJpwoBa0t_VJfHfRZu01qv3wNh-h3ajdrsSAhp0flucJ5u4n_wOtmF3JgTYMMDH6oSaXYd746Cv-yWALpt8eHtm1j8M2hfDZcRr7R0bsXnwhHbNXbjO1d_tGYZXJiChDanbBDJiLzR_CpPdLTosg0_nYgYrWwZJTpba85cqge_DIKTm4IyaL9jkeRazVtcUg8PkSPu6C1pY9XBiJNOqVmHkiOXg58Mo',
+      base44Prompt: `Build a modern bento-grid homepage for ${bizName} in ${city || 'my city'}. Warm cream background (#F5F0E8), dark navy headings. Features: bold hero with a "Get Free Quote" CTA, a 3-column service grid with icons, Google review stars widget, and a contact form. Mobile-first. Clean, premium feel. Add local schema markup for GEO signals.`
+    },
+    { 
+      name: 'Phase 2: Conversion', 
+      icon: Zap, 
+      desc: 'Conversion-first structural engine with AI booking widget and trust-signal framework.',
+      color: 'bg-purple-50 text-purple-600',
+      img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1400&q=80',
+      base44Prompt: `Enhance the ${bizName} website with a high-conversion layout. Add: a sticky "Book Now" button in the header, an AI chat widget in the bottom-right corner, a before/after testimonial section with photo reviews, a FAQ accordion with local keywords (e.g. "best [service] in ${city || 'your city'}"), and a urgency banner "Only 3 slots left this week". Make the CTA buttons use the brand's primary gold/amber accent color.`
+    },
+    { 
+      name: 'Phase 3: Elite Authority', 
+      icon: ShieldCheck, 
+      desc: 'Premium B2B authority architecture with omni-channel brand signals and GEO dominance.',
+      color: 'bg-zinc-900 text-zinc-100',
+      img: 'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1400&q=80',
+      base44Prompt: `Build an elite authority hub page for ${bizName}. Dark (#0D0D0D) background, gold accent. Include: a "Press & Media" section with logos, a case study carousel with measurable results (e.g. "+40% leads in 30 days"), an embedded YouTube Brand Video section, a "GEO Dominance" map widget showing service areas around ${city || 'your city'}, and a professional team bio grid. This is the B2B trust-builder that positions us as the #1 local authority.`
+    }
+  ];
+
+  const protocolSteps = [
+    { 
+      phase: 'Phase 1: Launch', 
+      title: 'Connecting the Foundation',
+      description: `This first phase is about establishing your digital presence on a rock-solid, GEO-optimized foundation. Most local businesses have websites built on outdated templates that Google's AI cannot understand. We fix this by building a modern, structured web experience that clearly communicates WHO you are, WHERE you serve, and WHAT problems you solve — in the exact language that both humans and search AI respond to.`,
+      steps: [
+        { action: 'Purchase your domain on Base44', detail: 'Choose a domain that includes your primary service keyword if possible (e.g. "seattlecoffeeco.com"). This alone is a powerful GEO signal.' },
+        { action: 'Inject the "Modern Bento" vibe prompt into the AI Site Builder', detail: 'Use the Phase 1 Base44 prompt from your blueprint cards above. This generates your exact branded layout in minutes — no designer needed.' },
+        { action: 'Connect Google Business Profile for local GEO-signal syncing', detail: 'Link your GBP to your website. Consistent NAP (Name, Address, Phone) data across both is one of the highest-impact local SEO actions you can take.' },
+        { action: 'Install Google Analytics 4 + Search Console', detail: 'Track which "near me" searches are already finding you and identify your biggest keyword opportunities in the first 30 days.' }
+      ],
+      icon: Globe
+    },
+    { 
+      phase: 'Phase 2: Scale', 
+      title: 'Activating the Conversion Engine',
+      description: `Traffic without conversion is just vanity metrics. Phase 2 transforms your new website from a digital brochure into a 24/7 lead-generation machine. We layer in automated follow-up sequences, AI-powered booking tools, and trackable ad campaigns — turning every visitor into a potential revenue event. Most businesses see a 30–60% increase in booked appointments within 90 days of implementing this phase.`,
+      steps: [
+        { action: 'Set up CRM automated follow-ups', detail: 'When a visitor fills out a form, they receive an immediate confirmation email + a follow-up text 24 hours later. Most competitors never follow up — this alone puts you in the top 10%.' },
+        { action: 'Activate the AI Receptionist for 24/7 lead capture', detail: 'The AI chat widget on your site handles after-hours inquiries, books appointments, and qualifies leads — so you never miss a customer again, even while sleeping.' },
+        { action: 'Launch local search ad campaign using provided briefs', detail: 'Use the AdHello ad briefs from your blueprint to run hyper-targeted Google Ads for your service area. Budget: start at $15/day and scale based on conversion data.' },
+        { action: 'Activate the Review Generation System', detail: 'After every job, send an automated SMS asking for a Google review. 4.8+ star ratings are the #1 trust signal for new customers finding you via AI search.' }
+      ],
+      icon: Zap
+    },
+    { 
+      phase: 'Phase 3: Dominate', 
+      title: 'Achieving Elite Authority',
+      description: `Phase 3 is where you separate from every competitor in your market. Modern AI search engines (Google AI Overviews, Bing Copilot, ChatGPT) don't just index your website — they look for a complete "brand signal ecosystem." Businesses with a YouTube channel, active social presence, consistent blog content, and strong GBP reviews are the ones that get featured in AI-generated answers. This phase makes you the undeniable #1 authority in your local market.`,
+      steps: [
+        { action: 'Publish weekly Authority Articles to the Brand Hub', detail: 'Write a 500-word blog post answering a common customer question (e.g. "How much does [service] cost in [city]?"). These articles are directly picked up by Google AI Overviews and position you as the expert.' },
+        { action: 'Record and upload monthly service showcase videos to YouTube', detail: 'A 2–3 minute walkthrough of a recent job is all you need. YouTube is owned by Google — having an active channel dramatically boosts your local search authority.' },
+        { action: 'Monitor rank improvements in the AdHello Growth Dashboard', detail: 'Track your position for target keywords monthly. Celebrate wins and identify new keyword opportunities as your authority grows.' },
+        { action: 'Expand GEO targeting to neighboring cities', detail: 'Once you dominate your primary city, create dedicated service-area landing pages for neighboring towns (e.g. "Coffee Catering in Bellevue"). Each page is a new revenue channel.' }
+      ],
+      icon: ShieldCheck
+    }
   ];
 
   return (
@@ -321,46 +405,90 @@ export default function FulfillmentPage() {
                     </div>
                   </div>
 
-                    {/* Visual Style Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-                      {[
-                        { 
-                          name: 'Phase 1: Foundation', 
-                          icon: Layout, 
-                          desc: 'High-velocity grid for ' + city, 
-                          color: 'bg-blue-50 text-blue-600',
-                          img: 'https://lh3.googleusercontent.com/aida/ADBb0uijG3rTrsWfhYDANe2sDIZ7QrdTsJpwoBa0t_VJfHfRZu01qv3wNh-h3ajdrsSAhp0flucJ5u4n_wOtmF3JgTYMMDH6oSaXYd746Cv-yWALpt8eHtm1j8M2hfDZcRr7R0bsXnwhHbNXbjO1d_tGYZXJiChDanbBDJiLzR_CpPdLTosg0_nYgYrWwZJTpba85cqge_DIKTm4IyaL9jkeRazVtcUg8PkSPu6C1pY9XBiJNOqVmHkiOXg58Mo'
-                        },
-                        { 
-                          name: 'Phase 2: Conversion', 
-                          icon: Zap, 
-                          desc: 'Conversion-first structural engine', 
-                          color: 'bg-purple-50 text-purple-600',
-                          img: '/assets/designs/split-hero.png'
-                        },
-                        { 
-                          name: 'Phase 3: Elite Authority', 
-                          icon: ShieldCheck, 
-                          desc: 'Premium B2B architectural status', 
-                          color: 'bg-zinc-900 text-zinc-100',
-                          img: '/assets/designs/dark-elite.png'
-                        }
-                      ].map((style, i) => (
-                        <div key={i} className={`p-6 rounded-3xl border border-brand-dark/5 shadow-sm transition-all hover:shadow-xl group overflow-hidden ${style.color}`}>
-                          <div className="h-32 mb-4 rounded-2xl bg-white/50 overflow-hidden relative border border-current/5 shadow-inner">
-                            <img src={style.img} className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-700" alt={style.name} />
+                  {/* ===== PHASE CARDS — LARGE IFRAME-STYLE PREVIEWS ===== */}
+                  <div className="grid grid-cols-1 gap-10 mb-16">
+                    {phaseCards.map((style, i) => (
+                      <motion.div 
+                        key={i} 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="rounded-[2.5rem] border border-brand-dark/8 shadow-xl overflow-hidden bg-white"
+                      >
+                        {/* Large scrollable preview */}
+                        <div className="relative w-full" style={{ height: '420px' }}>
+                          {/* Browser chrome bar */}
+                          <div className="absolute top-0 left-0 right-0 z-10 bg-zinc-100 border-b border-zinc-200 px-4 py-3 flex items-center gap-2">
+                            <div className="flex gap-1.5">
+                              <div className="w-3 h-3 rounded-full bg-red-400" />
+                              <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                              <div className="w-3 h-3 rounded-full bg-green-400" />
+                            </div>
+                            <div className="flex-1 bg-white rounded-md px-3 py-1 text-[11px] text-zinc-400 font-mono ml-2 border border-zinc-200">
+                              {bizName.toLowerCase().replace(/\s/g, '')}.com — {style.name}
+                            </div>
                           </div>
-                          <div className="mb-4">
-                            <style.icon className="w-8 h-8" />
+                          {/* Scrollable image */}
+                          <div className="absolute top-10 left-0 right-0 bottom-0 overflow-y-scroll scroll-smooth">
+                            <img 
+                              src={style.img} 
+                              className="w-full object-cover object-top" 
+                              style={{ minHeight: '700px' }}
+                              alt={style.name} 
+                            />
                           </div>
-                          <h4 className="text-lg font-black mb-2">{style.name}</h4>
-                          <p className="text-xs font-bold opacity-70 leading-relaxed">{style.desc}</p>
-                          <div className="mt-4 pt-4 border-t border-current/10 flex items-center justify-between">
-                            <span className="text-[10px] uppercase font-black tracking-widest">Architected ✓</span>
+                          {/* Phase badge */}
+                          <div className={`absolute top-14 right-4 z-20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
+                            i === 2 ? 'bg-zinc-900 text-zinc-100' : i === 1 ? 'bg-purple-600 text-white' : 'bg-blue-600 text-white'
+                          }`}>
+                            {style.name}
                           </div>
                         </div>
-                      ))}
-                    </div>
+
+                        {/* Card info */}
+                        <div className={`p-8 ${i === 2 ? 'bg-zinc-900 text-zinc-100' : i === 1 ? 'bg-purple-50' : 'bg-blue-50'}`}>
+                          <div className="flex items-start justify-between gap-4 mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2.5 rounded-xl ${i === 2 ? 'bg-white/10' : 'bg-white shadow-sm'}`}>
+                                <style.icon className={`w-6 h-6 ${i === 2 ? 'text-primary' : i === 1 ? 'text-purple-600' : 'text-blue-600'}`} />
+                              </div>
+                              <div>
+                                <h4 className="text-lg font-black">{style.name}</h4>
+                                <p className={`text-sm font-medium ${i === 2 ? 'text-zinc-400' : 'opacity-60'}`}>{style.desc}</p>
+                              </div>
+                            </div>
+                            <span className={`text-[10px] uppercase font-black tracking-widest shrink-0 ${i === 2 ? 'text-green-400' : 'text-green-600'}`}>Architected ✓</span>
+                          </div>
+
+                          {/* Base44 Prompt */}
+                          <div className={`rounded-2xl p-5 mt-4 border ${i === 2 ? 'bg-white/5 border-white/10' : 'bg-white/70 border-brand-dark/8'}`}>
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <Zap className={`w-4 h-4 ${i === 2 ? 'text-primary' : i === 1 ? 'text-purple-600' : 'text-blue-600'}`} />
+                                <span className={`text-[11px] font-black uppercase tracking-widest ${i === 2 ? 'text-zinc-400' : 'text-brand-dark/50'}`}>
+                                  Base44 Vibe Prompt — Copy & Paste
+                                </span>
+                              </div>
+                              <button 
+                                onClick={() => copyPrompt(style.base44Prompt, i)}
+                                className={`flex items-center gap-1.5 text-[11px] font-black px-3 py-1.5 rounded-lg transition-all ${
+                                  copiedPrompt === i 
+                                    ? 'bg-green-500 text-white' 
+                                    : i === 2 ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-brand-dark text-white hover:bg-black'
+                                }`}
+                              >
+                                {copiedPrompt === i ? <CheckCircle2 className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                                {copiedPrompt === i ? 'Copied!' : 'Copy'}
+                              </button>
+                            </div>
+                            <p className={`text-xs font-mono leading-relaxed ${i === 2 ? 'text-zinc-300' : 'text-brand-dark/70'}`}>
+                              {style.base44Prompt}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
 
                   <div className="prose-manual max-w-none mb-20">
                     <ReactMarkdown>{blueprint || ''}</ReactMarkdown>
@@ -368,7 +496,7 @@ export default function FulfillmentPage() {
 
                   <div className="pdf-page-break html2pdf__page-break" />
 
-                  {/* DIGITAL AUTHORITY ROADMAP VISUALS */}
+                  {/* DIGITAL AUTHORITY ROADMAP */}
                   <div className="border-t border-brand-dark/5 pt-20 mt-20">
                     <div className="flex items-center gap-4 mb-12">
                       <div className="p-3 bg-brand-dark text-white rounded-2xl shadow-xl">
@@ -381,7 +509,7 @@ export default function FulfillmentPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
-                      {/* Graphics: The Brand Signal Hub */}
+                      {/* Hub & Spoke Visual */}
                       <div className="bg-brand-dark text-white p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/30 transition-all duration-700" />
                         <h4 className="text-xl font-black mb-8 relative z-10 flex items-center gap-3">
@@ -390,7 +518,6 @@ export default function FulfillmentPage() {
                         </h4>
                         
                         <div className="relative h-64 flex items-center justify-center">
-                          {/* The Hub */}
                           <motion.div 
                             animate={{ scale: [1, 1.05, 1] }} 
                             transition={{ duration: 4, repeat: Infinity }}
@@ -400,7 +527,6 @@ export default function FulfillmentPage() {
                             <div className="absolute -bottom-6 text-[10px] uppercase font-black tracking-tighter whitespace-nowrap">Your Website</div>
                           </motion.div>
 
-                          {/* The Spokes (Signals) */}
                           {[
                             { icon: Video, label: 'YouTube', angle: -45, offset: 80 },
                             { icon: Share2, label: 'Socials', angle: 45, offset: 80 },
@@ -431,17 +557,18 @@ export default function FulfillmentPage() {
                       {/* Tactical Pillars */}
                       <div className="space-y-8">
                         {[
-                          { title: 'GEO-Signal Matrix', desc: 'Dominating Search Precision.', icon: MapPin, color: 'text-blue-500' },
-                          { title: 'Omni-Channel Signals', desc: 'YouTube & Social Authority.', icon: Signal, color: 'text-purple-500' },
-                          { title: 'Freshness Protocol', desc: 'Real-time Authority Tracking.', icon: Zap, color: 'text-orange-500' }
+                          { title: 'GEO-Signal Matrix', desc: 'Dominating Search Precision.', detail: 'Your Google Business Profile, NAP consistency, and geo-tagged content create a geographic authority signal that AI search engines use to decide who ranks #1 for local queries.', icon: MapPin, color: 'text-blue-500' },
+                          { title: 'Omni-Channel Signals', desc: 'YouTube & Social Authority.', detail: 'Every YouTube video, Instagram post, and LinkedIn article links back to your website hub. Each one is a signal that tells Google: "This is a real, active, trusted business."', icon: Signal, color: 'text-purple-500' },
+                          { title: 'Freshness Protocol', desc: 'Real-time Authority Tracking.', detail: 'Weekly blog posts and monthly video uploads keep your site "fresh" in Google\'s eyes. Fresh sites rank faster and hold their positions longer than static brochure websites.', icon: Zap, color: 'text-orange-500' }
                         ].map((pillar, i) => (
                           <div key={i} className="flex gap-6 p-6 rounded-3xl bg-brand-dark/5 border border-brand-dark/5 hover:border-brand-dark/10 transition-all group">
-                            <div className={`p-4 rounded-2xl bg-white shadow-md group-hover:scale-110 transition-transform ${pillar.color}`}>
+                            <div className={`p-4 rounded-2xl bg-white shadow-md group-hover:scale-110 transition-transform ${pillar.color} shrink-0`}>
                               <pillar.icon className="w-6 h-6" />
                             </div>
                             <div>
                               <h4 className="text-xl font-black mb-1">{pillar.title}</h4>
-                              <p className="text-sm font-bold text-brand-dark/40">{pillar.desc}</p>
+                              <p className="text-sm font-bold text-brand-dark/50 mb-2">{pillar.desc}</p>
+                              <p className="text-sm text-brand-dark/60 leading-relaxed">{pillar.detail}</p>
                             </div>
                           </div>
                         ))}
@@ -451,9 +578,9 @@ export default function FulfillmentPage() {
 
                   <div className="pdf-page-break html2pdf__page-break" />
 
-                  {/* Implementation Protocol Guide */}
+                  {/* ===== IMPLEMENTATION PROTOCOL — DETAILED ===== */}
                   <div className="mt-20 pt-20 border-t border-brand-dark/5">
-                    <div className="flex items-center gap-4 mb-12">
+                    <div className="flex items-center gap-4 mb-4">
                       <div className="p-3 bg-primary text-brand-dark rounded-2xl shadow-xl">
                         <BookOpen className="w-6 h-6" />
                       </div>
@@ -462,56 +589,37 @@ export default function FulfillmentPage() {
                         <p className="text-sm font-bold text-brand-dark/40 uppercase tracking-widest">A Step-by-Step Execution Guide</p>
                       </div>
                     </div>
+                    <p className="text-brand-dark/60 font-medium text-base mb-12 max-w-3xl leading-relaxed">
+                      This protocol is your operational playbook — a clear, sequenced action plan to transform your online presence from invisible to undeniable. Each phase builds on the last. Follow the steps in order and you will have a fully dominant digital presence within 90 days.
+                    </p>
 
-                    <div className="grid grid-cols-1 gap-8">
-                      {[
-                        { 
-                          phase: 'Phase 1: Launch', 
-                          title: 'Connecting the Foundation', 
-                          steps: [
-                            'Purchase your domain on Base44',
-                            'Inject the "Modern Bento" vibe prompt into the AI Site Builder',
-                            'Connect Google Business Profile for local GEO-signal syncing'
-                          ],
-                          icon: Globe
-                        },
-                        { 
-                          phase: 'Phase 2: Scale', 
-                          title: 'Activating the Conversion Engine', 
-                          steps: [
-                            'Set up CRM automated follow-ups',
-                            'Activate the AI Receptionist for 24/7 lead capture',
-                            'Launch local search ad campaign using provided briefs'
-                          ],
-                          icon: Zap
-                        },
-                        { 
-                          phase: 'Phase 3: Dominate', 
-                          title: 'Achieving Elite Authority', 
-                          steps: [
-                            'Publish weekly Authority Articles to the Brand Hub',
-                            'Record and upload monthly service showcase videos to YouTube',
-                            'Monitor rank improvements in the AdHello Growth Dashboard'
-                          ],
-                          icon: ShieldCheck
-                        }
-                      ].map((prot, idx) => (
-                        <div key={idx} className="bg-warm-cream p-10 rounded-[3.5rem] border border-brand-dark/5 shadow-sm group hover:shadow-xl transition-all">
-                          <div className="flex flex-col md:flex-row gap-8">
-                            <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform text-primary shrink-0">
-                              <prot.icon className="w-8 h-8" />
+                    <div className="grid grid-cols-1 gap-10">
+                      {protocolSteps.map((prot, idx) => (
+                        <div key={idx} className="bg-warm-cream rounded-[3.5rem] border border-brand-dark/5 shadow-sm group hover:shadow-xl transition-all overflow-hidden">
+                          <div className="p-10">
+                            <div className="flex flex-col md:flex-row gap-6 mb-8">
+                              <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform text-primary shrink-0">
+                                <prot.icon className="w-8 h-8" />
+                              </div>
+                              <div>
+                                <span className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-2 block">{prot.phase}</span>
+                                <h4 className="text-2xl font-black mb-3">{prot.title}</h4>
+                                <p className="text-brand-dark/60 font-medium leading-relaxed text-sm">{prot.description}</p>
+                              </div>
                             </div>
-                            <div>
-                              <span className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-2 block">{prot.phase}</span>
-                              <h4 className="text-2xl font-black mb-6">{prot.title}</h4>
-                              <ul className="space-y-4">
-                                {prot.steps.map((s, si) => (
-                                  <li key={si} className="flex gap-4 font-bold text-brand-dark/70">
-                                    <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-[10px] text-brand-dark shadow-sm shrink-0 mt-1">{si+1}</div>
-                                    {s}
-                                  </li>
-                                ))}
-                              </ul>
+
+                            <div className="border-t border-brand-dark/5 pt-8 space-y-5">
+                              {prot.steps.map((s, si) => (
+                                <div key={si} className="flex gap-4 group/step">
+                                  <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-[11px] font-black text-brand-dark shadow-sm shrink-0 mt-0.5 group-hover/step:bg-primary group-hover/step:text-white transition-colors">
+                                    {si + 1}
+                                  </div>
+                                  <div>
+                                    <p className="font-black text-brand-dark text-sm mb-1">{s.action}</p>
+                                    <p className="text-brand-dark/55 text-sm leading-relaxed font-medium">{s.detail}</p>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         </div>
@@ -521,6 +629,7 @@ export default function FulfillmentPage() {
 
                   <div className="pdf-page-break html2pdf__page-break" />
 
+                  {/* CTA Block */}
                   <div className="mt-20 pt-12 border-t border-brand-dark/5 text-center px-4 py-8 bg-brand-dark rounded-[2rem] text-white">
                     <TrendingUp className="w-12 h-12 text-primary mx-auto mb-6" />
                     <h3 className="text-2xl font-black mb-4 underline decoration-primary underline-offset-8 decoration-4 uppercase tracking-tighter">Next Step: Activation</h3>
@@ -547,7 +656,7 @@ export default function FulfillmentPage() {
                 </div>
               </div>
 
-              {/* AI Architect Chat Widget */}
+              {/* ===== GEO RANKING COACH CHAT WIDGET ===== */}
               <div className="fixed bottom-6 right-6 z-[100]">
                 <AnimatePresence>
                   {isChatOpen && (
@@ -555,19 +664,19 @@ export default function FulfillmentPage() {
                       initial={{ opacity: 0, y: 100, scale: 0.9 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 100, scale: 0.9 }}
-                      className="absolute bottom-20 right-0 w-[400px] max-w-[calc(100vw-2rem)] h-[600px] max-h-[70vh] bg-white rounded-[2.5rem] shadow-2xl border border-brand-dark/10 flex flex-col overflow-hidden"
+                      className="absolute bottom-20 right-0 w-[420px] max-w-[calc(100vw-2rem)] h-[620px] max-h-[75vh] bg-white rounded-[2.5rem] shadow-2xl border border-brand-dark/10 flex flex-col overflow-hidden"
                     >
                       {/* Chat Header */}
-                      <div className="bg-brand-dark p-6 text-white flex items-center justify-between">
+                      <div className="bg-brand-dark p-6 text-white flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-primary rounded-xl text-brand-dark">
-                            <Bot className="w-5 h-5" />
+                          <div className="p-2.5 bg-primary rounded-xl text-brand-dark">
+                            <MapPin className="w-5 h-5" />
                           </div>
                           <div>
-                            <h4 className="font-extrabold text-sm uppercase tracking-widest">Architect Coach</h4>
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                              <span className="text-[10px] font-black text-white/50 tracking-tighter">THE ARCHITECT IS ONLINE</span>
+                            <h4 className="font-extrabold text-sm uppercase tracking-widest">GEO Ranking Coach</h4>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                              <span className="text-[10px] font-black text-white/50 tracking-tighter">ONLINE · {bizName.toUpperCase()}</span>
                             </div>
                           </div>
                         </div>
@@ -577,16 +686,15 @@ export default function FulfillmentPage() {
                       </div>
 
                       {/* Chat Body */}
-                      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                        {chatMessages.length === 0 && (
-                          <div className="text-center py-10">
-                            <Bot className="w-12 h-12 text-primary mx-auto mb-4 opacity-50" />
-                            <p className="text-sm font-bold text-brand-dark/40">I'm "The Architect". How can I help you grow your business today?</p>
-                          </div>
-                        )}
+                      <div className="flex-1 overflow-y-auto p-6 space-y-4">
                         {chatMessages.map((msg, i) => (
                           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[85%] p-4 rounded-2xl text-[14px] leading-relaxed font-medium ${
+                            {msg.role !== 'user' && (
+                              <div className="w-7 h-7 bg-primary rounded-xl flex items-center justify-center shrink-0 mr-2 mt-1">
+                                <MapPin className="w-3.5 h-3.5 text-brand-dark" />
+                              </div>
+                            )}
+                            <div className={`max-w-[82%] p-4 rounded-2xl text-[13.5px] leading-relaxed font-medium ${
                               msg.role === 'user' 
                                 ? 'bg-primary text-brand-dark rounded-br-none' 
                                 : 'bg-brand-dark/5 text-brand-dark rounded-bl-none prose-chat'
@@ -597,31 +705,47 @@ export default function FulfillmentPage() {
                         ))}
                         {isTyping && (
                           <div className="flex justify-start">
-                            <div className="bg-brand-dark/5 p-4 rounded-2xl rounded-bl-none flex gap-1">
-                              <span className="w-1.5 h-1.5 bg-brand-dark/20 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                              <span className="w-1.5 h-1.5 bg-brand-dark/20 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                              <span className="w-1.5 h-1.5 bg-brand-dark/20 rounded-full animate-bounce" />
+                            <div className="w-7 h-7 bg-primary rounded-xl flex items-center justify-center shrink-0 mr-2">
+                              <MapPin className="w-3.5 h-3.5 text-brand-dark" />
+                            </div>
+                            <div className="bg-brand-dark/5 p-4 rounded-2xl rounded-bl-none flex gap-1 items-center">
+                              <span className="w-2 h-2 bg-brand-dark/30 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                              <span className="w-2 h-2 bg-brand-dark/30 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                              <span className="w-2 h-2 bg-brand-dark/30 rounded-full animate-bounce" />
                             </div>
                           </div>
                         )}
                         <div ref={chatEndRef} />
                       </div>
 
+                      {/* Quick Prompt Chips */}
+                      <div className="px-4 pb-2 flex gap-2 overflow-x-auto scrollbar-none shrink-0">
+                        {['How do I rank #1 locally?', 'Best Base44 prompt for me?', 'How to get more reviews?'].map((chip) => (
+                          <button
+                            key={chip}
+                            onClick={() => { setChatInput(chip); }}
+                            className="shrink-0 text-[11px] font-bold bg-brand-dark/5 hover:bg-primary hover:text-brand-dark transition-all px-3 py-1.5 rounded-full whitespace-nowrap"
+                          >
+                            {chip}
+                          </button>
+                        ))}
+                      </div>
+
                       {/* Chat Input */}
-                      <form onSubmit={handleSendMessage} className="p-6 border-t border-brand-dark/5 bg-warm-cream">
+                      <form onSubmit={handleSendMessage} className="p-4 border-t border-brand-dark/5 bg-warm-cream shrink-0">
                         <div className="relative">
                           <input 
                             value={chatInput}
                             onChange={(e) => setChatInput(e.target.value)}
-                            placeholder="Ask about your strategy..."
-                            className="w-full bg-white border border-brand-dark/10 p-4 rounded-2xl pr-12 focus:outline-none focus:ring-2 focus:ring-primary shadow-inner"
+                            placeholder="Ask your GEO Ranking Coach..."
+                            className="w-full bg-white border border-brand-dark/10 p-4 rounded-2xl pr-14 focus:outline-none focus:ring-2 focus:ring-primary shadow-inner text-sm font-medium"
                           />
                           <button 
                             type="submit"
                             disabled={!chatInput.trim()}
-                            className="absolute right-2 top-2 p-2 bg-brand-dark text-white rounded-xl disabled:opacity-30 transition-all hover:scale-105 active:scale-95"
+                            className="absolute right-2 top-2 p-2.5 bg-brand-dark text-white rounded-xl disabled:opacity-30 transition-all hover:scale-105 active:scale-95"
                           >
-                            <Send className="w-5 h-5" />
+                            <Send className="w-4 h-4" />
                           </button>
                         </div>
                       </form>
@@ -637,13 +761,13 @@ export default function FulfillmentPage() {
                 >
                   <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                   <div className="relative flex items-center gap-3 font-black uppercase text-xs tracking-widest">
-                    <MessageSquare className="w-6 h-6 group-hover:text-brand-dark transition-colors" />
-                    <span className="group-hover:text-brand-dark transition-colors">Architect Assistant</span>
+                    <MapPin className="w-6 h-6 group-hover:text-brand-dark transition-colors" />
+                    <span className="group-hover:text-brand-dark transition-colors">GEO Ranking Coach</span>
                   </div>
                 </motion.button>
               </div>
 
-              {/* Share Link Toast/Toolbar */}
+              {/* Share Link */}
               <div className="fixed bottom-6 left-6 z-[100] hidden md:block">
                 <button 
                   onClick={() => {
@@ -688,7 +812,7 @@ export default function FulfillmentPage() {
       </main>
 
       <footer className="py-12 border-t border-brand-dark/5 text-center px-4">
-        <p className="text-sm font-bold text-brand-dark/40 uppercase tracking-widest">© 2024 AdHello.ai &bull; Fulfillment Division &bull; Secure AI Operations</p>
+        <p className="text-sm font-bold text-brand-dark/40 uppercase tracking-widest">© 2024 AdHello.ai • Fulfillment Division • Secure AI Operations</p>
       </footer>
     </div>
   );

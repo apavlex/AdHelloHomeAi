@@ -172,13 +172,86 @@ app.get('/api/fulfill/:id', (req, res) => {
 app.post('/api/fulfill/:id/chat', async (req, res) => {
   const { id } = req.params;
   const { message, blueprintInfo } = req.body;
+
+  if (!message) return res.status(400).json({ error: 'Message required' });
+
+  const bizName = blueprintInfo?.bizName || 'the business';
+  const city = blueprintInfo?.city || 'your city';
+  const score = blueprintInfo?.score || 'N/A';
+
   try {
+    // 1. Save user message
     db.prepare('INSERT INTO chat_history (blueprint_id, role, content) VALUES (?, ?, ?)').run(id, 'user', message);
-    const reply = "I'm your Architect Coach. How can I help you scale today?";
-    db.prepare('INSERT INTO chat_history (blueprint_id, role, content) VALUES (?, ?, ?)').run(id, 'model', reply);
-    res.json({ text: reply });
+
+    // 2. Get full conversation history for context
+    const history = db.prepare(
+      'SELECT role, content FROM chat_history WHERE blueprint_id = ? ORDER BY created_at ASC'
+    ).all(id);
+
+    let replyText = '';
+
+    // 3. Call Gemini if available
+    if (genAI) {
+      try {
+        const systemPrompt = `You are the "GEO Ranking Coach" for AdHello.ai — an elite local SEO and digital growth expert.
+You are currently coaching ${bizName} based in ${city}. Their current AEO score is ${score}/100.
+Your job is to give them actionable, specific, expert advice about:
+- Local GEO domination and Google Business Profile optimization
+- Base44 website building prompts and strategies  
+- Converting website visitors into booked appointments
+- YouTube and omni-channel authority signals
+- Google AI Overview optimization
+Keep responses concise (2-4 paragraphs max), conversational, and highly specific to their business.
+Use bullet points where helpful. Be encouraging but direct.`;
+
+        // Build Gemini-compatible history (exclude the last user message we just inserted)
+        const geminiHistory = history.slice(0, -1).map(m => ({
+          role: m.role === 'user' ? 'user' : 'model',
+          parts: [{ text: m.content }]
+        }));
+
+        const model = genAI.models ? genAI : genAI;
+        
+        // Use the generateContent approach with history in the prompt
+        const historyText = geminiHistory.map(m => 
+          `${m.role === 'user' ? 'User' : 'Coach'}: ${m.parts[0].text}`
+        ).join('\n\n');
+
+        const fullPrompt = `${systemPrompt}\n\n${historyText ? 'Conversation so far:\n' + historyText + '\n\n' : ''}User: ${message}\n\nCoach:`;
+
+        const result = await genAI.models.generateContent({
+          model: 'gemini-1.5-flash',
+          contents: fullPrompt
+        });
+
+        replyText = result.text || result.response?.text?.() || '';
+      } catch (geminiErr) {
+        console.error('[CHAT] Gemini call failed:', geminiErr.message);
+        // Fall through to smart fallback below
+      }
+    }
+
+    // 4. Smart fallback if Gemini failed or isn't configured
+    if (!replyText) {
+      const lowerMsg = message.toLowerCase();
+      if (lowerMsg.includes('rank') || lowerMsg.includes('seo') || lowerMsg.includes('geo')) {
+        replyText = `Great question on GEO ranking for **${bizName}**! Here's your action plan:\n\n1. **Optimize your Google Business Profile** — Fill every field, especially "Services" and "Products". Post weekly.\n2. **NAP Consistency** — Your Name, Address, Phone must be identical on your website, GBP, and every directory.\n3. **Local landing pages** — Create a dedicated page for "${bizName} in ${city}" with that phrase in your H1 and URL.\n\nWith your current score of ${score}, these three steps alone could push you into the local top 3 within 60 days. Want me to dive into any of these?`;
+      } else if (lowerMsg.includes('base44') || lowerMsg.includes('prompt') || lowerMsg.includes('website') || lowerMsg.includes('build')) {
+        replyText = `For **${bizName}**, here's your most powerful Base44 prompt to get started:\n\n> *"Build a premium, conversion-focused homepage for ${bizName} in ${city}. Use a warm cream background with dark navy headings. Include: bold hero section with a 'Book Free Consultation' CTA, a 3-column services grid, embedded Google reviews section, and a contact form. Mobile-first design with local schema markup."*\n\nPaste that directly into Base44's AI Site Builder and it will generate your Phase 1 foundation in minutes. Which phase would you like a custom prompt for?`;
+      } else if (lowerMsg.includes('review') || lowerMsg.includes('rating') || lowerMsg.includes('google')) {
+        replyText = `Reviews are the **#1 local ranking signal** for ${bizName}. Here's a system that works:\n\n**The After-Service Text:** Send this within 1 hour of completing a job:\n> *"Hi [Name], thanks for choosing ${bizName}! If you had a great experience, a quick Google review would mean the world to us: [direct link]. It only takes 60 seconds! 🙏"*\n\nMost businesses see 3-5x more reviews within 30 days. A 4.8+ star rating also gets you featured in Google AI Overviews for local searches. Want me to help set up an automated review sequence?`;
+      } else {
+        replyText = `Great question! As your **GEO Ranking Coach** for ${bizName}, let me give you a direct answer.\n\nFor a business with your profile in ${city}, the highest-leverage moves are:\n\n- 🗺️ **Local GEO signals** (Google Business Profile + consistent citations)\n- ⚡ **Conversion optimization** (AI booking widget + automated follow-ups)\n- 📹 **Authority content** (weekly blog posts answering local questions + YouTube)\n\nWhich of these would you like to go deeper on? I can give you exact prompts, scripts, and checklists for each.`;
+      }
+    }
+
+    // 5. Save and return the reply
+    db.prepare('INSERT INTO chat_history (blueprint_id, role, content) VALUES (?, ?, ?)').run(id, 'model', replyText);
+    res.json({ text: replyText });
+
   } catch (error) {
-    res.status(500).json({ error: 'Chat failed' });
+    console.error('[CHAT] Error:', error);
+    res.status(500).json({ error: 'Chat failed. Please try again.' });
   }
 });
 
