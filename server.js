@@ -69,10 +69,55 @@ process.on('uncaughtException', (err) => console.error('[CRITICAL] Uncaught Exce
 process.on('unhandledRejection', (reason) => console.error('[CRITICAL] Unhandled Rejection:', reason));
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const KIE_API_KEY = process.env.KIE_API_KEY;
+
+/**
+ * Helper to call Kie.ai AI (OpenAI-compatible) via REST API.
+ */
+async function callKie(prompt, systemPrompt = '', history = []) {
+  if (!KIE_API_KEY) return null;
+  
+  const messages = [];
+  if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+  
+  // Format history: Kie/OpenAI expects {role, content}
+  (history || []).forEach(m => {
+    messages.push({ 
+      role: m.role || 'user', 
+      content: m.content || m.text || '' 
+    });
+  });
+  
+  messages.push({ role: 'user', content: prompt });
+
+  try {
+    const res = await fetch('https://api.kie.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${KIE_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: messages,
+        temperature: 0.7
+      })
+    });
+    
+    const data = await res.json();
+    if (data.error) {
+      console.warn('[KIE] API Error:', data.error.message || data.error);
+      return null;
+    }
+    return data.choices?.[0]?.message?.content || null;
+  } catch (err) {
+    console.error('[KIE] Fetch Exception:', err.message);
+    return null;
+  }
+}
 
 /**
  * Helper to call Gemini AI via native fetch REST API.
- * This avoids dependency hell and works consistently across Node environments.
  */
 async function callGemini(prompt, modelName = 'gemini-1.5-flash') {
   if (!GEMINI_API_KEY) {
@@ -104,6 +149,30 @@ async function callGemini(prompt, modelName = 'gemini-1.5-flash') {
     console.error('[GEMINI] Fetch Exception:', err.message);
     return null;
   }
+}
+
+/**
+ * Unified AI orchestrator: Tries Kie.ai first, falls back to Gemini.
+ */
+async function callAI(prompt, systemPrompt = '', history = []) {
+  // 1. Try Kie.ai
+  const kieResult = await callKie(prompt, systemPrompt, history);
+  if (kieResult) return kieResult;
+  
+  // 2. Fallback to Gemini
+  console.log('[AI] Falling back to Gemini...');
+  const historyText = (history || []).map(m => 
+    `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content || m.text || ''}`
+  ).join('\n\n');
+  
+  const fullPrompt = [
+    systemPrompt,
+    historyText ? 'Conversation History:\n' + historyText : '',
+    'User: ' + prompt,
+    'Assistant:'
+  ].filter(Boolean).join('\n\n');
+
+  return await callGemini(fullPrompt);
 }
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -195,7 +264,7 @@ app.post('/api/analyze', async (req, res) => {
   };
 
   try {
-    if (GEMINI_API_KEY) {
+    if (KIE_API_KEY || GEMINI_API_KEY) {
       const prompt = `Analyze the website ${targetUrl} based on these OFFICIAL GOOGLE METRICS:
 Performance: ${psiData ? psiData.performance : 'low'}
 SSL Secured: ${actualSsl}
@@ -207,8 +276,8 @@ Return ONLY a raw JSON object (no markdown) with this structure:
 For brandColors: Use the actual dominant colors of the business if possible.
 IMPORTANT: You MUST respect the SSL status: ${actualSsl}. If it is FALSE, the audit score MUST reflect a critical failure. Be brutally honest to sell the solution.`;
 
-      const resultText = await callGemini(prompt);
-      if (!resultText) throw new Error('Empty response from Gemini');
+      const resultText = await callAI(prompt);
+      if (!resultText) throw new Error('Empty response from AI providers');
       
       const dataText = resultText.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(dataText);
@@ -240,7 +309,7 @@ app.post('/api/analyze-strategy', async (req, res) => {
   const colors = vibeColors[vibe] || vibeColors['Modern'];
 
   try {
-    if (GEMINI_API_KEY) {
+    if (KIE_API_KEY || GEMINI_API_KEY) {
       const prompt = `You are a high-conversion website strategist. 
       Business: ${bizName} (${industry})
       Location: ${city}
@@ -268,8 +337,8 @@ app.post('/api/analyze-strategy', async (req, res) => {
         }
       }`;
 
-      const resultText = await callGemini(prompt);
-      if (!resultText) throw new Error('Empty response from Gemini');
+      const resultText = await callAI(prompt);
+      if (!resultText) throw new Error('Empty response from AI providers');
       
       const raw = resultText.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(raw);
@@ -568,10 +637,7 @@ Help the user understand how AdHello.ai works. We automate:
 4. ROI Strategy Blueprints
 Be professional, helpful, and energetic. Keep responses under 3 paragraphs.`;
     
-    const history = (messages || []).slice(-5).map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text || m.content}`).join('\n\n');
-    const prompt = `${systemPrompt}\n\n${history}\n\nUser: ${userMessage}\n\nAssistant:`;
-    
-    replyText = await callGemini(prompt);
+    replyText = await callAI(userMessage, systemPrompt, messages);
   } catch (err) {
     console.error('[SITE-CHAT] Gemini error:', err);
   }
@@ -648,7 +714,7 @@ Be concise (2-4 paragraphs max), conversational, and highly specific. Use bullet
 
         const fullPrompt = `${systemPrompt}\n\n${historyText ? 'Conversation:\n' + historyText + '\n\n' : ''}User: ${message}\n\nCoach:`;
 
-        replyText = await callGemini(fullPrompt);
+        replyText = await callAI(message, systemPrompt, history);
       } catch (geminiErr) {
         console.error('[CHAT] Gemini failed:', geminiErr);
       }
