@@ -32,10 +32,10 @@ export default function BlueprintSalesPage() {
   const score = scoreRaw ? parseInt(scoreRaw) : 78;
   const city = searchParams.get('city') || '';
   const themes = searchParams.get('themes') || '';
-  const ss = searchParams.get('ss') || '';
-  const du = searchParams.get('du') || '';
   
   // Calculate revenue leak (X%)
+  // Logic: Lower the score, higher the leak. 
+  // If score is 95, leak is maybe 5%. If score is 40, leak is 60%.
   const revenueLeak = 100 - score;
 
   return (
@@ -91,7 +91,7 @@ export default function BlueprintSalesPage() {
             transition={{ delay: 0.3 }}
           >
             <button 
-              onClick={() => navigate(`/fulfillment?biz=${bizRaw}&score=${score}&city=${city}&themes=${themes}&ss=${encodeURIComponent(ss)}&du=${encodeURIComponent(du)}`)}
+              onClick={() => navigate(`/fulfillment?biz=${bizRaw}&score=${score}&city=${city}&themes=${themes}`)}
               className="bg-primary hover:bg-primary-hover text-brand-dark px-10 py-5 rounded-full font-black text-xl flex items-center gap-3 mx-auto transition-all hover:scale-105 shadow-2xl shadow-primary/20 w-fit group"
             >
               Get My Custom Blueprint & Base44 Code ($27)
@@ -103,12 +103,19 @@ export default function BlueprintSalesPage() {
 
         {/* Section 1: The Problem */}
         <section className="mb-32 relative">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-full bg-brand-dark rounded-[4rem] -rotate-3 -z-10 hidden lg:block" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-full bg-brand-dark organic-shape-1 -rotate-3 -z-10 hidden lg:block" />
           <div className="bg-brand-dark text-white p-10 md:p-20 rounded-[4rem] flex flex-col lg:flex-row items-center gap-16 shadow-2xl relative overflow-hidden">
+            {/* Visual Score Representation */}
             <div className="lg:w-1/3 flex flex-col items-center">
               <div className="relative w-48 h-48 sm:w-64 sm:h-64 flex items-center justify-center">
                 <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                  <circle className="text-white/10" strokeWidth="8" cx="50" cy="50" r="42" fill="transparent" stroke="currentColor" />
+                  <circle
+                    className="text-white/10"
+                    strokeWidth="8"
+                    cx="50" cy="50" r="42"
+                    fill="transparent"
+                    stroke="currentColor"
+                  />
                   <motion.circle
                     initial={{ strokeDashoffset: 264 }}
                     animate={{ strokeDashoffset: 264 - (264 * score) / 100 }}
@@ -218,6 +225,45 @@ export default function BlueprintSalesPage() {
             <p className="text-2xl md:text-4xl font-medium text-brand-dark/80 max-w-4xl mx-auto leading-tight italic">
               "Most agencies take 30 days and $3,000 to get to this stage. You’re getting the exact same strategic output for the cost of a pizza—delivered to your inbox in seconds."
             </p>
+          </div>
+        </section>
+
+        {/* Section 4: Strategic Upsell */}
+        <section className="mb-32 grid lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <h3 className="text-3xl md:text-5xl font-black mb-8 leading-tight">
+              Is your business ready for more?
+            </h3>
+            <p className="text-xl text-brand-dark/70 leading-relaxed font-medium mb-8">
+              The $27 Blueprint gives you the world-class "Face" of your business. If you want us to build the "Brain"—including AdHello.ai automated traffic, CRM syncing, and 24/7 lead management—you can apply your $27 credit toward an Executive Agency Build at checkout.
+            </p>
+            <div className="flex items-center gap-4 text-primary font-black text-sm uppercase tracking-widest">
+              <div className="w-10 h-1bg-primary rounded-full" />
+              Executive Agency Upgrade Available
+            </div>
+          </div>
+          <div className="bg-brand-dark rounded-[3.5rem] p-10 text-white relative overflow-hidden">
+             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+             <div className="relative z-10">
+               <h4 className="text-2xl font-black mb-6">Executive Agency Plan</h4>
+               <ul className="space-y-4 mb-10">
+                 {[
+                   "Managed Automated Traffic",
+                   "24/7 AI Lead Management",
+                   "Deep CRM Synchronization",
+                   "Dedicated Success Partner"
+                 ].map((feat, i) => (
+                   <li key={i} className="flex items-center gap-3">
+                     <CheckCircle2 className="w-5 h-5 text-primary" />
+                     <span className="font-bold">{feat}</span>
+                   </li>
+                 ))}
+               </ul>
+               <button className="w-full py-4 bg-white text-brand-dark font-black rounded-2xl hover:bg-white/90 transition-all flex items-center justify-center gap-2">
+                 Learn More in Checkout
+                 <ChevronRight className="w-5 h-5" />
+               </button>
+             </div>
           </div>
         </section>
 

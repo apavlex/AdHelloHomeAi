@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, X, Send, Phone, Loader2, Sparkles, Calendar } from 'lucide-react';
+
 interface Message {
   role: 'user' | 'model';
   text: string;
@@ -9,7 +10,7 @@ interface Message {
 export function SalesChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', text: "Hey! I'm your AdHello Growth Coach. Ask me anything — more leads, better SEO, seasonal marketing, pricing, reviews, AI search — I'm here to give you real advice for your business. What trade are you in?" }
+    { role: 'model', text: "Hi! I'm your AdHello growth assistant. To help you get the most out of our platform, could you tell me what kind of home service business you're looking to grow?" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,28 +31,20 @@ export function SalesChatbot() {
 
     const userMessage = input.trim();
     setInput('');
-    const updatedMessages = [...messages, { role: 'user' as const, text: userMessage }];
-    setMessages(updatedMessages);
+    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: messages, // send history for context
-          userMessage
-        })
+        body: JSON.stringify({ messages, userMessage })
       });
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || `Server error ${response.status}`);
-      }
-
-      const { text } = await response.json();
-      setMessages(prev => [...prev, { role: 'model', text }]);
-    } catch (error: any) {
+      if (!response.ok) throw new Error("Chat request failed");
+      const data = await response.json();
+      setMessages(prev => [...prev, { role: 'model', text: data.text }]);
+    } catch (error) {
       console.error("Chat error:", error);
       setMessages(prev => [...prev, { role: 'model', text: "I'm sorry, I'm having a little trouble connecting right now. Please try again or call us at (360) 773-1505!" }]);
     } finally {
@@ -99,7 +92,7 @@ export function SalesChatbot() {
                   <Sparkles className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-black text-brand-dark">Growth Coach</h3>
+                  <h3 className="font-black text-brand-dark">AdHello Assistant</h3>
                   <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span className="text-[10px] font-bold text-brand-dark/60 uppercase tracking-wider">Online</span>
@@ -152,25 +145,21 @@ export function SalesChatbot() {
             {/* Input */}
             <div className="p-4 bg-white border-t border-gray-100">
               <div className="flex flex-col gap-3">
-
-                
-                <a
-                  href="https://calendar.app.google/QQsVbiAt4QdCX8mx8"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-brand-dark hover:bg-black text-white text-xs font-black uppercase tracking-widest rounded-full transition-all"
+                <button 
+                  onClick={() => window.open('https://calendar.app.google/QQsVbiAt4QdCX8mx8', '_blank')}
+                  className="w-full py-2 bg-brand-dark text-white text-xs font-black uppercase tracking-widest rounded-full hover:bg-brand-dark/90 transition-all flex items-center justify-center gap-2"
                 >
-                  <svg className="w-3.5 h-3.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  Book Free Consultation
-                </a>
-
+                  <Calendar className="w-3 h-3 text-primary" />
+                  Book Demo Meeting
+                </button>
+                
                 <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 border border-gray-200 focus-within:border-primary transition-colors">
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder="Ask about leads, SEO, pricing, reviews..."
+                    placeholder="Ask me anything..."
                     className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none outline-none text-sm font-medium py-2"
                   />
                   <button

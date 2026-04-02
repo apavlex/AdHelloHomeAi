@@ -140,6 +140,7 @@ export default function App() {
   const [activeStudioTab, setActiveStudioTab] = useState<'audit' | 'brief'>('audit');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [portfolioIndex, setPortfolioIndex] = useState(0);
+  const [auditReport, setAuditReport] = useState<any>(null);
 
   const scrollToAudit = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -883,7 +884,7 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
               >
-                <SiteAudit />
+                <SiteAudit onAuditComplete={setAuditReport} />
               </motion.div>
             ) : (
               <motion.div
@@ -893,7 +894,7 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
               >
-                <AdBrief />
+                <AdBrief auditReport={auditReport} />
               </motion.div>
             )}
           </AnimatePresence>

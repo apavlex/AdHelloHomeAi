@@ -58,28 +58,18 @@ interface AdBriefData {
   }[];
 }
 
-export function AdBrief() {
-  const [briefStep, setBriefStep] = useState<'gate' | 'upload' | 'service' | 'analyzing' | 'results'>(
-    () => 'upload'
-  );
-  const [selectedService, setSelectedService] = useState('');
-  const [customService, setCustomService] = useState('');
-  const [showNotifyModal, setShowNotifyModal] = useState(false);
-  const [notifyEmail, setNotifyEmail] = useState('');
-  const [notifySubmitting, setNotifySubmitting] = useState(false);
-  const [notifyDone, setNotifyDone] = useState(false);
-  const [gateName, setGateName] = useState('');
-  const [gateEmail, setGateEmail] = useState('');
-  const [gateSubmitting, setGateSubmitting] = useState(false);
+export function AdBrief({ auditReport }: { auditReport?: any }) {
+  const [briefStep, setBriefStep] = useState<'upload' | 'analyzing' | 'results'>('upload');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [resultsTab, setResultsTab] = useState<'insights' | 'concepts'>('insights');
+  const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
+  const [isGenerating, setIsGenerating] = useState<Record<number, boolean>>({});
   const [briefData, setBriefData] = useState<AdBriefData | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
   const [approvedAdIndex, setApprovedAdIndex] = useState<number | null>(null);
-  const [generatedAds, setGeneratedAds] = useState<Record<number, string>>({});
-  const [generatingAd, setGeneratingAd] = useState<number | null>(null);
 
   const handleShare = async () => {
     const shareData = {
@@ -147,6 +137,34 @@ export function AdBrief() {
     }
   };
 
+  const handleGenerateImage = async (index: number, adConcept: any) => {
+    if (!briefData) return;
+    setIsGenerating(prev => ({ ...prev, [index]: true }));
+    try {
+      const response = await fetch('/api/ad-brief/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          adConcept, 
+          visualPrompt: briefData.visualPrompt 
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || 'Image generation failed');
+      }
+
+      const { imageUrl } = await response.json();
+      setGeneratedImages(prev => ({ ...prev, [index]: imageUrl }));
+    } catch (error: any) {
+      console.error("Image generation failed:", error);
+      alert(`Image generation failed: ${error.message}`);
+    } finally {
+      setIsGenerating(prev => ({ ...prev, [index]: false }));
+    }
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -158,109 +176,34 @@ export function AdBrief() {
     }
   };
 
-  const handleGateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!gateName.trim() || !gateEmail.trim()) return;
-    setGateSubmitting(true);
-    try {
-      await fetch('/api/lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: gateName, email: gateEmail, source: 'ad-brief' })
-      });
-    } catch (_) {}
-    sessionStorage.setItem('adhello-gate-passed', '1');
-    setGateSubmitting(false);
-    setBriefStep('upload'); setSelectedService(''); setCustomService('');
-  };
-
-  const generateAdImage = async (adIndex: number, ad: { platform: string; headline: string; body: string; cta: string }) => {
-    if (!selectedImage) return;
-    setGeneratingAd(adIndex);
-    try {
-      // Extract base64 from data URL
-      const parts = selectedImage.split(',');
-      const base64 = parts[1];
-      const mimeMatch = parts[0].match(/:(.*?);/);
-      const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-
-      // Pick a random ad style for variety
-      const adStyles = [
-        `lifestyle scene with a real person using or holding the product in a natural environment. Use the uploaded product image as the product shown. Add bold headline text "${ad.headline}" at the top in large white font with a dark background strip. Include 3 bullet benefit points on the side. CTA button "${ad.cta}" at the bottom in a contrasting color. Style: scroll-stopping social ad.`,
-        `split composition: product on one side against a clean colored background, lifestyle element on the other side. Overlaid bold stat or claim text. Headline "${ad.headline}" in large modern typography. Small body copy "${ad.body}". CTA "${ad.cta}" as a pill button. Clean, premium DTC brand aesthetic.`,
-        `full bleed lifestyle photo with the product prominently featured. Person in the background or foreground interacting with it. Large oversized headline "${ad.headline}" overlaid with semi-transparent backing. "${ad.body}" as subtext. Bold "${ad.cta}" button. Style similar to Athletic Greens or Lemme ads.`,
-        `flat lay or product-hero shot with styled props and background that matches the product's vibe. Large bold typography "${ad.headline}" taking up top third. Clean stats or benefit callouts with icons. "${ad.cta}" button styled as a modern pill. Feels like a premium Instagram ad.`,
-        `phone-screen style creative optimized for ${ad.platform}. Product shown in use by a person in a relatable everyday moment. Hook text "${ad.headline}" at top in bold. "${ad.body}" as supporting copy mid-frame. Bright "${ad.cta}" CTA button at bottom. High contrast, scroll-stopping design.`
-      ];
-      const chosenStyle = adStyles[Math.floor(Math.random() * adStyles.length)];
-
-      const prompt = `You are a world-class ad creative designer. Create a high-quality ${ad.platform} advertisement image using the uploaded product photo as the featured product.
-
-STYLE DIRECTION: ${chosenStyle}
-
-CRITICAL RULES:
-- The uploaded product must appear clearly and prominently in the final image — do not replace or obscure it
-- Use the product's actual appearance, colors, and branding from the uploaded image
-- PROPORTION IS CRITICAL: maintain 100% accurate real-world scale — a 12oz cup must look like a 12oz cup when held by a human hand, a bottle must fit naturally in a palm, packaging must be its true physical size relative to hands, tables, and people. Never make products oversized or disproportionate
-- If a person holds the product, their hand size must be anatomically correct relative to the product size
-- Generate a realistic lifestyle scene or styled composition AROUND the product
-- Include real people if the style calls for it (diverse, relatable, not stock-photo looking)
-- Typography must be bold, large, and legible — not thin or small
-- The overall image must look like a real paid ad from a top DTC brand, not a mockup
-- Aspect ratio: square (1:1) for ${ad.platform === 'Instagram' ? 'Instagram feed' : ad.platform === 'Facebook' ? 'Facebook feed' : 'Google display'}
-- Quality: photorealistic, high-resolution, professionally lit`;
-
-      const res = await fetch('/api/generate-ad-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, imageBase64: base64, imageMimeType: mime })
-      });
-      const data = await res.json();
-      if (data.error === 'rate_limit') {
-        alert(`⚠️ ${data.message}`);
-      } else if (data.imageBase64) {
-        setGeneratedAds(prev => ({ ...prev, [adIndex]: `data:${data.mimeType};base64,${data.imageBase64}` }));
-      }
-    } catch (err) {
-      console.error('Ad generation failed:', err);
-      alert('Ad generation failed. Please try again.');
-    }
-    setGeneratingAd(null);
-  };
-
   const startAnalysis = async () => {
     if (!selectedImage) return;
-
+    
     setBriefStep('analyzing');
     setAnalysisProgress(10);
-
+    
     try {
-      // Extract base64 + mime type from the data URL
-      const [header, base64Data] = selectedImage.split(',');
-      const mimeType = header.match(/:(.*?);/)?.[1] || 'image/jpeg';
-
       setAnalysisProgress(30);
-
-      // Call the server-side endpoint (which has access to GEMINI_API_KEY at runtime)
-      const response = await fetch('/api/ad-brief', {
+      
+      const response = await fetch('/api/ad-brief/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64Data, mimeType, service: selectedService })
+        body: JSON.stringify({ image: selectedImage })
       });
 
-      setAnalysisProgress(75);
-
       if (!response.ok) {
-        const err = await response.json().catch(() => ({ error: 'Server error' }));
-        throw new Error(err.error || `Server error ${response.status}`);
+        const err = await response.json();
+        throw new Error(err.detail || 'Analysis failed');
       }
 
+      setAnalysisProgress(80);
+      
       const data = await response.json();
       setBriefData(data);
-
+      
       setAnalysisProgress(100);
       setTimeout(() => setBriefStep('results'), 500);
-
+      
     } catch (error: any) {
       console.error("Analysis failed:", error);
       alert(`Analysis failed: ${error.message}`);
@@ -270,72 +213,21 @@ CRITICAL RULES:
 
   return (
     <div className="w-full animate-in fade-in duration-500">
-
-      {/* ── GATE ── */}
-      {briefStep === 'gate' && (
-        <div className="max-w-lg mx-auto animate-in fade-in duration-500">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-4 bg-primary/10 text-brand-dark">
-              <svg className="w-3.5 h-3.5 text-primary" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              Free AI Ad Brief
-            </div>
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-3 text-brand-dark leading-tight">
-              Launch Your <span className="text-primary">Ad Strategy</span><br />in Seconds
-            </h2>
-            <p className="text-base text-brand-dark/60 leading-relaxed">
-              Upload one photo and our AI builds your complete market brief, target audiences, and platform-ready ad creatives — free.
-            </p>
-          </div>
-
-          <div className="bg-white border border-gray-100 shadow-xl rounded-[2.5rem] p-8">
-            <form onSubmit={handleGateSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest mb-2 text-brand-dark/50">Business Name</label>
-                <input
-                  type="text"
-                  value={gateName}
-                  onChange={e => setGateName(e.target.value)}
-                  placeholder="e.g. Portland Pro Plumbing"
-                  className="w-full rounded-2xl py-3.5 px-5 font-medium border bg-gray-50 text-brand-dark border-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest mb-2 text-brand-dark/50">Email Address</label>
-                <input
-                  type="email"
-                  value={gateEmail}
-                  onChange={e => setGateEmail(e.target.value)}
-                  placeholder="you@yourbusiness.com"
-                  className="w-full rounded-2xl py-3.5 px-5 font-medium border bg-gray-50 text-brand-dark border-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={gateSubmitting}
-                className="w-full bg-primary hover:bg-primary-hover text-brand-dark font-black py-4 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 disabled:opacity-60 text-base"
-              >
-                {gateSubmitting ? (
-                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                )}
-                {gateSubmitting ? 'Getting ready...' : 'Generate My Free Ad Brief →'}
-              </button>
-              <p className="text-center text-xs text-brand-dark/40">No credit card. No spam. Just your ads.</p>
-            </form>
-          </div>
-        </div>
-      )}
-
       {briefStep === 'upload' && (
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-5xl md:text-6xl font-extrabold mb-4 text-brand-dark">
-            Launch Your <span className="text-primary">Ad Strategy</span> in Seconds
+          <h2 className="text-4xl md:text-6xl font-extrabold mb-4 text-brand-dark">
+            {auditReport?.score >= 80 
+              ? <>Your site is <span className="text-primary">ready for traffic.</span></>
+              : auditReport?.score < 70
+              ? <>Wait! Your site will <span className="text-primary">leak leads.</span></>
+              : <>Launch Your <span className="text-primary">Ad Strategy</span> in Seconds</>}
           </h2>
           <p className="text-lg md:text-xl text-brand-dark/70 mb-6 max-w-2xl mx-auto leading-relaxed">
-            Upload one photo and let our AI build your complete market brief, target audiences, and platform-ready ad creatives.
+            {auditReport?.score >= 80
+              ? "Your architecture is solid. Now, upload one photo to generate your high-converting AdHello.ai brief."
+              : auditReport?.score < 70
+              ? "Don't waste money on ads yet. Fix your foundation for $27 first, or generate a brief to see what you're missing."
+              : "Upload one photo and let our AI build your complete market brief, target audiences, and platform-ready ad creatives."}
           </p>
 
           <div className="relative group max-w-2xl mx-auto">
@@ -368,7 +260,7 @@ CRITICAL RULES:
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              onClick={() => setBriefStep('service')}
+              onClick={startAnalysis}
               className="mt-10 bg-primary hover:bg-primary-hover text-brand-dark px-10 py-5 rounded-full font-black text-xl flex items-center gap-3 mx-auto transition-all hover:scale-105 shadow-2xl shadow-primary/20"
             >
               <Sparkles className="w-6 h-6" />
@@ -399,92 +291,6 @@ CRITICAL RULES:
               <h4 className="text-xl font-bold mb-2 text-brand-dark">Ready-to-Use Ads</h4>
               <p className="text-brand-dark/60 text-sm">Generate platform-specific ad creatives</p>
             </div>
-          </div>
-        </div>
-      )}
-
-      {briefStep === 'service' && (
-        <div className="max-w-2xl mx-auto animate-in fade-in duration-500">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-extrabold mb-3 text-brand-dark">
-              What type of service are you advertising?
-            </h2>
-            <p className="text-brand-dark/60 font-medium">
-              This helps us write targeted copy and choose the right ad angle for your audience.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-            {[
-              { label: 'Exterior Painting', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 21h20M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg> },
-              { label: 'Interior Painting', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 22v-2c0-1.1.9-2 2-2h14a2 2 0 012 2v2"/><rect x="3" y="6" width="18" height="10" rx="1"/><path d="M8 6V4M12 6V4M16 6V4"/></svg> },
-              { label: 'Roofing', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/></svg> },
-              { label: 'Siding', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="5" rx="1"/><rect x="2" y="10" width="20" height="5" rx="1"/><rect x="2" y="16" width="20" height="5" rx="1"/></svg> },
-              { label: 'Landscaping', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22V12M12 12C12 7 7 4 3 6c0 4 3 7 9 6M12 12c0-5 5-8 9-6-1 4-4 7-9 6"/></svg> },
-              { label: 'Lawn Care', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 22h18M6 22V12M12 22V8M18 22V14"/><path d="M6 12c0-4 3-7 6-7s6 3 6 7"/></svg> },
-              { label: 'HVAC', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M12 9v7M8 12h8"/><path d="M6 6V4M18 6V4"/></svg> },
-              { label: 'Plumbing', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2v4a2 2 0 002 2h4"/><path d="M4 22V12M4 12a4 4 0 014-4h12a2 2 0 012 2v8a2 2 0 01-2 2H8a4 4 0 01-4-4z"/></svg> },
-              { label: 'Electrical', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> },
-              { label: 'Flooring', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="9" height="9"/><rect x="13" y="2" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/></svg> },
-              { label: 'Kitchen Remodel', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M6 7h2M6 12h12M6 17h12M16 2v5"/></svg> },
-              { label: 'Bathroom Remodel', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20v4a4 4 0 01-4 4H6a4 4 0 01-4-4v-4z"/><path d="M7 12V5a2 2 0 114 0v1M4 12V8"/></svg> },
-              { label: 'Windows & Doors', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="1"/><path d="M12 4v16M2 12h10M12 12h10"/></svg> },
-              { label: 'Pressure Washing', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3v7m0 0a6 6 0 106 6"/><path d="M6 10h9a3 3 0 010 6H9"/><path d="M3 8l3-5 3 5"/></svg> },
-              { label: 'Real Estate', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12L12 3l9 9M5 10v10h5v-5h4v5h5V10"/></svg> },
-              { label: 'Home Staging', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 22h18M4 22V10M20 22V10"/><path d="M2 10h20M7 10V6M17 10V6M7 6a5 5 0 0110 0"/><rect x="9" y="14" width="6" height="8"/></svg> },
-              { label: 'Cleaning Services', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 22l4-4m0 0l8-8m-8 8l-1-1m9-7l3-3a2 2 0 000-3l-1-1a2 2 0 00-3 0l-3 3m4 4l-4-4"/></svg> },
-              { label: 'Other', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg> },
-            ].map((s) => (
-              <button
-                key={s.label}
-                onClick={() => setSelectedService(s.label)}
-                className={`flex items-center gap-3 p-4 rounded-2xl border text-left transition-all font-bold text-sm ${
-                  selectedService === s.label
-                    ? 'bg-primary border-primary/50 text-brand-dark shadow-lg scale-[1.02]'
-                    : 'bg-white border-gray-100 text-brand-dark/70 hover:border-primary/30 hover:text-brand-dark shadow-sm'
-                }`}
-              >
-                <span className={`w-5 h-5 flex-shrink-0 ${selectedService === s.label ? 'text-brand-dark' : 'text-primary'}`}>{s.icon}</span>
-                {s.label}
-              </button>
-            ))}
-          </div>
-          {selectedService === 'Other' && (
-            <div className="mb-4 animate-in fade-in slide-in-from-top-2 duration-200">
-              <input
-                type="text"
-                value={customService}
-                onChange={e => setCustomService(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && customService.trim()) { setSelectedService(customService.trim()); setTimeout(startAnalysis, 0); } }}
-                placeholder="e.g. Fence Installation, Pool Cleaning, Deck Building..."
-                autoFocus
-                className="w-full rounded-2xl py-3.5 px-5 font-medium border bg-white text-brand-dark border-primary/40 ring-2 ring-primary/20 placeholder:text-gray-400 focus:outline-none focus:ring-primary/40 transition-all text-sm"
-              />
-              <p className="text-xs text-brand-dark/40 mt-2 ml-1">Press Enter or click Generate to continue</p>
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => setBriefStep('upload')}
-              className="px-6 py-3 rounded-full border border-gray-200 text-brand-dark/60 font-bold text-sm hover:border-gray-300 transition-colors"
-            >
-              ← Back
-            </button>
-            <button
-              onClick={() => {
-                if (selectedService === 'Other' && customService.trim()) {
-                  setSelectedService(customService.trim());
-                  setTimeout(startAnalysis, 0);
-                } else if (selectedService && selectedService !== 'Other') {
-                  startAnalysis();
-                }
-              }}
-              disabled={!selectedService || (selectedService === 'Other' && !customService.trim())}
-              className="flex-1 bg-primary hover:bg-primary-hover disabled:opacity-40 disabled:cursor-not-allowed text-brand-dark font-black py-3 rounded-full transition-all shadow-md text-sm flex items-center justify-center gap-2"
-            >
-              Generate Ad Brief{selectedService && selectedService !== 'Other' ? ` for ${selectedService}` : selectedService === 'Other' && customService.trim() ? ` for ${customService.trim()}` : ''}
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-            </button>
           </div>
         </div>
       )}
@@ -574,14 +380,36 @@ CRITICAL RULES:
             </div>
           </div>
 
-
-
-          <div className="space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-8"
+          <div className="flex items-center gap-2 bg-white p-1 rounded-2xl w-fit border border-gray-100 shadow-md print:hidden">
+            <button 
+              onClick={() => setResultsTab('insights')}
+              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all ${
+                resultsTab === 'insights' ? 'bg-primary text-brand-dark shadow-lg' : 'text-brand-dark/40 hover:text-brand-dark/60'
+              }`}
             >
+              <BarChart3 className="w-4 h-4" />
+              Market Insights
+            </button>
+            <button 
+              onClick={() => setResultsTab('concepts')}
+              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all ${
+                resultsTab === 'concepts' ? 'bg-primary text-brand-dark shadow-lg' : 'text-brand-dark/40 hover:text-brand-dark/60'
+              }`}
+            >
+              <Sparkles className="w-4 h-4" />
+              Ad Concepts (3)
+            </button>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {resultsTab === 'insights' ? (
+              <motion.div
+                key="insights"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-8"
+              >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
                     <div className="flex items-center gap-3 mb-6">
@@ -652,15 +480,15 @@ CRITICAL RULES:
                     ))}
                   </div>
                 </div>
-            </motion.div>
-
-            {/* Ad Concepts — shown below insights */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl"
-            >
+              </motion.div>
+            ) : (
+              <motion.div
+                key="concepts"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl"
+              >
                 <h3 className="text-2xl font-bold mb-8 text-brand-dark">Ad Brief</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {briefData?.adConcepts.map((ad, i) => (
@@ -678,34 +506,24 @@ CRITICAL RULES:
                           Approved
                         </div>
                       )}
-                      <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
-                        <img
-                          src={generatedAds[i] || selectedImage || ''}
-                          alt="Ad"
-                          className="w-full h-full object-cover transition-all duration-500"
+                      <div className="aspect-square bg-gray-200 flex items-center justify-center relative group">
+                        <img 
+                          src={generatedImages[i] || selectedImage || ''} 
+                          alt="Ad" 
+                          className={`w-full h-full object-cover transition-opacity duration-500 ${!generatedImages[i] ? 'opacity-50' : 'opacity-100'}`} 
                         />
-                        {generatingAd === i ? (
-                          <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-3">
-                            <div className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin border-[3px]" />
-                            <span className="text-white text-xs font-bold">Creating ad...</span>
-                          </div>
-                        ) : generatedAds[i] ? (
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end justify-between px-3 pb-3 print:hidden">
-                            <span className="text-white text-[10px] font-bold px-2 py-1 bg-green-500/80 backdrop-blur-sm rounded-full">✓ AI Generated</span>
-                            <button onClick={() => generateAdImage(i, ad)} className="text-white text-[10px] font-bold px-2 py-1 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors">Regenerate</button>
-                          </div>
-                        ) : (
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col items-center justify-end pb-4 gap-2 print:hidden">
-                            <button
-                              onClick={() => generateAdImage(i, ad)}
-                              className="flex items-center gap-1.5 bg-primary text-brand-dark text-xs font-black px-4 py-2 rounded-full hover:bg-primary-hover transition-all shadow-lg hover:-translate-y-0.5"
-                            >
-                              <Sparkles className="w-3.5 h-3.5" />
-                              Create Ad with AI
-                            </button>
-                            <span className="text-white/60 text-[10px]">Nano Banana 2</span>
-                          </div>
-                        )}
+                        <button 
+                          onClick={() => handleGenerateImage(i, ad)}
+                          disabled={isGenerating[i]}
+                          className="absolute bg-primary text-brand-dark px-6 py-3 rounded-full font-bold flex items-center gap-2 transform transition-transform group-hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed print:hidden"
+                        >
+                          {isGenerating[i] ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Sparkles className="w-4 h-4" />
+                          )}
+                          {isGenerating[i] ? 'Generating...' : 'Generate Image'}
+                        </button>
                       </div>
                       <div className="p-6 flex-grow flex flex-col">
                         <div className="flex items-center gap-2 text-primary text-xs font-black uppercase tracking-widest mb-4">
@@ -729,163 +547,38 @@ CRITICAL RULES:
                               Copy
                             </button>
                           </div>
-                          {generatedAds[i] ? (
-                            <button
-                              onClick={() => {
-                                const a = document.createElement('a');
-                                a.href = generatedAds[i];
-                                a.download = `ad-${ad.platform.toLowerCase()}-${ad.headline.replace(/\s+/g, '-').toLowerCase()}.png`;
-                                a.click();
-                              }}
-                              className="w-full py-2 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 border bg-brand-dark text-white border-brand-dark hover:bg-black"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                              Download Ad
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setApprovedAdIndex(approvedAdIndex === i ? null : i)}
-                              className={`w-full py-2 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 border ${
-                                approvedAdIndex === i
-                                  ? 'bg-green-500 text-white border-green-500'
-                                  : 'bg-white text-brand-dark/60 border-gray-100 hover:border-green-500/30 hover:text-green-600'
-                              }`}
-                            >
-                              {approvedAdIndex === i ? <CheckCircle2 className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-                              {approvedAdIndex === i ? 'Approved' : 'Approve Concept'}
-                            </button>
-                          )}
+                          <button 
+                            onClick={() => setApprovedAdIndex(approvedAdIndex === i ? null : i)}
+                            className={`w-full py-2 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 border ${
+                              approvedAdIndex === i 
+                                ? 'bg-green-500 text-white border-green-500' 
+                                : 'bg-white text-brand-dark/60 border-gray-100 hover:border-green-500/30 hover:text-green-600'
+                            }`}
+                          >
+                            {approvedAdIndex === i ? <CheckCircle2 className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                            {approvedAdIndex === i ? 'Approved' : 'Approve Concept'}
+                          </button>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </motion.div>
-          </div>
+            )}
+          </AnimatePresence>
 
-          <div className="py-10 print:hidden">
-            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 text-center shadow-sm">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/15 text-brand-dark text-xs font-black uppercase tracking-widest mb-5 border border-primary/20">
-                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Coming Soon
-              </div>
-              <h3 className="text-3xl font-extrabold mb-3 text-brand-dark">Unlock the Full Ad Studio</h3>
-              <p className="text-brand-dark/50 mb-8 font-medium max-w-xl mx-auto leading-relaxed">
-                Free tier gives you 3 AI-generated ads per day. With the full Ad Studio:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-2xl mx-auto text-left">
-                {[
-                  {
-                    icon: (
-                      <svg className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3 3m0 0l-3-3m3 3V8"/></svg>
-                    ),
-                    title: 'Save Your Ads',
-                    desc: 'Keep all generated images in your library'
-                  },
-                  {
-                    icon: (
-                      <svg className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    ),
-                    title: 'Edit & Refine',
-                    desc: 'Tweak copy, colors, and layout with AI'
-                  },
-                  {
-                    icon: (
-                      <svg className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    ),
-                    title: 'Unlimited Generations',
-                    desc: 'No daily limits — create as many as you need'
-                  },
-                ].map((f, i) => (
-                  <div key={i} className="bg-gray-50 rounded-2xl p-5 border border-gray-100 text-left">
-                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
-                      {f.icon}
-                    </div>
-                    <p className="text-brand-dark font-extrabold text-sm mb-1">{f.title}</p>
-                    <p className="text-brand-dark/50 text-xs leading-relaxed">{f.desc}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <button
-                  disabled
-                  className="bg-gray-100 text-brand-dark/40 px-8 py-3.5 rounded-full font-black text-sm cursor-not-allowed flex items-center gap-2 border border-gray-200"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path strokeLinecap="round" strokeLinejoin="round" d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                  Start Free Trial — Coming Soon
-                </button>
-                <button
-                  onClick={() => setShowNotifyModal(true)}
-                  className="text-brand-dark/50 hover:text-primary text-sm font-bold transition-colors underline underline-offset-4 decoration-primary/30"
-                >
-                  Get notified when it launches →
-                </button>
-              </div>
-              <p className="text-brand-dark/30 text-xs mt-5">Free tier: 3 AI ad generations per day · No credit card required</p>
-            </div>
+          <div className="text-center py-12 print:hidden">
+            <h3 className="text-3xl font-extrabold mb-4 text-brand-dark">Ready to create more?</h3>
+            <p className="text-brand-dark/40 mb-8 font-bold">Start your 7-day free trial to unlock unlimited ad generation and save your work</p>
+            <button 
+              onClick={() => window.open('https://calendar.app.google/QQsVbiAt4QdCX8mx8', '_blank')}
+              className="bg-primary hover:bg-primary-hover text-brand-dark px-10 py-5 rounded-full font-black text-xl transition-all hover:scale-105 shadow-xl shadow-primary/20"
+            >
+              Start 7-Day Free Trial
+            </button>
           </div>
         </div>
       )}
-    {/* Notify Modal */}
-    {showNotifyModal && (
-      <div className="fixed inset-0 z-[600] flex items-center justify-center px-4">
-        <div className="absolute inset-0 bg-brand-dark/40 backdrop-blur-sm" onClick={() => { setShowNotifyModal(false); setNotifyDone(false); setNotifyEmail(''); }} />
-        <div className="relative w-full max-w-sm bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-          <div className="bg-brand-dark px-6 py-5">
-            <p className="text-white font-extrabold text-base">Get notified at launch</p>
-            <p className="text-white/50 text-xs mt-0.5">We'll email you the moment Ad Studio goes live</p>
-          </div>
-          <div className="px-6 py-6">
-            {notifyDone ? (
-              <div className="text-center py-4">
-                <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-7 h-7 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/></svg>
-                </div>
-                <p className="font-extrabold text-brand-dark text-lg mb-1">You're on the list!</p>
-                <p className="text-brand-dark/50 text-sm">We'll let you know when Ad Studio launches.</p>
-              </div>
-            ) : (
-              <form onSubmit={async (e) => {
-                e.preventDefault();
-                if (!notifyEmail.trim()) return;
-                setNotifySubmitting(true);
-                try {
-                  await fetch('/api/subscribe', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: notifyEmail.trim(), source: 'ad-studio-launch' })
-                  });
-                } catch (_) {}
-                setNotifySubmitting(false);
-                setNotifyDone(true);
-              }} className="space-y-3">
-                <input
-                  type="email"
-                  value={notifyEmail}
-                  onChange={e => setNotifyEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  autoFocus
-                  required
-                  className="w-full rounded-xl py-3 px-4 font-medium border bg-gray-50 text-brand-dark border-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
-                />
-                <button
-                  type="submit"
-                  disabled={notifySubmitting}
-                  className="w-full bg-primary hover:bg-primary-hover text-brand-dark font-black py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-sm disabled:opacity-60"
-                >
-                  {notifySubmitting ? (
-                    <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Saving...</>
-                  ) : 'Notify Me at Launch'}
-                </button>
-                <button type="button" onClick={() => setShowNotifyModal(false)} className="w-full text-brand-dark/40 hover:text-brand-dark/60 text-xs py-1 transition-colors">
-                  No thanks
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      </div>
-    )}
     </div>
   );
 }

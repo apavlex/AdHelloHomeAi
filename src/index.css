@@ -81,6 +81,23 @@
   .petal-card-shape {
     border-radius: 160px 40px 160px 40px;
   }
+
+  /* Manual Prose Styles for Markdown */
+  .prose-manual {
+    @apply text-brand-dark/80 leading-relaxed;
+  }
+  .prose-manual h1 { @apply text-3xl font-black mb-6 mt-8 text-brand-dark tracking-tight; }
+  .prose-manual h2 { @apply text-2xl font-black mb-4 mt-8 text-brand-dark tracking-tight border-b border-brand-dark/5 pb-2; }
+  .prose-manual h3 { @apply text-xl font-black mb-3 mt-6 text-brand-dark; }
+  .prose-manual p { @apply mb-4 font-medium text-lg; }
+  .prose-manual ul { @apply list-disc list-inside mb-6 space-y-2; }
+  .prose-manual ol { @apply list-decimal list-inside mb-6 space-y-2; }
+  .prose-manual li { @apply font-medium text-lg; }
+  .prose-manual strong { @apply font-black text-brand-dark; }
+  .prose-manual code { @apply bg-brand-dark/5 px-2 py-0.5 rounded font-mono text-sm; }
+  .prose-manual pre { @apply bg-brand-dark text-white p-6 rounded-3xl my-8 overflow-x-auto font-mono text-sm shadow-xl; }
+  .prose-manual blockquote { @apply border-l-4 border-primary pl-6 py-2 italic my-8 text-brand-dark/60 font-medium; }
+  .prose-manual hr { @apply my-12 border-brand-dark/5; }
 }
 
 @media print {
