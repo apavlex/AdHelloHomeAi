@@ -726,13 +726,61 @@ export function SiteAudit({
                   </div>
                 </div>
                 
-                {/* Comparison Slider with Generic Assets */}
-                <BeforeAfterSlider 
-                  beforeImage="/generic-mockup-old.png"
-                  afterImage="/generic-mockup-new.png"
-                  beforeLabel="Current Architecture"
-                  afterLabel="Optimized Blueprint"
-                />
+                {/* Single Optimized Blueprint Preview */}
+                <div className="absolute inset-0 flex flex-col" style={{ zIndex: 0 }}>
+                  {/* "OPTIMIZED BLUEPRINT" label */}
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[5] flex items-center gap-2 bg-primary text-brand-dark text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.15em] shadow-lg">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-600 inline-block"></span>
+                    Optimized Blueprint
+                  </div>
+                  {/* Blurred fake website preview that hints at the real thing */}
+                  <div className="w-full h-full bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 overflow-hidden" style={{ filter: 'blur(8px)', transform: 'scale(1.05)' }}>
+                    {/* Fake browser header */}
+                    <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-2">
+                      <div className="flex gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                        <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                        <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                      </div>
+                      <div className="flex-1 bg-gray-100 rounded-md px-3 py-1 text-xs text-gray-400 font-mono border border-gray-200">
+                        {getBusinessName().toLowerCase().replace(/\s/g, '')}.com — Optimized
+                      </div>
+                    </div>
+                    {/* Fake page content hint */}
+                    <div className="p-8">
+                      <div className="grid grid-cols-2 gap-8 h-full">
+                        <div>
+                          <div className="h-10 bg-slate-800 rounded-lg mb-4 w-3/4"></div>
+                          <div className="h-6 bg-slate-600 rounded mb-2 w-full opacity-70"></div>
+                          <div className="h-6 bg-slate-500 rounded mb-6 w-2/3 opacity-50"></div>
+                          <div className="h-12 bg-yellow-400 rounded-2xl w-48 mb-4"></div>
+                          <div className="flex items-center gap-2 mt-4">
+                            <div className="flex">
+                              {[1,2,3,4,5].map(s => <span key={s} className="text-yellow-400 text-xl">★</span>)}
+                            </div>
+                            <div className="h-4 bg-slate-400 rounded w-24 opacity-60"></div>
+                          </div>
+                        </div>
+                        <div className="bg-slate-800 rounded-2xl h-64 flex items-center justify-center">
+                          <div className="text-center text-white opacity-40">
+                            <div className="h-6 bg-white/30 rounded w-32 mx-auto mb-2"></div>
+                            <div className="h-4 bg-white/20 rounded w-24 mx-auto"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 mt-8">
+                        {[1,2,3].map(c => (
+                          <div key={c} className="bg-white rounded-2xl p-5 shadow-sm">
+                            <div className="w-10 h-10 bg-yellow-100 rounded-xl mb-3"></div>
+                            <div className="h-4 bg-slate-300 rounded mb-2 w-3/4"></div>
+                            <div className="h-3 bg-slate-200 rounded w-full"></div>
+                            <div className="h-3 bg-slate-200 rounded w-2/3 mt-1"></div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="text-center">
