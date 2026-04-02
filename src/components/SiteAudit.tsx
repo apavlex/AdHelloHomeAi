@@ -737,7 +737,7 @@ export function SiteAudit({
 
               <div className="text-center">
                 <button 
-                  onClick={() => navigate(`/blueprint?biz=${getBusinessName()}&score=${report.score}&city=${report.city || ''}&themes=${report.reviewThemes?.join(',') || ''}`)}
+                  onClick={() => { sessionStorage.setItem('adhello_audit_report', JSON.stringify(report)); navigate(`/blueprint?biz=${getBusinessName()}&score=${report.score}&city=${report.city || ''}&themes=${report.reviewThemes?.join(',') || ''}`); }}
                   className={`px-12 py-6 bg-primary hover:bg-primary-hover text-brand-dark font-black rounded-3xl text-2xl transition-all hover:scale-105 shadow-[0_20px_40px_-10px_rgba(243,221,109,0.5)] flex items-center justify-center gap-3 w-full sm:w-auto mx-auto relative overflow-hidden group`}
                 >
                   <Lock className="w-6 h-6 text-brand-dark group-hover:scale-110 transition-transform" />
@@ -844,7 +844,7 @@ export function SiteAudit({
               
               <div className="flex flex-col items-center gap-8">
                 <button
-                  onClick={() => navigate(`/blueprint?biz=${getBusinessName()}&score=${report.score}&city=${report.city || ''}&themes=${report.reviewThemes?.join(',') || ''}`)}
+                  onClick={() => { sessionStorage.setItem('adhello_audit_report', JSON.stringify(report)); navigate(`/blueprint?biz=${getBusinessName()}&score=${report.score}&city=${report.city || ''}&themes=${report.reviewThemes?.join(',') || ''}`); }}
                   className="bg-primary hover:bg-primary-hover text-brand-dark font-black py-6 px-16 rounded-full transition-all text-2xl shadow-[0_30px_60px_rgba(243,221,109,0.4)] hover:shadow-none hover:translate-y-2 flex items-center gap-3 active:scale-95"
                 >
                   <Sparkles className="w-7 h-7" />

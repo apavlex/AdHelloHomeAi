@@ -24,6 +24,7 @@ db.exec(`
     city TEXT,
     score INTEGER,
     blueprint TEXT,
+    auditData TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -36,6 +37,9 @@ db.exec(`
     FOREIGN KEY (blueprint_id) REFERENCES blueprints(id)
   );
 `);
+
+// Add auditData column if it doesn't exist (migration for existing DBs)
+try { db.exec(`ALTER TABLE blueprints ADD COLUMN auditData TEXT`); } catch {}
 
 // Middleware
 app.use((req, res, next) => {
@@ -147,12 +151,16 @@ app.post('/api/fulfill', async (req, res) => {
 });
 
 app.post('/api/fulfill/save', (req, res) => {
-  const { bizName, city, score, blueprint } = req.body;
+  const { bizName, city, score, blueprint, auditData } = req.body;
   try {
     const id = crypto.randomUUID();
-    db.prepare('INSERT INTO blueprints (id, bizName, city, score, blueprint) VALUES (?, ?, ?, ?, ?)').run(id, bizName, city, score, blueprint);
+    db.prepare('INSERT INTO blueprints (id, bizName, city, score, blueprint, auditData) VALUES (?, ?, ?, ?, ?, ?)').run(
+      id, bizName, city, score, blueprint,
+      auditData ? JSON.stringify(auditData) : null
+    );
     res.json({ id, success: true });
   } catch (error) {
+    console.error('[SAVE] Error:', error);
     res.status(500).json({ error: 'Save failed' });
   }
 });
@@ -163,7 +171,13 @@ app.get('/api/fulfill/:id', (req, res) => {
     const blueprint = db.prepare('SELECT * FROM blueprints WHERE id = ?').get(id);
     if (!blueprint) return res.status(404).json({ error: 'Not found' });
     const messages = db.prepare('SELECT role, content FROM chat_history WHERE blueprint_id = ? ORDER BY created_at ASC').all(id);
-    res.json({ ...blueprint, messages });
+    // Parse auditData JSON back to object
+    const result = {
+      ...blueprint,
+      auditData: blueprint.auditData ? JSON.parse(blueprint.auditData) : null,
+      messages
+    };
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Fetch failed' });
   }
@@ -171,7 +185,7 @@ app.get('/api/fulfill/:id', (req, res) => {
 
 app.post('/api/fulfill/:id/chat', async (req, res) => {
   const { id } = req.params;
-  const { message, blueprintInfo } = req.body;
+  const { message, blueprintInfo, auditReport } = req.body;
 
   if (!message) return res.status(400).json({ error: 'Message required' });
 
@@ -179,6 +193,45 @@ app.post('/api/fulfill/:id/chat', async (req, res) => {
   const city = blueprintInfo?.city || 'your city';
   const score = blueprintInfo?.score || 'N/A';
 
+  // Build detailed audit context string for Gemini
+  let auditContext = '';
+  const audit = auditReport || (id ? (() => {
+    try {
+      const row = db.prepare('SELECT auditData FROM blueprints WHERE id = ?').get(id);
+      return row?.auditData ? JSON.parse(row.auditData) : null;
+    } catch { return null; }
+  })() : null);
+
+  if (audit) {
+    const checks = audit.technicalAudit ? Object.values(audit.technicalAudit) : [];
+    const failing = checks.filter(c => c.status === 'fail').map(c => `FAIL: ${c.label} — ${c.reason || c.value || ''}`).join('\n');
+    const warnings = checks.filter(c => c.status === 'warning').map(c => `WARN: ${c.label} — ${c.reason || c.value || ''}`).join('\n');
+    const strengths = (audit.strengths || []).map(s => `+ ${s.indicator}: ${s.description}`).join('\n');
+    const weaknesses = (audit.weaknesses || []).map(w => `- ${w.indicator}: ${w.description}`).join('\n');
+    const recommendations = (audit.recommendations || []).map(r => `> ${r.title}: ${r.description}`).join('\n');
+
+    auditContext = `
+=== AUDIT REPORT DATA FOR ${bizName} ===
+AEO Score: ${audit.score}/100
+Mobile-First Score: ${audit.mobileFirstScore}/100
+Google AI Ready Score: ${audit.googleAiReadyScore}/100
+Lead Estimate Score: ${audit.leadsEstimatesScore}/100
+Summary: ${audit.summary || ''}
+
+TECHNICAL AUDIT RESULTS:
+${failing || '(none failing)'}
+${warnings || '(no warnings)'}
+
+STRENGTHS:
+${strengths || '(not provided)'}
+
+WEAKNESSES:
+${weaknesses || '(not provided)'}
+
+RECOMMENDATIONS FROM REPORT:
+${recommendations || '(not provided)'}
+===================================`;
+  }
   try {
     // 1. Save user message
     db.prepare('INSERT INTO chat_history (blueprint_id, role, content) VALUES (?, ?, ?)').run(id, 'user', message);
@@ -195,24 +248,13 @@ app.post('/api/fulfill/:id/chat', async (req, res) => {
       try {
         const systemPrompt = `You are the "GEO Ranking Coach" for AdHello.ai — an elite local SEO and digital growth expert.
 You are currently coaching ${bizName} based in ${city}. Their current AEO score is ${score}/100.
-Your job is to give them actionable, specific, expert advice about:
-- Local GEO domination and Google Business Profile optimization
-- Base44 website building prompts and strategies  
-- Converting website visitors into booked appointments
-- YouTube and omni-channel authority signals
-- Google AI Overview optimization
-Keep responses concise (2-4 paragraphs max), conversational, and highly specific to their business.
-Use bullet points where helpful. Be encouraging but direct.`;
+${auditContext}
+Your job is to give them actionable, specific, expert advice referencing their ACTUAL audit data above.
+When someone asks how to improve a specific score or fix an issue, reference the EXACT failing checks and explain step-by-step how to fix that particular issue.
+Keep responses concise (2-4 paragraphs max), conversational, and highly specific to their business and audit results.
+Use bullet points where helpful. Be encouraging but direct. Always tie advice back to their specific score and findings.`;
 
-        // Build Gemini-compatible history (exclude the last user message we just inserted)
-        const geminiHistory = history.slice(0, -1).map(m => ({
-          role: m.role === 'user' ? 'user' : 'model',
-          parts: [{ text: m.content }]
-        }));
-
-        const model = genAI.models ? genAI : genAI;
-        
-        // Use the generateContent approach with history in the prompt
+        // Build history text
         const historyText = geminiHistory.map(m => 
           `${m.role === 'user' ? 'User' : 'Coach'}: ${m.parts[0].text}`
         ).join('\n\n');

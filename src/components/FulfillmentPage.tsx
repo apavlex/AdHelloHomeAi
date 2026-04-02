@@ -55,6 +55,9 @@ export default function FulfillmentPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState<number | null>(null);
   
+  // Audit Report (from sessionStorage)
+  const [auditReport, setAuditReport] = useState<any>(null);
+
   // Chatbot State
   const [isChatOpen, setIsChatOpen] = useState(true);
   const [chatMessages, setChatMessages] = useState<{role: string, content: string}[]>([]);
@@ -63,6 +66,14 @@ export default function FulfillmentPage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const blueprintRef = useRef<HTMLDivElement>(null);
   const [chatInitialized, setChatInitialized] = useState(false);
+
+  // Load audit report from sessionStorage
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('adhello_audit_report');
+      if (stored) setAuditReport(JSON.parse(stored));
+    } catch {}
+  }, []);
 
   // Parse Initial Search Params (only for new generations)
   useEffect(() => {
@@ -87,14 +98,45 @@ export default function FulfillmentPage() {
     }
   }, [id, searchParams]);
 
-  // Inject intro message when status becomes complete
+  // Inject audit-aware intro message when status becomes complete
   useEffect(() => {
     if (status === 'complete' && !chatInitialized) {
       setChatInitialized(true);
-      const intro = `👋 Welcome! I'm your **GEO Ranking Coach** — trained exclusively on your ${bizName} blueprint.\n\nHere's what I can help you with:\n\n🗺️ **Local GEO Domination** — How to rank #1 in "${city || 'your city'}" searches\n⚡ **Base44 Build Prompts** — Exact copy-paste prompts for each phase\n📈 **Conversion Strategy** — Turn website visitors into booked appointments\n🔗 **Authority Signals** — YouTube, GBP, and omni-channel tactics\n\nWhat would you like to tackle first?`;
+
+      // Build a personalized intro from the actual audit report
+      const currentScore = auditReport?.score || parseInt(score) || 78;
+      const failingChecks = auditReport?.technicalAudit
+        ? Object.values(auditReport.technicalAudit)
+            .filter((item: any) => item.status === 'fail')
+            .map((item: any) => `❌ ${item.label}${item.reason ? ` — ${item.reason}` : ''}`)
+        : [];
+      const warningChecks = auditReport?.technicalAudit
+        ? Object.values(auditReport.technicalAudit)
+            .filter((item: any) => item.status === 'warning')
+            .map((item: any) => `⚠️ ${item.label}${item.reason ? ` — ${item.reason}` : ''}`)
+        : [];
+      const topWeakness = auditReport?.weaknesses?.[0]?.description || '';
+      const scoreEmoji = currentScore >= 85 ? '🟢' : currentScore >= 65 ? '🟡' : '🔴';
+      const scoreLabel = currentScore >= 85 ? 'strong' : currentScore >= 65 ? 'moderate' : 'critical';
+
+      let intro = `👋 I've finished reading your **${bizName}** audit report — and I have some important findings to share.\n\n`;
+      intro += `${scoreEmoji} **Your AEO Score: ${currentScore}/100** — This is a ${scoreLabel} score for local AI search visibility.\n\n`;
+
+      if (failingChecks.length > 0) {
+        intro += `**Critical Issues Found (Failing):**\n${failingChecks.join('\n')}\n\n`;
+      }
+      if (warningChecks.length > 0) {
+        intro += `**Warnings to Address:**\n${warningChecks.join('\n')}\n\n`;
+      }
+      if (topWeakness) {
+        intro += `**Top Priority:** ${topWeakness}\n\n`;
+      }
+
+      intro += `I'll coach you through fixing each of these to dominate the "${city || 'local'}" search results. **Which issue would you like to tackle first?**`;
+
       setChatMessages([{ role: 'assistant', content: intro }]);
     }
-  }, [status, chatInitialized, bizName, city]);
+  }, [status, chatInitialized, bizName, city, score, auditReport]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -151,7 +193,8 @@ export default function FulfillmentPage() {
           bizName, 
           city, 
           score: parseInt(score), 
-          blueprint: data.blueprint 
+          blueprint: data.blueprint,
+          auditData: auditReport || null
         })
       });
 
@@ -180,7 +223,8 @@ export default function FulfillmentPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: userMsg,
-          blueprintInfo: { bizName, city, blueprint, score }
+          blueprintInfo: { bizName, city, blueprint, score },
+          auditReport: auditReport || null
         })
       });
       const data = await response.json();
