@@ -35,6 +35,18 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (blueprint_id) REFERENCES blueprints(id)
   );
+  CREATE TABLE IF NOT EXISTS leads (
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    email TEXT,
+    phone TEXT,
+    bizName TEXT,
+    industry TEXT,
+    city TEXT,
+    goal TEXT,
+    vibe TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 try { db.exec(`ALTER TABLE blueprints ADD COLUMN auditData TEXT`); } catch {}
 try { db.exec(`ALTER TABLE blueprints ADD COLUMN phaseHtml TEXT`); } catch {}
@@ -587,6 +599,22 @@ Be concise (2-4 paragraphs max), conversational, and highly specific. Use bullet
   } catch (error) {
     console.error('[CHAT] Error:', error);
     res.status(500).json({ error: 'Chat failed. Please try again.' });
+  }
+});
+
+app.post('/api/leads', (req, res) => {
+  const { name, email, phone, bizName, industry, city, goal, vibe } = req.body;
+  if (!name || !email) return res.status(400).json({ error: 'Name and email are required.' });
+
+  try {
+    const id = crypto.randomUUID();
+    db.prepare('INSERT INTO leads (id, name, email, phone, bizName, industry, city, goal, vibe) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
+      id, name, email, phone, bizName, industry, city, goal, vibe
+    );
+    res.json({ id, success: true });
+  } catch (error) {
+    console.error('[LEADS] Error:', error);
+    res.status(500).json({ error: 'Failed to save lead' });
   }
 });
 

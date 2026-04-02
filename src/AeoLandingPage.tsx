@@ -115,11 +115,12 @@ export default function AeoLandingPage() {
           </div>
 
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-brand-dark mb-6 leading-[1.1]">
-            Your Google Ads are losing leads to <span className="hand-underline">AI Search.</span>
+            Your website is <span className="text-red-600">invisible</span> to local <br />
+            <span className="hand-underline">AI Search.</span>
           </h1>
 
           <p className="text-xl md:text-2xl text-brand-dark/70 mb-10 max-w-2xl mx-auto leading-relaxed">
-            High-speed, AI-optimized websites built specifically for local contractors. Only $97/month.
+            95% of contractor websites score below 50/100 for AI readiness. AdHello.ai fixes the gap and makes you the answer AI gives to local customers.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
@@ -157,7 +158,7 @@ export default function AeoLandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 mb-20">
             <div className="bg-warm-cream p-8 rounded-3xl shadow-sm border border-gray-100">
               <div className="w-12 h-12 bg-primary/20 text-primary-dark rounded-xl flex items-center justify-center mb-6">
                 <Bot className="w-6 h-6" />
@@ -186,6 +187,40 @@ export default function AeoLandingPage() {
               </p>
             </div>
           </div>
+
+          {/* Audit Urgency Section */}
+          <div className="bg-brand-dark text-white rounded-[3rem] p-10 md:p-16 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-black mb-6 uppercase tracking-widest border border-primary/30">
+                  Critical Finding
+                </div>
+                <h3 className="text-3xl md:text-5xl font-black mb-6 leading-tight">
+                  The Audit Reality: <br />
+                  <span className="text-primary tracking-tighter italic">Most Sites Score &lt; 50/100</span>
+                </h3>
+                <p className="text-lg text-white/60 font-medium mb-8 leading-relaxed">
+                  After auditing over 1,500 contractor sites this year, we found that 95% lack the structured data, 
+                  GEO signals (Generative Engine Optimization), and trust-architecture required to be featured by AI.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 text-xs font-bold uppercase tracking-widest text-white/40">Failing: Schema Markup</div>
+                  <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 text-xs font-bold uppercase tracking-widest text-white/40">Failing: Local GEO Signals</div>
+                  <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 text-xs font-bold uppercase tracking-widest text-white/40">Failing: LLMS.txt Connectivity</div>
+                </div>
+              </div>
+              <div className="w-full md:w-auto">
+                <button 
+                  onClick={() => setIsQuizOpen(true)}
+                  className="w-full md:w-auto px-8 py-5 bg-primary text-brand-dark text-xl font-black rounded-2xl hover:bg-primary-hover transition-all shadow-xl flex items-center justify-center gap-3"
+                >
+                  Check Your AI Score <ArrowRight className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 

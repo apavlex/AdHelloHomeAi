@@ -48,21 +48,60 @@ export default function StrategyResultsPage() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call to save lead
+    // Send lead to backend CRM
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...leadInfo,
+          ...formData
+        })
+      });
+      
+      if (!response.ok) throw new Error('Lead submission failed');
+      
       setIsSuccess(true);
-      // In a real app, we'd send leadInfo + formData to our backend/CRM
+      sessionStorage.removeItem('quizData'); // Clean up after successful lead capture
     } catch (error) {
       console.error('Lead submission failed:', error);
+      alert('There was an issue sending your request. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const getNichePrompt = (industry: string = '', city: string = '', bizName: string = '', vibe: string = '') => {
+    const ind = (industry || '').toLowerCase();
+    
+    const base = `Create a high-converting, premium website for ${bizName} in ${city}. Focus on mobile-first architecture, local GEO relevance, and high-trust conversion elements with a ${vibe} aesthetic.`;
+
+    if (ind.includes('painter') || ind.includes('painting')) {
+      return `${base} Include: full-screen high-res project gallery, 'Book Your Estimate' sticky button, service breakdown cards for Interior/Exterior/Cabinetry, and a highlighted 'Reviews' section from ${city} homeowners. Use bold typography and a palette that colors ${vibe} values.`;
+    }
+    if (ind.includes('plumber') || ind.includes('plumbing')) {
+      return `${base} Include: prominent '24/7 Emergency Service' header, service categories for Leak Detection/Water Heaters/Drains, localized trust badges for ${city} licensing, and a simple 3-field booking form above the fold.`;
+    }
+    if (ind.includes('hvac') || ind.includes('heating') || ind.includes('air')) {
+      return `${base} Include: AC & Heating repair seasonal promos, high-contrast CTA buttons for 'Get a Quote', maintenance plan benefit grid, and technical spec icons for energy efficiency.`;
+    }
+    if (ind.includes('roof') || ind.includes('roofing')) {
+      return `${base} Include: 'Free Roof Inspection' primary CTA, durability/warranty proof points, high-impact background images of local ${city} homes, and a detailed storm damage service section.`;
+    }
+    if (ind.includes('electric') || ind.includes('electrical')) {
+      return `${base} Include: safety-first trust signals, service list for Panels/EV Charging/Lighting, 'Licensed & Insured' credential footer, and a direct-dial phone button for immediate inquiries.`;
+    }
+    if (ind.includes('clean') || ind.includes('maid')) {
+      return `${base} Include: 'Instant Quote' multi-step booking widget, eco-friendly product badges, recurring service pricing table, and satisfaction guarantee ribbons.`;
+    }
+    
+    // Fallback/General Contractor
+    return `${base} Include: service-specific landing sections, verified customer social proof, clear service-area map of ${city}, and multiple friction-free lead capture points.`;
+  };
+
   if (!formData) return null;
 
-  const promptString = `Create a high-converting, premium website for ${formData.bizName} in ${formData.city}. Industry: ${formData.industry}. Primary Goal: ${formData.goal}. Design Vibe: ${formData.vibe}. Focus on mobile-first architecture, local GEO relevance, and high-trust conversion elements.`;
+  const promptString = getNichePrompt(formData.industry, formData.city, formData.bizName, formData.vibe);
 
   return (
     <div className="min-h-screen bg-warm-cream selection:bg-primary/40 text-brand-dark font-sans overflow-x-hidden">
