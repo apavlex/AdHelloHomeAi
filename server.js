@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { GoogleGenAI } from "@google/genai";
 import crypto from 'crypto';
 import Database from 'better-sqlite3';
+import { Resend } from 'resend';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,6 +70,9 @@ process.on('unhandledRejection', (reason) => console.error('[CRITICAL] Unhandled
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const genAI = GEMINI_API_KEY ? new GoogleGenAI(GEMINI_API_KEY) : null;
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+if (!resend) console.warn('[MAIL] RESEND_API_KEY missing. Email notifications disabled.');
 
 // =====================================================
 // SITE AUDIT
@@ -611,6 +615,32 @@ app.post('/api/leads', (req, res) => {
     db.prepare('INSERT INTO leads (id, name, email, phone, bizName, industry, city, goal, vibe) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
       id, name, email, phone, bizName, industry, city, goal, vibe
     );
+
+    // Send Email Notification
+    if (resend) {
+      resend.emails.send({
+        from: 'AdHello leads <onboarding@resend.dev>',
+        to: 'alex@adhello.ai',
+        subject: `🔥 New Lead: ${bizName} (${industry})`,
+        html: `
+          <div style="font-family: sans-serif; padding: 20px; color: #1a1a2e;">
+            <h2 style="color: #6366f1;">New Strategic Lead Captured</h2>
+            <p><strong>Business:</strong> ${bizName}</p>
+            <p><strong>Contact:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Phone:</strong> ${phone}</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p><strong>Industry:</strong> ${industry}</p>
+            <p><strong>Location:</strong> ${city}</p>
+            <p><strong>Goal:</strong> ${goal}</p>
+            <p><strong>Vibe:</strong> ${vibe}</p>
+            <br />
+            <a href="https://adhello.ai" style="display: inline-block; padding: 10px 20px; background: #6366f1; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">View Dashboard</a>
+          </div>
+        `
+      }).catch(err => console.error('[MAIL] Error sending lead email:', err));
+    }
+
     res.json({ id, success: true });
   } catch (error) {
     console.error('[LEADS] Error:', error);
