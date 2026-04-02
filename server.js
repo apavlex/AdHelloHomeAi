@@ -627,13 +627,15 @@ app.post('/api/chatbot', async (req, res) => {
 
   let replyText = '';
   try {
-    const systemPrompt = `You are the "AdHello Growth Assistant" — an expert in AI-powered marketing and websites for home service businesses (painters, electricians, plumbers, roofers, etc.).
-Help the user understand how AdHello.ai works. We automate:
-1. Smart Website building (conversion-optimized)
-2. AI Search (GEO) ranking
-3. AI Webchat for 24/7 lead capture
-4. ROI Strategy Blueprints
-Be professional, helpful, and energetic. Keep responses under 3 paragraphs.`;
+    const systemPrompt = `You are the "AdHello Growth Assistant" — the friendly, expert concierge for home service pros (painters, electricians, plumbers, etc.). 
+Your vibe: You're an elite growth expert, but you talk like a human, not a corporate brochure. 
+Rules:
+1. Be conversational. Use shorter sentences. Ask engaging follow-up questions.
+2. Sound like you're talking to a friend over coffee, not lecturing a student. 
+3. Avoid generic AI phrases. Be punchy and energetic.
+4. If you have to explain something complex, use a simple analogy or bullet points.
+5. Keep responses under 2-3 short paragraphs.
+Role: Help them understand how AdHello builds smart sites, handles SEO/GEO, and captures leads 24/7.`;
     
     replyText = await callAI(userMessage, systemPrompt, messages);
   } catch (err) {
@@ -700,11 +702,16 @@ RECOMMENDATIONS: ${recommendations || 'none'}
 
     if (GEMINI_API_KEY) {
       try {
-        const systemPrompt = `You are the "GEO Ranking Coach" for AdHello.ai — an elite local SEO and digital growth expert.
-You are coaching ${bizName} in ${city}. Their AEO score is ${score}/100.
+        const systemPrompt = `You are the "GEO Ranking Coach" for AdHello.ai — an elite local SEO expert who talks like a teammate, not a consultant.
+You are coaching ${bizName} in ${city} (AEO score: ${score}/100).
 ${auditContext}
-Give actionable advice that references their ACTUAL audit data. When they ask how to improve a score or fix an issue, cite the EXACT failing checks and explain step-by-step how to fix it.
-Be concise (2-4 paragraphs max), conversational, and highly specific. Use bullet points. Be encouraging but direct.`;
+Your vibe: Professional but punchy and conversational. Use phrases like "Check this out," "Here's the move," or "Bottom line." 
+Rules:
+1. Be direct. Don't ramble.
+2. Reference their actual data naturally (e.g., "I see your SSL is failing—that's a huge trust killer").
+3. Give 1-2 actionable tips in every response.
+4. Encourage them, but don't be afraid to be brutally honest about what's holding them back.
+5. Use bullet points for steps.`;
 
         const historyText = history.slice(0, -1).map(m =>
           `${m.role === 'user' ? 'User' : 'Coach'}: ${m.content}`
@@ -742,7 +749,62 @@ Be concise (2-4 paragraphs max), conversational, and highly specific. Use bullet
   }
 });
 
-app.post('/api/leads', (req, res) => {
+// Sync Lead to Agency OS (adhelloleadsos)
+async function syncLeadToAgencyOS(leadData) {
+  const LEADSOS_URL = process.env.ADHELLO_LEADSOS_URL || 'https://leads.adhello.ai';
+  const LEADSOS_KEY = process.env.ADHELLO_LEADSOS_API_KEY || 'adhello_secret_123';
+  
+  try {
+    const payload = {
+      title: leadData.bizName || leadData.name || 'New Lead',
+      website: leadData.siteUrl || leadData.website || 'N/A',
+      email: leadData.email || 'N/A',
+      phone: leadData.phone || 'N/A',
+      city: leadData.city || '',
+      state: leadData.state || '',
+      source: leadData.source || 'adhello_audit',
+      totalScore: leadData.auditData?.score || 0,
+      auditData: leadData.auditData || null,
+      message: `Lead captured from AdHello AI: ${leadData.name}`
+    };
+
+    const res = await fetch(`${LEADSOS_URL}/api/ingest`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': LEADSOS_KEY
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    console.log('[SYNC] Agency OS Response:', data);
+  } catch (err) {
+    console.error('[SYNC] Failed to push lead to Agency OS:', err.message);
+  }
+}
+
+// Singular route for SiteAudit.tsx compatibility
+app.post('/api/lead', async (req, res) => {
+  const { name, email, phone, siteUrl, auditData, source } = req.body;
+  if (!name || !email) return res.status(400).json({ error: 'Name and email are required.' });
+
+  try {
+    const id = crypto.randomUUID();
+    db.prepare('INSERT INTO leads (id, name, email, phone, bizName, industry, city, goal, vibe) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
+      id, name, email, phone, auditData?.companyName || '', '', auditData?.city || '', '', ''
+    );
+
+    // Push to Agency OS
+    await syncLeadToAgencyOS({ ...req.body, bizName: auditData?.companyName });
+
+    res.json({ id, success: true });
+  } catch (error) {
+    console.error('[LEADS] Error:', error);
+    res.status(500).json({ error: 'Failed to save lead' });
+  }
+});
+
+app.post('/api/leads', async (req, res) => {
   const { name, email, phone, bizName, industry, city, goal, vibe } = req.body;
   if (!name || !email) return res.status(400).json({ error: 'Name and email are required.' });
 
@@ -776,6 +838,9 @@ app.post('/api/leads', (req, res) => {
         `
       }).catch(err => console.error('[MAIL] Error sending lead email:', err));
     }
+
+    // Push to Agency OS
+    await syncLeadToAgencyOS(req.body);
 
     res.json({ id, success: true });
   } catch (error) {
