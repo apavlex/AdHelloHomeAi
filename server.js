@@ -39,6 +39,9 @@ db.exec(`
 try { db.exec(`ALTER TABLE blueprints ADD COLUMN auditData TEXT`); } catch {}
 try { db.exec(`ALTER TABLE blueprints ADD COLUMN phaseHtml TEXT`); } catch {}
 
+// Disable FK enforcement so chat works even before blueprint is saved
+db.pragma('foreign_keys = OFF');
+
 // --- MIDDLEWARE ---
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -407,9 +410,15 @@ RECOMMENDATIONS: ${recommendations || 'none'}
   }
 
   try {
-    db.prepare('INSERT INTO chat_history (blueprint_id, role, content) VALUES (?, ?, ?)').run(id, 'user', message);
+    // Save user message — skip if blueprint doesn't exist yet (FK safety)
+    const blueprintExists = db.prepare('SELECT id FROM blueprints WHERE id = ?').get(id);
+    if (blueprintExists) {
+      try { db.prepare('INSERT INTO chat_history (blueprint_id, role, content) VALUES (?, ?, ?)').run(id, 'user', message); } catch {}
+    }
 
-    const history = db.prepare('SELECT role, content FROM chat_history WHERE blueprint_id = ? ORDER BY created_at ASC').all(id);
+    const history = blueprintExists
+      ? db.prepare('SELECT role, content FROM chat_history WHERE blueprint_id = ? ORDER BY created_at ASC').all(id)
+      : [];
 
     let replyText = '';
 
@@ -447,7 +456,10 @@ Be concise (2-4 paragraphs max), conversational, and highly specific. Use bullet
       }
     }
 
-    db.prepare('INSERT INTO chat_history (blueprint_id, role, content) VALUES (?, ?, ?)').run(id, 'model', replyText);
+    // Save reply — skip if blueprint doesn't exist yet
+    if (blueprintExists) {
+      try { db.prepare('INSERT INTO chat_history (blueprint_id, role, content) VALUES (?, ?, ?)').run(id, 'model', replyText); } catch {}
+    }
     res.json({ text: replyText });
   } catch (error) {
     console.error('[CHAT] Error:', error);
