@@ -32,12 +32,27 @@ import {
   ExternalLink,
   Copy,
   Clipboard,
-  ChevronDown
+  ChevronDown,
+  Target
 } from 'lucide-react';
 import { Logo } from './Logo';
+import { SmartSiteQuiz } from './SmartSiteQuiz';
+import { EventBanner } from './EventBanner';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
 import ReactMarkdown from 'react-markdown';
+
+const geoSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "GEO Optimization",
+  "provider": {
+    "@type": "LocalBusiness",
+    "name": "AdHello.ai"
+  }
+};
+
+// ... schemas etc ...
 
 export default function FulfillmentPage() {
   const { id } = useParams();
@@ -54,6 +69,7 @@ export default function FulfillmentPage() {
   const [score, setScore] = useState('78');
   const [themes, setThemes] = useState<string[]>([]);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isNoWebsiteFlow, setIsNoWebsiteFlow] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState<number | null>(null);
   
   // Audit Report (from sessionStorage)
@@ -73,6 +89,8 @@ export default function FulfillmentPage() {
     try {
       const stored = sessionStorage.getItem('adhello_audit_report');
       if (stored) setAuditReport(JSON.parse(stored));
+      const noWeb = sessionStorage.getItem('isNoWebsiteFlow') === 'true';
+      setIsNoWebsiteFlow(noWeb);
     } catch {}
   }, []);
 
@@ -443,10 +461,73 @@ export default function FulfillmentPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
+              {/* Strategic Brand Board for New Sites */}
+              {isNoWebsiteFlow && auditReport?.headlines && (
+                 <motion.div 
+                   initial={{ opacity: 0, y: 20 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   className="mb-16 bg-gradient-to-br from-brand-dark to-black rounded-[3rem] p-12 md:p-20 text-white shadow-2xl relative overflow-hidden"
+                 >
+                   <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+                   <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
+                     <div>
+                       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-primary text-xs font-black uppercase tracking-widest mb-8">
+                         <Sparkles className="w-4 h-4" /> Strategic Architecture
+                       </div>
+                       <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
+                         {auditReport.headlines.hero}
+                       </h2>
+                       <p className="text-xl md:text-2xl text-white/70 font-bold mb-10 leading-relaxed">
+                         {auditReport.headlines.sub}
+                       </p>
+                       
+                       <div className="flex flex-col sm:flex-row gap-4">
+                         <button 
+                           onClick={() => window.open('https://base44.io?aff=adhello', '_blank')}
+                           className="bg-primary text-brand-dark px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 hover:scale-105 transition-all shadow-xl"
+                         >
+                           Launch on Base44
+                         </button>
+                         <button 
+                           onClick={() => window.open('https://calendar.app.google/QQsVbiAt4QdCX8mx8', '_blank')}
+                           className="bg-white/10 border border-white/20 backdrop-blur-xl text-white px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-white/20 transition-all"
+                         >
+                           Designed by AdHello
+                         </button>
+                       </div>
+                     </div>
+
+                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 md:p-12">
+                       <h3 className="text-xl font-black mb-6 flex items-center gap-2 uppercase tracking-tight">
+                         <Target className="w-6 h-6 text-primary" /> Key ROI Objectives
+                       </h3>
+                       <div className="space-y-6">
+                         {auditReport.strategy?.goals?.map((g: string, i: number) => (
+                           <div key={i} className="flex gap-4 items-start">
+                             <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-1">
+                               <div className="w-2 h-2 rounded-full bg-primary" />
+                             </div>
+                             <p className="text-lg font-bold text-white/80">{g}</p>
+                           </div>
+                         ))}
+                         <div className="pt-6 mt-6 border-t border-white/10">
+                           <div className="text-xs font-black uppercase tracking-widest text-white/30 mb-2">Targeted Growth Velocity</div>
+                           <div className="text-3xl font-black text-primary">{auditReport.strategy?.targetROI || 'N/A'}</div>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </motion.div>
+               )}
+
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                 <div>
-                  <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-2">Build in Progress.</h1>
-                  <p className="text-xl text-brand-dark/60 font-bold">Your Strategic Web Architecture is ready.</p>
+                  <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-2">
+                    {isNoWebsiteFlow ? "Blueprint Ready." : "Project Analysis Complete."}
+                  </h1>
+                  <p className="text-xl text-brand-dark/60 font-bold">
+                    {isNoWebsiteFlow ? "Your zero-to-one strategic package is live." : "Your Strategic Web Architecture is ready."}
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <button 
@@ -466,6 +547,43 @@ export default function FulfillmentPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Audit Score & Profile - ONLY for Site Audit Flow */}
+              {!isNoWebsiteFlow && (
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-16">
+                  <div className="lg:col-span-1 bg-white rounded-[2.5rem] p-8 shadow-xl border border-brand-dark/5 flex flex-col items-center justify-center text-center">
+                    <div className="relative w-32 h-32 mb-4">
+                      <svg className="w-full h-full transform -rotate-90">
+                        <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-gray-100" />
+                        <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={364.4} strokeDashoffset={364.4 - (364.4 * parseInt(score)) / 100} className="text-primary" />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-4xl font-black text-brand-dark">{score}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-brand-dark/40">Score</span>
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-black mb-1">Architecture Grade</h3>
+                    <p className="text-xs font-bold text-brand-dark/40 uppercase tracking-widest">Digital Performance Audit</p>
+                  </div>
+
+                  <div className="lg:col-span-3 bg-brand-dark text-white rounded-[2.5rem] p-10 shadow-xl border border-white/5 relative overflow-hidden flex items-center">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    <div className="relative z-10 grid md:grid-cols-3 gap-8 w-full">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-2">Company Audit Profile</p>
+                        <h4 className="text-2xl font-black mb-1">{bizName}</h4>
+                        <p className="text-sm font-bold text-white/50">{city || 'Service Area Verified'}</p>
+                      </div>
+                      <div className="md:col-span-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4">Strategic Summary</p>
+                        <p className="text-lg font-bold text-white/80 leading-relaxed">
+                          {auditReport?.summary || "Analysis indicates significant GEO-signal opportunities and conversion path optimizations."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* The Deliverable Document */}
               <div ref={blueprintRef} className="bg-white rounded-[3rem] p-12 md:p-20 shadow-2xl border border-brand-dark/5 mb-16 relative overflow-hidden">

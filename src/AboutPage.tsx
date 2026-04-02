@@ -224,10 +224,10 @@ export default function AboutPage() {
                       "Websites built for home service businesses that want more leads."
                     </p>
                     <div className="flex gap-4">
-                      <a className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-brand-dark transition-all text-brand-dark" href="https://x.com/alexpavlenko" target="_blank" rel="noopener noreferrer" aria-label="Follow on X">
+                      <a className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-brand-dark transition-all text-brand-dark" href="https://x.com/adhello" target="_blank" rel="noopener noreferrer" aria-label="Follow on X">
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.258 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
                       </a>
-                      <a className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-brand-dark transition-all text-brand-dark" href="https://x.com/messages/compose?recipient_id=alexpavlenko" target="_blank" rel="noopener noreferrer" aria-label="DM on X">
+                      <a className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-brand-dark transition-all text-brand-dark" href="https://x.com/messages/compose?recipient_id=adhello" target="_blank" rel="noopener noreferrer" aria-label="DM on X">
                         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                       </a>
                     </div>
@@ -248,7 +248,7 @@ export default function AboutPage() {
                       <li><Link className="hover:text-primary transition-colors" to="/about">About</Link></li>
                       <li><a className="hover:text-primary transition-colors flex items-center gap-2" href="tel:3607731505">(360) 773-1505</a></li>
                       <li><a className="hover:text-primary transition-colors" href="https://calendar.app.google/QQsVbiAt4QdCX8mx8" target="_blank" rel="noopener noreferrer">Book Demo Today</a></li>
-                      <li><a className="hover:text-primary transition-colors" href="mailto:alex@adhello.ai">Contact Us</a></li>
+                      <li><a className="hover:text-primary transition-colors" href="mailto:hello@adhello.ai">Contact Us</a></li>
                     </ul>
                   </div>
                   <div>

@@ -27,17 +27,17 @@ export function AssessmentCTA() {
             {/* Text */}
             <div className="flex-1 min-w-0">
               <h2 className="text-base md:text-lg font-black leading-tight tracking-tight text-white">
-                Get a <span className="text-primary">free website review</span> from Alex
+                Get a <span className="text-primary">free website review</span> from AdHello
               </h2>
               <p className="text-xs md:text-sm font-medium text-white/50">
-                Founder of AdHello.ai — DM him on X and he'll personally review your site.
+                Strategy Team at AdHello.ai — Message us on X and we'll personally review your site.
               </p>
             </div>
           </div>
           {/* Button */}
           <div className="flex-shrink-0">
             <a
-              href="https://x.com/messages/compose?recipient_id=alexpavlenko"
+              href="https://x.com/messages/compose?recipient_id=adhello"
               target="_blank"
               rel="noopener noreferrer"
               className="group relative bg-primary hover:bg-white text-brand-dark px-4 py-2 md:px-5 md:py-2.5 rounded-lg font-black text-[10px] md:text-xs transition-all duration-300 shadow-lg hover:shadow-primary/20 flex items-center justify-center gap-2 overflow-hidden"

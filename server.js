@@ -122,6 +122,74 @@ For brandColors: extract the ACTUAL dominant colors used on the website. primary
   }
 });
 
+// ── STRATEGY ENGINE (for No-Website flow) ───────────────────────────────────
+app.post('/api/analyze-strategy', async (req, res) => {
+  const { bizName, industry, city, goal, vibe } = req.body;
+  if (!bizName || !industry) return res.status(400).json({ error: 'Business name and industry required.' });
+
+  const vibeColors = {
+    'Modern': { primary: '#6366f1', accent: '#a855f7', background: '#0f172a', text: '#f8fafc' },
+    'Classic': { primary: '#1e293b', accent: '#94a3b8', background: '#f8fafc', text: '#0f172a' },
+    'Bold': { primary: '#ef4444', accent: '#f59e0b', background: '#000000', text: '#ffffff' },
+    'Friendly': { primary: '#10b981', accent: '#3b82f6', background: '#f0fdf4', text: '#064e3b' }
+  };
+
+  const colors = vibeColors[vibe] || vibeColors['Modern'];
+
+  try {
+    if (genAI) {
+      const prompt = `You are a high-conversion website strategist. 
+      Business: ${bizName} (${industry})
+      Location: ${city}
+      Core Goal: ${goal}
+      Aesthetic: ${vibe}
+
+      Generate a strategic brand package for a new website. Return ONLY a raw JSON object (no markdown, no backticks) with this structure:
+      {
+        "score": 100,
+        "summary": "Strategically architected for high-velocity ${goal.toLowerCase()} growth in ${city}.",
+        "brandAnalysis": "Focusing on ${industry} expertise with a ${vibe.toLowerCase()} visual identity to drive ${goal.toLowerCase()}.",
+        "headlines": {
+          "hero": "A killer 5-8 word headline that sells",
+          "sub": "A 10-15 word sub-headline that builds trust",
+          "cta": "A punchy 2-4 word primary CTA"
+        },
+        "strategy": {
+          "goals": ["Goal 1 (e.g. 15% increase in calls)", "Goal 2", "Goal 3"],
+          "targetROI": "A percentage or ratio describing the potential ROI"
+        },
+        "vibePrompt": "A highly detailed 100-word design prompt for Base44 (AI website builder). Include layout, color usage (${colors.primary}, ${colors.accent}), and conversion-first sections.",
+        "technicalAudit": {
+          "strategy": { "label": "Strategic Alignment", "status": "pass", "value": "Optimized", "reason": "Pre-architected for ${goal}." },
+          "conversion": { "label": "Conversion Funnel", "status": "pass", "value": "A-Grade", "reason": "Copy and layout designed by AdHello AI expert logic." }
+        }
+      }`;
+
+      const result = await genAI.models.generateContent({ model: 'gemini-1.5-flash', contents: prompt });
+      const raw = (result.text || '').replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(raw);
+      
+      return res.json({
+        ...parsed,
+        brandColors: colors,
+        city,
+        companyName: bizName,
+        isNoWebsiteFlow: true
+      });
+    }
+    // Mock fallback
+    res.json({
+      score: 100,
+      summary: "Strategic launch plan for " + bizName,
+      headlines: { hero: "The Future of " + industry, sub: "Dominating " + city + " with AI search readiness.", cta: "Start Now" },
+      brandColors: colors,
+      isNoWebsiteFlow: true
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Strategy generation failed.' });
+  }
+});
+
 // =====================================================
 // PHASE HTML GENERATOR (personalized per client)
 // =====================================================

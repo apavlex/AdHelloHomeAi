@@ -49,6 +49,7 @@ import { AssessmentCTA } from './components/AssessmentCTA';
 import { Logo } from './components/Logo';
 import SEO from './components/SEO';
 import { EventBanner } from './components/EventBanner';
+import { SmartSiteQuiz } from './components/SmartSiteQuiz';
 
 const HERO_VARIANTS = [
   {
@@ -141,6 +142,12 @@ export default function App() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [portfolioIndex, setPortfolioIndex] = useState(0);
   const [auditReport, setAuditReport] = useState<any>(null);
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
+
+  const handleStartQuiz = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    setIsQuizOpen(true);
+  };
 
   const scrollToAudit = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -292,7 +299,7 @@ export default function App() {
                   Sign In
                 </a>
                 <button
-                  onClick={openChat}
+                  onClick={handleStartQuiz}
                   className="bg-primary hover:bg-primary-hover text-brand-dark text-sm font-bold px-6 py-3 rounded-full transition-all duration-300 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] hover:shadow-[0_0_15px_rgba(243,221,109,0.6)] hover:-translate-y-0.5 hover:scale-105 flex items-center gap-2"
                 >
                   Build My Smart Site
@@ -335,7 +342,7 @@ export default function App() {
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  openChat();
+                  handleStartQuiz();
                 }}
                 className="flex bg-primary hover:bg-primary-hover text-brand-dark text-base font-bold px-6 py-3 rounded-full transition-all duration-300 hover:shadow-[0_0_15px_rgba(243,221,109,0.6)] hover:-translate-y-0.5 hover:scale-105 items-center justify-center gap-2 mt-2"
               >
@@ -424,7 +431,7 @@ export default function App() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                   <button
-                    onClick={openChat}
+                    onClick={handleStartQuiz}
                     className="px-10 py-5 bg-primary hover:bg-primary-hover text-brand-dark font-bold rounded-full transition-all shadow-[6px_6px_0px_rgba(45,52,54,0.1)] hover:shadow-none hover:translate-y-[4px] flex items-center justify-center gap-2 text-xl w-full sm:w-auto border-2 border-transparent group"
                   >
                     <Sparkles className="w-6 h-6 text-brand-dark group-hover:animate-pulse" />
@@ -1153,7 +1160,7 @@ export default function App() {
                 <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> AI Growth Coach</li>
                 <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> Hosting & updates included</li>
               </ul>
-              <button onClick={openChat} className="w-full py-4 bg-brand-dark hover:bg-brand-dark/90 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
+              <button onClick={handleStartQuiz} className="w-full py-4 bg-brand-dark hover:bg-brand-dark/90 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
                 Start Here
               </button>
             </div>
@@ -1176,7 +1183,7 @@ export default function App() {
                 <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Advanced analytics & competitor tracking</li>
                 <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Credits system — use what you need, buy more as you grow</li>
               </ul>
-              <button onClick={openChat} className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
+              <button onClick={handleStartQuiz} className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
                 Join the Waitlist
               </button>
             </div>
@@ -1201,7 +1208,7 @@ export default function App() {
                 <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Agent Automation</li>
               </ul>
               <p className="text-white/50 text-sm mb-6 italic">This isn't for everyone — it's for businesses serious about dominating their local market.</p>
-              <button onClick={openChat} className="w-full py-4 bg-white hover:bg-gray-100 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg mt-auto">
+              <button onClick={handleStartQuiz} className="w-full py-4 bg-white hover:bg-gray-100 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg mt-auto">
                 Apply for Managed
               </button>
             </div>
@@ -1271,7 +1278,7 @@ export default function App() {
           </div>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <button
-              onClick={openChat}
+              onClick={handleStartQuiz}
               className="bg-primary hover:bg-primary-hover text-brand-dark font-extrabold py-5 px-12 rounded-full shadow-[0px_0px_20px_rgba(243,221,109,0.3)] hover:shadow-[0px_0px_30px_rgba(243,221,109,0.5)] transition-all transform hover:scale-105 flex items-center justify-center gap-3 text-xl md:text-2xl group"
             >
               <Sparkles className="w-8 h-8 text-brand-dark group-hover:scale-110 transition-transform" />
