@@ -1,3 +1,4 @@
+import { useAnalytics } from './hooks/useAnalytics';
 import { Logo } from './components/Logo';
 import { EventBanner } from './components/EventBanner';
 import React from 'react';
@@ -21,7 +22,7 @@ import SEO from './components/SEO';
 import { useState } from 'react';
 import { SmartSiteQuiz } from './components/SmartSiteQuiz';
 
-export default function AboutPage() {
+export default function AboutPage() { useAnalytics(); useAnalytics();
     const [isQuizOpen, setIsQuizOpen] = useState(false);
 
     const handleStartQuiz = (e?: React.MouseEvent) => {

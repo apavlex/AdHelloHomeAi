@@ -62,7 +62,6 @@ export function AdBrief({ auditReport }: { auditReport?: any }) {
   const [briefStep, setBriefStep] = useState<'upload' | 'analyzing' | 'results'>('upload');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [resultsTab, setResultsTab] = useState<'insights' | 'concepts'>('insights');
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
   const [isGenerating, setIsGenerating] = useState<Record<number, boolean>>({});
   const [briefData, setBriefData] = useState<AdBriefData | null>(null);
@@ -146,7 +145,8 @@ export function AdBrief({ auditReport }: { auditReport?: any }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           adConcept, 
-          visualPrompt: briefData.visualPrompt 
+          visualPrompt: briefData.visualPrompt,
+          originalImage: selectedImage
         })
       });
 
@@ -380,191 +380,164 @@ export function AdBrief({ auditReport }: { auditReport?: any }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-white p-1 rounded-2xl w-fit border border-gray-100 shadow-md print:hidden">
-            <button 
-              onClick={() => setResultsTab('insights')}
-              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all ${
-                resultsTab === 'insights' ? 'bg-primary text-brand-dark shadow-lg' : 'text-brand-dark/40 hover:text-brand-dark/60'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              Market Insights
-            </button>
-            <button 
-              onClick={() => setResultsTab('concepts')}
-              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all ${
-                resultsTab === 'concepts' ? 'bg-primary text-brand-dark shadow-lg' : 'text-brand-dark/40 hover:text-brand-dark/60'
-              }`}
-            >
-              <Sparkles className="w-4 h-4" />
-              Ad Concepts (3)
-            </button>
-          </div>
 
           <AnimatePresence mode="wait">
-            {resultsTab === 'insights' ? (
-              <motion.div
-                key="insights"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-8"
-              >
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
-                    <div className="flex items-center gap-3 mb-6">
-                      <FileText className="w-6 h-6 text-primary" />
-                      <h3 className="text-2xl font-bold text-brand-dark">Product Analysis</h3>
-                    </div>
-                    <p className="text-brand-dark/70 text-lg leading-relaxed font-medium">
-                      {briefData?.productAnalysis}
-                    </p>
-                  </div>
-
-                  <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
-                    <div className="flex items-center gap-3 mb-6">
-                      <Target className="w-6 h-6 text-primary" />
-                      <h3 className="text-2xl font-bold text-brand-dark">Target Audience</h3>
-                    </div>
-                    <ul className="space-y-4">
-                      {briefData?.targetAudience.map((item, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-1" />
-                          <span className="text-brand-dark/70 font-medium">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
-                    <div className="flex items-center gap-3 mb-6">
-                      <Lightbulb className="w-6 h-6 text-primary" />
-                      <h3 className="text-2xl font-bold text-brand-dark">Market Insights</h3>
-                    </div>
-                    <ul className="space-y-4">
-                      {briefData?.marketInsights.map((item, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <TrendingUp className="w-5 h-5 text-primary shrink-0 mt-1" />
-                          <span className="text-brand-dark/70 font-medium">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
-                    <div className="flex items-center gap-3 mb-6">
-                      <Sparkles className="w-6 h-6 text-primary" />
-                      <h3 className="text-2xl font-bold text-brand-dark">Competitive Advantages</h3>
-                    </div>
-                    <ul className="space-y-4">
-                      {briefData?.competitiveAdvantages.map((item, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-1" />
-                          <span className="text-brand-dark/70 font-medium">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+          <motion.div
+            key="results"
+            className="space-y-8"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
+                <div className="flex items-center gap-3 mb-6">
+                  <FileText className="w-6 h-6 text-primary" />
+                  <h3 className="text-2xl font-bold text-brand-dark">Product Analysis</h3>
                 </div>
+                <p className="text-brand-dark/70 text-lg leading-relaxed font-medium">
+                  {briefData?.productAnalysis}
+                </p>
+              </div>
 
-                <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
-                  <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-brand-dark">
-                    <BarChart3 className="w-6 h-6 text-primary" />
-                    Recommended Platforms
-                  </h3>
-                  <div className="flex flex-wrap gap-4">
-                    {['Instagram', 'Facebook', 'TikTok'].map((platform) => (
-                      <div key={platform} className="bg-warm-cream px-6 py-3 rounded-2xl border border-brand-dark/5 font-bold text-brand-dark">
-                        {platform}
-                      </div>
-                    ))}
-                  </div>
+              <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
+                <div className="flex items-center gap-3 mb-6">
+                  <Target className="w-6 h-6 text-primary" />
+                  <h3 className="text-2xl font-bold text-brand-dark">Target Audience</h3>
                 </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="concepts"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl"
-              >
-                <h3 className="text-2xl font-bold mb-8 text-brand-dark">Ad Brief</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {briefData?.adConcepts.map((ad, i) => (
-                    <div 
-                      key={i} 
-                      className={`bg-gray-50 rounded-3xl overflow-hidden border transition-all duration-300 flex flex-col shadow-sm relative ${
-                        approvedAdIndex === i 
-                          ? 'border-green-500 ring-4 ring-green-500/10 scale-[1.02] bg-green-50/30' 
-                          : 'border-gray-100 hover:border-primary/30'
-                      }`}
-                    >
-                      {approvedAdIndex === i && (
-                        <div className="absolute top-4 right-4 z-20 bg-green-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-lg animate-in zoom-in duration-300">
-                          <CheckCircle2 className="w-3 h-3" />
-                          Approved
-                        </div>
-                      )}
-                      <div className="aspect-square bg-gray-200 flex items-center justify-center relative group">
-                        <img 
-                          src={generatedImages[i] || selectedImage || ''} 
-                          alt="Ad" 
-                          className={`w-full h-full object-cover transition-opacity duration-500 ${!generatedImages[i] ? 'opacity-50' : 'opacity-100'}`} 
-                        />
-                        <button 
-                          onClick={() => handleGenerateImage(i, ad)}
-                          disabled={isGenerating[i]}
-                          className="absolute bg-primary text-brand-dark px-6 py-3 rounded-full font-bold flex items-center gap-2 transform transition-transform group-hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed print:hidden"
-                        >
-                          {isGenerating[i] ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Sparkles className="w-4 h-4" />
-                          )}
-                          {isGenerating[i] ? 'Generating...' : 'Generate Image'}
-                        </button>
+                <ul className="space-y-4">
+                  {briefData?.targetAudience.map((item, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-1" />
+                      <span className="text-brand-dark/70 font-medium">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
+                <div className="flex items-center gap-3 mb-6">
+                  <Lightbulb className="w-6 h-6 text-primary" />
+                  <h3 className="text-2xl font-bold text-brand-dark">Market Insights</h3>
+                </div>
+                <ul className="space-y-4">
+                  {briefData?.marketInsights.map((item, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <TrendingUp className="w-5 h-5 text-primary shrink-0 mt-1" />
+                      <span className="text-brand-dark/70 font-medium">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
+                <div className="flex items-center gap-3 mb-6">
+                  <Sparkles className="w-6 h-6 text-primary" />
+                  <h3 className="text-2xl font-bold text-brand-dark">Competitive Advantages</h3>
+                </div>
+                <ul className="space-y-4">
+                  {briefData?.competitiveAdvantages.map((item, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-1" />
+                      <span className="text-brand-dark/70 font-medium">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
+              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-brand-dark">
+                <BarChart3 className="w-6 h-6 text-primary" />
+                Recommended Platforms
+              </h3>
+              <div className="flex flex-wrap gap-4">
+                {['Instagram', 'Facebook', 'TikTok'].map((platform) => (
+                  <div key={platform} className="bg-warm-cream px-6 py-3 rounded-2xl border border-brand-dark/5 font-bold text-brand-dark">
+                    {platform}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ad Concepts Section */}
+            <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl">
+              <div className="flex items-center gap-3 mb-8">
+                <Sparkles className="w-6 h-6 text-primary" />
+                <h3 className="text-2xl font-bold text-brand-dark">Ad Concepts (3)</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {briefData?.adConcepts.map((ad, i) => (
+                  <div 
+                    key={i} 
+                    className={`bg-gray-50 rounded-3xl overflow-hidden border transition-all duration-300 flex flex-col shadow-sm relative ${
+                      approvedAdIndex === i 
+                        ? 'border-green-500 ring-4 ring-green-500/10 scale-[1.02] bg-green-50/30' 
+                        : 'border-gray-100 hover:border-primary/30'
+                    }`}
+                  >
+                    {approvedAdIndex === i && (
+                      <div className="absolute top-4 right-4 z-20 bg-green-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-lg animate-in zoom-in duration-300">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Approved
                       </div>
-                      <div className="p-6 flex-grow flex flex-col">
-                        <div className="flex items-center gap-2 text-primary text-xs font-black uppercase tracking-widest mb-4">
-                          {ad.platform === 'Instagram' ? <Instagram className="w-5 h-5" /> : ad.platform === 'Facebook' ? <Facebook className="w-5 h-5" /> : <TikTokIcon className="w-5 h-5" />}
-                          {ad.platform}
-                        </div>
-                        <h4 className="text-xl font-bold mb-2 text-brand-dark">{ad.headline}</h4>
-                        <p className="text-brand-dark/80 text-base leading-relaxed mb-6 flex-grow font-medium">{ad.body}</p>
-                        <div className="flex flex-col gap-3 print:hidden">
-                          <div className="flex items-center gap-2">
-                            <button className="flex-grow bg-primary hover:bg-primary-hover text-brand-dark px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2">
-                              {ad.cta}
-                            </button>
-                            <button 
-                              onClick={() => {
-                                navigator.clipboard.writeText(`${ad.headline}\n\n${ad.body}`);
-                              }}
-                              className="flex items-center gap-2 bg-white hover:bg-gray-50 text-brand-dark border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold transition-colors shadow-sm"
-                            >
-                              <Copy className="w-4 h-4" />
-                              Copy
-                            </button>
-                          </div>
+                    )}
+                    <div className="aspect-square bg-gray-200 flex items-center justify-center relative group">
+                      <img 
+                        src={generatedImages[i] || selectedImage || ''} 
+                        alt="Ad" 
+                        className={`w-full h-full object-cover transition-opacity duration-500 ${!generatedImages[i] ? 'opacity-50' : 'opacity-100'}`} 
+                      />
+                      <button 
+                        onClick={() => handleGenerateImage(i, ad)}
+                        disabled={isGenerating[i]}
+                        className="absolute bg-primary text-brand-dark px-6 py-3 rounded-full font-bold flex items-center gap-2 transform transition-transform group-hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed print:hidden"
+                      >
+                        {isGenerating[i] ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-4 h-4" />
+                        )}
+                        {isGenerating[i] ? 'Generating...' : 'Generate Image'}
+                      </button>
+                    </div>
+                    <div className="p-6 flex-grow flex flex-col">
+                      <div className="flex items-center gap-2 text-primary text-xs font-black uppercase tracking-widest mb-4">
+                        {ad.platform === 'Instagram' ? <Instagram className="w-5 h-5" /> : ad.platform === 'Facebook' ? <Facebook className="w-5 h-5" /> : <TikTokIcon className="w-5 h-5" />}
+                        {ad.platform}
+                      </div>
+                      <h4 className="text-xl font-bold mb-2 text-brand-dark">{ad.headline}</h4>
+                      <p className="text-brand-dark/80 text-base leading-relaxed mb-6 flex-grow font-medium">{ad.body}</p>
+                      <div className="flex flex-col gap-3 print:hidden">
+                        <div className="flex items-center gap-2">
+                          <button className="flex-grow bg-primary hover:bg-primary-hover text-brand-dark px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2">
+                            {ad.cta}
+                          </button>
                           <button 
-                            onClick={() => setApprovedAdIndex(approvedAdIndex === i ? null : i)}
-                            className={`w-full py-2 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 border ${
-                              approvedAdIndex === i 
-                                ? 'bg-green-500 text-white border-green-500' 
-                                : 'bg-white text-brand-dark/60 border-gray-100 hover:border-green-500/30 hover:text-green-600'
-                            }`}
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${ad.headline}\n\n${ad.body}`);
+                            }}
+                            className="flex items-center gap-2 bg-white hover:bg-gray-50 text-brand-dark border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold transition-colors shadow-sm"
                           >
-                            {approvedAdIndex === i ? <CheckCircle2 className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-                            {approvedAdIndex === i ? 'Approved' : 'Approve Concept'}
+                            <Copy className="w-4 h-4" />
+                            Copy
                           </button>
                         </div>
+                        <button 
+                          onClick={() => setApprovedAdIndex(approvedAdIndex === i ? null : i)}
+                          className={`w-full py-2 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 border ${
+                            approvedAdIndex === i 
+                              ? 'bg-green-500 text-white border-green-500' 
+                              : 'bg-white text-brand-dark/60 border-gray-100 hover:border-green-500/30 hover:text-green-600'
+                          }`}
+                        >
+                          {approvedAdIndex === i ? <CheckCircle2 className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                          {approvedAdIndex === i ? 'Approved' : 'Approve Concept'}
+                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
           </AnimatePresence>
 
           <div className="text-center py-12 print:hidden">

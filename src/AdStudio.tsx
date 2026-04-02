@@ -1,3 +1,4 @@
+import { useAnalytics } from './hooks/useAnalytics';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -45,7 +46,7 @@ const TikTokIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export default function AdStudio() {
+export default function AdStudio() { useAnalytics(); useAnalytics();
   const [searchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as Tab) || 'brief';
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);

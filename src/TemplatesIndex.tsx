@@ -1,3 +1,4 @@
+import { useAnalytics } from './hooks/useAnalytics';
 import React, { useState } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, LayoutTemplate, Star, CheckCircle2 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -5,7 +6,7 @@ import { TEMPLATES, CATEGORIES, getTemplatesByCategory } from './data/templates'
 import SEO from './components/SEO';
 import { EventBanner } from './components/EventBanner';
 
-export default function TemplatesIndex() {
+export default function TemplatesIndex() { useAnalytics(); useAnalytics();
     const { category = 'all' } = useParams();
     const navigate = useNavigate();
     const [activeImageIndices, setActiveImageIndices] = useState<Record<string, number>>({});

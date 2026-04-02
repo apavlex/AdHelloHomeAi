@@ -1,3 +1,4 @@
+import { useAnalytics } from './hooks/useAnalytics';
 import { EventBanner } from './components/EventBanner';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
@@ -14,7 +15,7 @@ const IconComponent = ({ name, className }: { name: string, className?: string }
     return <Icon className={className} />;
 };
 
-export default function TemplateDetails() {
+export default function TemplateDetails() { useAnalytics(); useAnalytics();
     const { category, templateId } = useParams<{ category: string; templateId: string }>();
     const [activeImage, setActiveImage] = useState(0);
 

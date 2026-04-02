@@ -41,6 +41,7 @@ import { EventBanner } from './EventBanner';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
 import ReactMarkdown from 'react-markdown';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 const geoSchema = {
   "@context": "https://schema.org",
@@ -55,6 +56,7 @@ const geoSchema = {
 // ... schemas etc ...
 
 export default function FulfillmentPage() {
+  useAnalytics();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

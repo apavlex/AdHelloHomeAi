@@ -1,3 +1,4 @@
+import { useAnalytics } from '../hooks/useAnalytics';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -21,7 +22,7 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Logo } from './Logo';
 
-export default function StrategyResultsPage() {
+export default function StrategyResultsPage() { useAnalytics(); useAnalytics();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState<any>(null);

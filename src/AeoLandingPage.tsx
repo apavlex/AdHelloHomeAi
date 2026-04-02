@@ -1,3 +1,4 @@
+import { useAnalytics } from './hooks/useAnalytics';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import SEO from './components/SEO';
@@ -31,7 +32,7 @@ const geoSchema = {
   }
 };
 
-export default function AeoLandingPage() {
+export default function AeoLandingPage() { useAnalytics(); useAnalytics();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
 

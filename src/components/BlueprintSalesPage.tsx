@@ -1,3 +1,4 @@
+import { useAnalytics } from '../hooks/useAnalytics';
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -18,6 +19,7 @@ import {
 import { Logo } from './Logo';
 
 export default function BlueprintSalesPage() {
+  useAnalytics();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const bizRaw = searchParams.get('biz') || 'Your Business';

@@ -50,6 +50,7 @@ import { Logo } from './components/Logo';
 import SEO from './components/SEO';
 import { EventBanner } from './components/EventBanner';
 import { SmartSiteQuiz } from './components/SmartSiteQuiz';
+import { useAnalytics } from './hooks/useAnalytics';
 
 const HERO_VARIANTS = [
   {
@@ -129,6 +130,7 @@ const PORTFOLIO_EXAMPLES = [
 ];
 
 export default function App() {
+  useAnalytics();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success'>('idle');

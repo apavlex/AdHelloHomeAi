@@ -298,7 +298,8 @@ IMPORTANT: You MUST respect the SSL status: ${actualSsl}. If it is FALSE, the au
       const resultText = await callAI(prompt, '', [], true);
       if (!resultText) throw new Error('Empty response from AI providers');
       
-      const parsed = JSON.parse(resultText);
+      const cleaned = cleanAIResponse(resultText);
+      const parsed = JSON.parse(cleaned);
       
       return res.json({
         ...parsed,
@@ -358,8 +359,7 @@ app.post('/api/analyze-strategy', async (req, res) => {
       const resultText = await callAI(prompt, '', [], true);
       if (!resultText) throw new Error('Empty response from AI providers');
       
-      const raw = resultText.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(raw);
+      const parsed = JSON.parse(cleanAIResponse(resultText));
       
       return res.json({
         ...parsed,
@@ -666,7 +666,7 @@ Role: Help them understand how AdHello builds smart sites, handles SEO/GEO, and 
     replyText = "AdHello.ai is an AI growth platform for home service pros. We build your website, handle your SEO/GEO, and capture leads 24/7 so you can focus on the job. Would you like to see how it works for your specific trade?";
   }
 
-  res.json({ text: replyText });
+  res.json({ text: cleanAIResponse(replyText) });
 });
 
 // =====================================================
@@ -762,7 +762,17 @@ Rules:
     if (blueprintExists) {
       try { db.prepare('INSERT INTO chat_history (blueprint_id, role, content) VALUES (?, ?, ?)').run(id, 'model', replyText); } catch {}
     }
-    res.json({ text: replyText });
+    // Real-time sync to Agency OS if user was logged/identified
+    if (blueprintExists) {
+      setImmediate(() => syncLeadToAgencyOS({ 
+          id, 
+          source: 'adhello_chatbot',
+          bizName: bizName,
+          city: city
+      }));
+    }
+
+    res.json({ text: cleanAIResponse(replyText) });
   } catch (error) {
     console.error('[CHAT] Error:', error);
     res.status(500).json({ error: 'Chat failed. Please try again.' });
@@ -775,6 +785,15 @@ async function syncLeadToAgencyOS(leadData) {
   const LEADSOS_KEY = process.env.ADHELLO_LEADSOS_API_KEY || 'adhello_secret_123';
   
   try {
+    // Fetch chat history if we have a blueprint ID or lead identity
+    let chatHistory = leadData.chatHistory || [];
+    if (leadData.id && chatHistory.length === 0) {
+      try {
+        const rows = db.prepare('SELECT role, content FROM chat_history WHERE blueprint_id = ? ORDER BY created_at ASC').all(leadData.id);
+        chatHistory = rows.map(r => ({ role: r.role, content: r.content }));
+      } catch (e) {}
+    }
+
     const payload = {
       title: leadData.bizName || leadData.name || 'New Lead',
       website: leadData.siteUrl || leadData.website || 'N/A',
@@ -783,9 +802,14 @@ async function syncLeadToAgencyOS(leadData) {
       city: leadData.city || '',
       state: leadData.state || '',
       source: leadData.source || 'adhello_audit',
-      totalScore: leadData.auditData?.score || 0,
+      totalScore: leadData.auditData?.score || leadData.score || 0,
       auditData: leadData.auditData || null,
-      message: `Lead captured from AdHello AI: ${leadData.name}`
+      chatHistory: chatHistory,
+      message: leadData.message || `Lead from AdHello: ${leadData.goal || 'Strategic Interest'} in ${leadData.industry || 'Unknown Trade'}`,
+      // Custom metadata for Agency OS
+      industry: leadData.industry || '',
+      goal: leadData.goal || '',
+      vibe: leadData.vibe || ''
     };
 
     const res = await fetch(`${LEADSOS_URL}/api/ingest`, {
@@ -860,7 +884,7 @@ app.post('/api/leads', async (req, res) => {
     }
 
     // Push to Agency OS
-    await syncLeadToAgencyOS(req.body);
+    await syncLeadToAgencyOS({ ...req.body, id, source: 'adhello_strategy' });
 
     res.json({ id, success: true });
   } catch (error) {
@@ -869,7 +893,29 @@ app.post('/api/leads', async (req, res) => {
   }
 });
 
-app.post('/api/ad-brief/generate-image', (req, res) => res.json({ imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=1000' }));
+app.post('/api/ad-brief/generate-image', (req, res) => {
+  const { prompt, originalImage } = req.body;
+  // If we have an original image, use that as the primary visual interest.
+  // Otherwise, return a generic but professional business placeholder.
+  res.json({ imageUrl: originalImage || 'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&q=80&w=1000' });
+});
+
+function cleanAIResponse(text) {
+  if (!text) return '';
+  try {
+    // If the entire text is a JSON object like { "response": "..." } or { "text": "..." }
+    const parsed = JSON.parse(text.trim());
+    return parsed.response || parsed.text || parsed.content || text;
+  } catch (e) {
+    // Not valid JSON, but might contain a JSON block
+    const match = text.match(/\{[\s\S]*"response"\s*:\s*"([\s\S]*?)"[\s\S]*\}/i);
+    if (match && match[1]) return match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+    
+    // Final fallback: just return the text as is but strip markdown code blocks if they wrap everything
+    return text.replace(/^```json\s*|```$/g, '').trim();
+  }
+}
+
 
 app.post('/api/stitch-design', (req, res) => res.json({ success: true }));
 
@@ -877,21 +923,25 @@ app.post('/api/ad-brief/analyze', async (req, res) => {
   const { image } = req.body;
   if (!image) return res.status(400).json({ error: 'Image is required.' });
 
-  const prompt = `Analyze this product image and generate a comprehensive Ad Brief. 
+  const prompt = `CRITICAL: Analyze the attached product image. 
+  1. Identify the EXACT product (name and type). DO NOT invent a new product or use placeholders like "Croissants" unless they are in the image.
+  2. Generate a comprehensive Ad Brief for this EXACT product.
+  
   Output your response as PURE JSON matching this exactly:
   {
-    "productAnalysis": "string explaining what the product is and its vibe",
-    "visualPrompt": "a detailed text-to-image prompt for Midjourney/DALL-E to recreate or enhance this product in a lifestyle setting",
+    "productAnalysis": "string explaining exactly what the product is and its vibe",
+    "visualPrompt": "a detailed text-to-image prompt to recreate THIS SPECIFIC PRODUCT in a high-end lifestyle setting",
     "targetAudience": ["audience 1", "audience 2", "audience 3"],
     "marketInsights": ["insight 1", "insight 2", "insight 3"],
     "competitiveAdvantages": ["advantage 1", "advantage 2", "advantage 3"],
     "adConcepts": [
-      { "platform": "Instagram", "headline": "string", "body": "string", "cta": "string" },
-      { "platform": "Facebook", "headline": "string", "body": "string", "cta": "string" },
-      { "platform": "TikTok", "headline": "string", "body": "string", "cta": "string" }
+      { "platform": "Instagram", "headline": "string headline for THIS product", "body": "string ad body", "cta": "string" },
+      { "platform": "Facebook", "headline": "string headline for THIS product", "body": "string ad body", "cta": "string" },
+      { "platform": "TikTok", "headline": "string hook for THIS product", "body": "string script description", "cta": "string" }
     ]
   }
-  Be specific and professional.`;
+  Be specific, professional, and stay strictly relevant to the uploaded image.`;
+
 
   try {
     const aiResponse = await callGemini(prompt, 'gemini-2.0-flash', image, true);
