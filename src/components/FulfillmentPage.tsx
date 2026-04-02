@@ -48,6 +48,7 @@ export default function FulfillmentPage() {
   const [status, setStatus] = useState<'loading' | 'analyzing' | 'complete' | 'error'>('loading');
   const [progress, setProgress] = useState(0);
   const [blueprint, setBlueprint] = useState<string | null>(null);
+  const [phaseHtml, setPhaseHtml] = useState<string[]>([]);
   const [bizName, setBizName] = useState('Your Business');
   const [city, setCity] = useState('');
   const [score, setScore] = useState('78');
@@ -162,6 +163,7 @@ export default function FulfillmentPage() {
       if (!response.ok) throw new Error('Not found');
       const data = await response.json();
       setBlueprint(data.blueprint);
+      if (data.phaseHtml) setPhaseHtml(data.phaseHtml);
       setBizName(data.bizName);
       setCity(data.city);
       setScore(data.score.toString());
@@ -185,6 +187,7 @@ export default function FulfillmentPage() {
 
       if (!response.ok) throw new Error('Fulfillment failed');
       const data = await response.json();
+      if (data.phaseHtml) setPhaseHtml(data.phaseHtml);
       
       const saveResponse = await fetch('/api/fulfill/save', {
         method: 'POST',
@@ -194,6 +197,7 @@ export default function FulfillmentPage() {
           city, 
           score: parseInt(score), 
           blueprint: data.blueprint,
+          phaseHtml: data.phaseHtml || null,
           auditData: auditReport || null
         })
       });
@@ -459,8 +463,8 @@ export default function FulfillmentPage() {
                         transition={{ delay: i * 0.1 }}
                         className="rounded-[2.5rem] border border-brand-dark/8 shadow-xl overflow-hidden bg-white"
                       >
-                        {/* Large scrollable preview */}
-                        <div className="relative w-full" style={{ height: '420px' }}>
+                        {/* Live personalized iframe preview */}
+                        <div className="relative w-full" style={{ height: '460px' }}>
                           {/* Browser chrome bar */}
                           <div className="absolute top-0 left-0 right-0 z-10 bg-zinc-100 border-b border-zinc-200 px-4 py-3 flex items-center gap-2">
                             <div className="flex gap-1.5">
@@ -472,15 +476,15 @@ export default function FulfillmentPage() {
                               {bizName.toLowerCase().replace(/\s/g, '')}.com — {style.name}
                             </div>
                           </div>
-                          {/* Scrollable image */}
-                          <div className="absolute top-10 left-0 right-0 bottom-0 overflow-y-scroll scroll-smooth">
-                            <img 
-                              src={style.img} 
-                              className="w-full object-cover object-top" 
-                              style={{ minHeight: '700px' }}
-                              alt={style.name} 
-                            />
-                          </div>
+                          {/* Iframe with live client-personalized HTML */}
+                          <iframe
+                            srcDoc={phaseHtml[i] || undefined}
+                            sandbox="allow-same-origin"
+                            className="absolute top-10 left-0 right-0 bottom-0 w-full border-0"
+                            style={{ height: 'calc(100% - 40px)' }}
+                            scrolling="yes"
+                            title={`${style.name} Preview`}
+                          />
                           {/* Phase badge */}
                           <div className={`absolute top-14 right-4 z-20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
                             i === 2 ? 'bg-zinc-900 text-zinc-100' : i === 1 ? 'bg-purple-600 text-white' : 'bg-blue-600 text-white'
@@ -534,7 +538,7 @@ export default function FulfillmentPage() {
                     ))}
                   </div>
 
-                  <div className="prose-manual max-w-none mb-20">
+                  <div className="max-w-none mb-20 [&_h1]:text-4xl [&_h1]:font-black [&_h1]:tracking-tight [&_h1]:mb-6 [&_h1]:mt-0 [&_h2]:text-2xl [&_h2]:font-black [&_h2]:tracking-tight [&_h2]:mb-4 [&_h2]:mt-10 [&_h2]:text-brand-dark [&_h3]:text-xl [&_h3]:font-extrabold [&_h3]:mb-3 [&_h3]:mt-6 [&_p]:text-base [&_p]:leading-relaxed [&_p]:text-brand-dark/75 [&_p]:mb-4 [&_p]:font-medium [&_li]:text-base [&_li]:leading-relaxed [&_li]:text-brand-dark/75 [&_li]:mb-2 [&_li]:font-medium [&_ul]:mb-5 [&_ul]:pl-6 [&_ul]:list-disc [&_strong]:text-brand-dark [&_strong]:font-black [&_hr]:my-10 [&_hr]:border-brand-dark/10">
                     <ReactMarkdown>{blueprint || ''}</ReactMarkdown>
                   </div>
 
