@@ -26,7 +26,13 @@ export default function StrategyResultsPage() {
   const [formData, setFormData] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [leadInfo, setLeadInfo] = useState({ name: '', email: '', phone: '' });
+  const [leadInfo, setLeadInfo] = useState({ name: '', email: '', phone: '', plan: 'annual' });
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
+
+  const MONTHLY_PRICE = 97;
+  const ANNUAL_PRICE = Math.round(MONTHLY_PRICE * 10); // 10 months price = 2 months free
+  const ANNUAL_MONTHLY_EQUIV = Math.round(ANNUAL_PRICE / 12);
+  const ANNUAL_SAVINGS = MONTHLY_PRICE * 12 - ANNUAL_PRICE;
 
   useEffect(() => {
     const data = sessionStorage.getItem('quizData');
@@ -55,14 +61,16 @@ export default function StrategyResultsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...leadInfo,
-          ...formData
+          ...formData,
+          plan: selectedPlan,
+          planPrice: selectedPlan === 'annual' ? `$${ANNUAL_PRICE}/yr` : `$${MONTHLY_PRICE}/mo`,
         })
       });
       
       if (!response.ok) throw new Error('Lead submission failed');
       
       setIsSuccess(true);
-      sessionStorage.removeItem('quizData'); // Clean up after successful lead capture
+      sessionStorage.removeItem('quizData');
     } catch (error) {
       console.error('Lead submission failed:', error);
       alert('There was an issue sending your request. Please try again.');
@@ -217,6 +225,53 @@ export default function StrategyResultsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Annual Presell Toggle */}
+            <div className="bg-white rounded-[2rem] border-2 border-primary p-6 mb-6 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-primary text-brand-dark text-[10px] font-black px-4 py-2 rounded-bl-2xl uppercase tracking-widest">
+                🔥 Most Popular
+              </div>
+              <h4 className="text-sm font-black uppercase tracking-widest text-brand-dark/40 mb-5">Choose Your Plan</h4>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Monthly */}
+                <button
+                  onClick={() => { setSelectedPlan('monthly'); setLeadInfo(l => ({ ...l, plan: 'monthly' })); }}
+                  className={`relative p-5 rounded-2xl border-2 text-left transition-all ${
+                    selectedPlan === 'monthly' 
+                      ? 'border-brand-dark bg-brand-dark text-white' 
+                      : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                  }`}
+                >
+                  <p className="text-xs font-black uppercase tracking-widest opacity-50 mb-1">Monthly</p>
+                  <p className="text-3xl font-black"><span className="text-lg"></span>${MONTHLY_PRICE}<span className="text-sm font-bold opacity-50">/mo</span></p>
+                  <p className={`text-xs font-bold mt-1 ${selectedPlan === 'monthly' ? 'opacity-50' : 'text-brand-dark/40'}`}>Billed monthly, cancel anytime</p>
+                </button>
+                {/* Annual — Recommended */}
+                <button
+                  onClick={() => { setSelectedPlan('annual'); setLeadInfo(l => ({ ...l, plan: 'annual' })); }}
+                  className={`relative p-5 rounded-2xl border-2 text-left transition-all ${
+                    selectedPlan === 'annual' 
+                      ? 'border-primary bg-primary/10' 
+                      : 'border-gray-200 bg-gray-50 hover:border-primary/50'
+                  }`}
+                >
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide">2 months FREE</div>
+                  <p className="text-xs font-black uppercase tracking-widest text-brand-dark/50 mb-1">Annual</p>
+                  <p className="text-3xl font-black text-brand-dark">${ANNUAL_MONTHLY_EQUIV}<span className="text-sm font-bold text-brand-dark/50">/mo</span></p>
+                  <p className="text-xs font-bold text-green-600 mt-1">Billed ${ANNUAL_PRICE}/yr · Save ${ANNUAL_SAVINGS}!</p>
+                </button>
+              </div>
+              {selectedPlan === 'annual' && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 p-4 bg-green-50 rounded-2xl border border-green-100 flex items-center gap-3"
+                >
+                  <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                  <p className="text-sm font-bold text-green-800">You save <span className="font-black">${ANNUAL_SAVINGS}</span> per year vs monthly. That's 2 months completely free!</p>
+                </motion.div>
+              )}
+            </div>
             <div className="space-y-6">
               {[
                 { 
@@ -267,10 +322,22 @@ export default function StrategyResultsPage() {
                   <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
                     <CheckCircle2 className="w-12 h-12 text-green-600" />
                   </div>
-                  <h3 className="text-3xl font-black mb-4">Request Sent!</h3>
-                  <p className="text-lg text-brand-dark/60 font-bold mb-8">
-                    Our team is reviewing your {formData.bizName} strategy. We'll be in touch in technical-seconds.
+                  <h3 className="text-3xl font-black mb-4">{selectedPlan === 'annual' ? '🎉 Annual Spot Reserved!' : 'Request Sent!'}</h3>
+                  <p className="text-lg text-brand-dark/60 font-bold mb-6">
+                    {selectedPlan === 'annual' 
+                      ? `We've locked in your ${formData.bizName} annual plan at $${ANNUAL_MONTHLY_EQUIV}/mo. Our team will reach out within 24 hours to kick off your onboarding.` 
+                      : `Our team is reviewing your ${formData.bizName} strategy. We'll be in touch shortly.`}
                   </p>
+                  {selectedPlan === 'annual' && (
+                    <div className="bg-green-50 border border-green-100 rounded-2xl p-5 mb-6 text-left">
+                      <p className="text-sm font-black text-green-700 mb-1">Your Annual Plan Includes:</p>
+                      <ul className="space-y-1">
+                        {['Professional concierge site build', 'Managed hosting + SSL', 'Monthly GEO optimization', '24/7 AI lead capture', '2 months completely FREE'].map((item, i) => (
+                          <li key={i} className="text-sm font-bold text-green-600 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   <button 
                     onClick={() => navigate('/')}
                     className="text-primary font-black uppercase tracking-widest text-sm hover:underline"
@@ -282,10 +349,18 @@ export default function StrategyResultsPage() {
                 <motion.div key="form" exit={{ opacity: 0, x: -20 }}>
                   <div className="mb-10">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-widest mb-4 border border-green-200">
-                      Limited Time: $0 Setup Fee
+                      {selectedPlan === 'annual' ? `🎉 Annual Plan · Save $${ANNUAL_SAVINGS}` : 'Limited Time: $0 Setup Fee'}
                     </div>
-                    <h3 className="text-2xl font-black mb-2">Claim Your Concierge Build</h3>
-                    <p className="text-brand-dark/50 font-bold">We handle everything from strategy to launch. Submit your request below.</p>
+                    <h3 className="text-2xl font-black mb-2">
+                      {selectedPlan === 'annual' 
+                        ? `Lock in $${ANNUAL_MONTHLY_EQUIV}/mo for a Year` 
+                        : 'Claim Your Concierge Build'}
+                    </h3>
+                    <p className="text-brand-dark/50 font-bold">
+                      {selectedPlan === 'annual' 
+                        ? `Start the annual plan at $${ANNUAL_PRICE}/yr and get 2 months completely free. Our team will onboard you within 24 hours.`
+                        : 'We handle everything from strategy to launch. Submit your request below.'}
+                    </p>
                   </div>
 
                   <form onSubmit={handleLeadSubmit} className="space-y-6">
@@ -331,19 +406,26 @@ export default function StrategyResultsPage() {
                       className="w-full bg-primary hover:bg-primary-hover text-brand-dark py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] shadow-xl shadow-primary/20"
                     >
                       {isSubmitting ? (
-                        <>Architecting Request... <div className="w-5 h-5 border-2 border-brand-dark/30 border-t-brand-dark rounded-full animate-spin" /></>
+                        <>Processing... <div className="w-5 h-5 border-2 border-brand-dark/30 border-t-brand-dark rounded-full animate-spin" /></>
                       ) : (
-                        <>Start My Professional Intake <ArrowRight className="w-6 h-6" /></>
+                        <>
+                          {selectedPlan === 'annual' 
+                            ? `Reserve Annual Plan ($${ANNUAL_PRICE}/yr)` 
+                            : 'Start My Professional Intake'}
+                          <ArrowRight className="w-6 h-6" />
+                        </>
                       )}
                     </button>
 
                     <div className="pt-6 border-t border-gray-100">
                       <div className="flex items-center gap-2 mb-2">
                         <ShieldCheck className="w-4 h-4 text-green-600" />
-                        <span className="text-xs font-black uppercase tracking-widest text-brand-dark/40">Includes Automation + Geo-Ranking</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-brand-dark/40">
+                          {selectedPlan === 'annual' ? 'Annual Plan · Includes All Features' : 'Includes Automation + Geo-Ranking'}
+                        </span>
                       </div>
                       <p className="text-xs text-brand-dark/30 font-bold">
-                        By submitting, you agree to have an AdHello expert contact you regarding your ${formData.bizName} build. No-obligation consultation included.
+                        By submitting, you agree to have an AdHello expert contact you regarding your {formData.bizName} build. No-obligation consultation included.
                       </p>
                     </div>
                   </form>
