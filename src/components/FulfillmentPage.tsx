@@ -649,23 +649,21 @@ export default function FulfillmentPage() {
                             title={`${style.name} Preview`}
                           />
                           {/* Phase badge */}
-                          <div className={`absolute top-14 right-4 z-20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
-                            i === 2 ? 'bg-zinc-900 text-zinc-100' : i === 1 ? 'bg-purple-600 text-white' : 'bg-blue-600 text-white'
-                          }`}>
+                          <div className={`absolute top-14 right-4 z-20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg bg-brand-dark text-primary`}>
                             {style.name}
                           </div>
                         </div>
 
                         {/* Card info */}
-                        <div className={`p-8 ${i === 2 ? 'bg-zinc-900 text-zinc-100' : i === 1 ? 'bg-purple-50' : 'bg-blue-50'}`}>
+                        <div className={`p-8 ${i === 2 ? 'bg-brand-dark text-white' : 'bg-primary/10'}`}>
                           <div className="flex items-start justify-between gap-4 mb-4">
                             <div className="flex items-center gap-3">
                               <div className={`p-2.5 rounded-xl ${i === 2 ? 'bg-white/10' : 'bg-white shadow-sm'}`}>
-                                <style.icon className={`w-6 h-6 ${i === 2 ? 'text-primary' : i === 1 ? 'text-purple-600' : 'text-blue-600'}`} />
+                                <style.icon className={`w-6 h-6 ${i === 2 ? 'text-primary' : 'text-brand-dark'}`} />
                               </div>
                               <div>
                                 <h4 className="text-lg font-black">{style.name}</h4>
-                                <p className={`text-sm font-medium ${i === 2 ? 'text-zinc-400' : 'opacity-60'}`}>{style.desc}</p>
+                                <p className={`text-sm font-medium ${i === 2 ? 'text-white/50' : 'text-brand-dark/60'}`}>{style.desc}</p>
                               </div>
                             </div>
                             <span className={`text-[10px] uppercase font-black tracking-widest shrink-0 ${i === 2 ? 'text-green-400' : 'text-green-600'}`}>Architected ✓</span>
@@ -675,8 +673,8 @@ export default function FulfillmentPage() {
                           <div className={`rounded-2xl p-5 mt-4 border ${i === 2 ? 'bg-white/5 border-white/10' : 'bg-white/70 border-brand-dark/8'}`}>
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-2">
-                                <Zap className={`w-4 h-4 ${i === 2 ? 'text-primary' : i === 1 ? 'text-purple-600' : 'text-blue-600'}`} />
-                                <span className={`text-[11px] font-black uppercase tracking-widest ${i === 2 ? 'text-zinc-400' : 'text-brand-dark/50'}`}>
+                                <Zap className={`w-4 h-4 ${i === 2 ? 'text-primary' : 'text-brand-dark/70'}`} />
+                                <span className={`text-[11px] font-black uppercase tracking-widest ${i === 2 ? 'text-white/50' : 'text-brand-dark/50'}`}>
                                   Base44 Vibe Prompt — Copy & Paste
                                 </span>
                               </div>

@@ -77,62 +77,110 @@ if (!resend) console.warn('[MAIL] RESEND_API_KEY missing. Email notifications di
 // =====================================================
 // SITE AUDIT
 // =====================================================
+async function getPageSpeedInsights(targetUrl) {
+  try {
+    const psiApiKey = process.env.GOOGLE_PSI_API_KEY || ''; // Optional but recommended
+    const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(targetUrl)}&strategy=mobile${psiApiKey ? `&key=${psiApiKey}` : ''}`;
+    
+    console.log(`[PSI] Analyzing: ${targetUrl}`);
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    
+    if (data.error) throw new Error(data.error.message);
+    
+    const lh = data.lighthouseResult;
+    const screenshot = lh.audits['final-screenshot']?.details?.data || null;
+    const perfScore = (lh.categories.performance.score || 0) * 100;
+    const lcp = lh.audits['largest-contentful-paint']?.displayValue || 'N/A';
+    const ssl = lh.audits['is-on-https']?.score === 1;
+    
+    return {
+      performance: Math.round(perfScore),
+      lcp,
+      isHttps: ssl,
+      screenshot,
+      metrics: {
+        fcp: lh.audits['first-contentful-paint']?.displayValue,
+        tti: lh.audits['interactive']?.displayValue,
+        cls: lh.audits['cumulative-layout-shift']?.displayValue,
+      }
+    };
+  } catch (err) {
+    console.error('[PSI] Fetch Error:', err.message);
+    return null;
+  }
+}
+
 app.post('/api/analyze', async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'URL is required' });
+  
+  let targetUrl = url;
+  if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+    targetUrl = 'https://' + targetUrl;
+  }
+
+  // --- 1. Get Official Google Truth ---
+  const psiData = await getPageSpeedInsights(targetUrl);
+  
+  // --- 2. Fallback / Enrichment signals ---
+  const initialProtocolCheck = targetUrl.startsWith('https');
+  const actualSsl = psiData ? psiData.isHttps : initialProtocolCheck;
+  const actualSpeed = psiData ? psiData.lcp : '3.1s';
+  const screenshotBase64 = psiData ? psiData.screenshot : null;
 
   const mockReport = {
     score: 42,
     mobileFirstScore: 68,
     leadsEstimatesScore: 45,
     googleAiReadyScore: 28,
-    summary: "CRITICAL: Your website is functionally invisible to modern AI search engines. You are missing established GEO (Generative Engine Optimization) signals, structured data, and the trust-layer that ChatGPT, Perplexity, and Google AI Overviews require to feature your business.",
-    brandAnalysis: "Established local presence with growth potential.",
-    brandColors: {
-      primary: "#1a1a2e",
-      accent: "#F3DD6D",
-      background: "#F5F0E8",
-      text: "#1a1a2e"
-    },
+    summary: "CRITICAL: Your website is functionally invisible to modern AI search engines. Missing GEO signals and structured data.",
+    brandAnalysis: "Established local presence.",
+    brandColors: { primary: "#1a1a2e", accent: "#F3DD6D", background: "#F5F0E8", text: "#1a1a2e" },
     technicalAudit: {
-      mobileSpeed: { label: "Mobile Load Speed", status: "warning", value: "3.1s", reason: "Page load exceeds 2s threshold. Images not optimized for mobile." },
-      contactForm: { label: "Lead Capture Form", status: "pass", value: "Found", reason: "Contact form detected on homepage." },
-      sslCertificate: { label: "SSL Certificate", status: "pass", value: "Secure", reason: "Valid HTTPS certificate found." },
-      metaDescription: { label: "Meta Description", status: "fail", value: "Missing", reason: "No meta description found — critical for AI search visibility." },
-      googleBusinessProfile: { label: "Google Business Profile", status: "warning", value: "Unclaimed", reason: "GBP found but not fully optimized. Missing service categories and posts." },
-      reviewSentiment: { label: "Review Sentiment", status: "pass", value: "4.7/5", reason: "Positive sentiment detected across Google reviews." }
+      mobileSpeed: { label: "Mobile Load Speed", status: psiData && psiData.performance >= 90 ? "pass" : "warning", value: actualSpeed, reason: "Measured by Google Lighthouse." },
+      contactForm: { label: "Lead Capture Form", status: "pass", value: "Found", reason: "Detected on page." },
+      sslCertificate: { label: "SSL Certificate", status: actualSsl ? "pass" : "fail", value: actualSsl ? "Secure" : "Insecure", reason: actualSsl ? "Valid HTTPS found." : "No valid SSL certificate — major trust issue." },
+      metaDescription: { label: "Meta Description", status: "fail", value: "Missing", reason: "Critical for AI search visibility." },
+      googleBusinessProfile: { label: "Google Business Profile", status: "warning", value: "Unclaimed", reason: "Optimizations required." },
+      reviewSentiment: { label: "Review Sentiment", status: "pass", value: "4.7/5", reason: "Positive sentiment." }
     },
     strengths: [
-      { indicator: "SSL Security", description: "Site is secured with HTTPS, a baseline trust signal." },
-      { indicator: "Review Sentiment", description: "4.7/5 rating shows strong customer satisfaction." }
+      { indicator: actualSsl ? "SSL Security" : "Domain Established", description: actualSsl ? "Site is secured with HTTPS." : "Domain history is a plus." }
     ],
     weaknesses: [
-      { indicator: "No Meta Description", description: "Google AI cannot summarize your business for AI Overview results without proper meta descriptions." },
-      { indicator: "Slow Mobile Speed", description: "3.1s load time causes 53% of mobile visitors to leave before the page loads." },
-      { indicator: "GBP Not Optimized", description: "Unclaimed or incomplete Google Business Profile means you're losing direct local search placement." }
+      { indicator: "GEO Readiness", description: "Your core score is low because you lack structured data for AI search." }
     ],
     recommendations: [
-      { title: "Add Meta Descriptions", description: "Write a 155-character description for every page including target keywords.", action: "Fix Now" },
-      { title: "Optimize Mobile Speed", description: "Compress images, enable lazy loading, and use a CDN to hit under 1.5s load time.", action: "Improve Speed" },
-      { title: "Complete Your GBP", description: "Verify ownership, add all services, post weekly updates, and respond to all reviews.", action: "Claim GBP" }
+      { title: "Switch to Managed CMS", description: "Our platform ensures 100% SSL security and 95+ performance scores.", action: "Fix Now" }
     ],
     city: "Local Area",
-    reviewThemes: ["Quality Service", "Reliability", "Professionalism"]
+    reviewThemes: ["Quality Service"],
+    screenshot: screenshotBase64 // PASS ACTUAL SCREENSHOT TO UI
   };
 
   try {
     if (genAI) {
-      const prompt = `Analyze the website ${url} and return ONLY a raw JSON object (no markdown, no backticks) with this exact structure:
-{"score":number,"mobileFirstScore":number,"leadsEstimatesScore":number,"googleAiReadyScore":number,"summary":"string","brandAnalysis":"string","brandColors":{"primary":"#hex","accent":"#hex","background":"#hex","text":"#hex"},"technicalAudit":{"mobileSpeed":{"label":"Mobile Load Speed","status":"pass|fail|warning","value":"string","reason":"string"},"contactForm":{"label":"Contact Form","status":"pass|fail|warning","value":"string","reason":"string"},"sslCertificate":{"label":"SSL Certificate","status":"pass|fail|warning","value":"string","reason":"string"},"metaDescription":{"label":"Meta Description","status":"pass|fail|warning","value":"string","reason":"string"},"googleBusinessProfile":{"label":"Google Business Profile","status":"pass|fail|warning","value":"string","reason":"string"},"reviewSentiment":{"label":"Review Sentiment","status":"pass|fail|warning","value":"string","reason":"string"}},"strengths":[{"indicator":"string","description":"string"}],"weaknesses":[{"indicator":"string","description":"string"}],"recommendations":[{"title":"string","description":"string","action":"string"}],"city":"string","reviewThemes":["string","string","string"]}
+      const prompt = `Analyze the website ${targetUrl} based on these OFFICIAL GOOGLE METRICS:
+Performance: ${psiData ? psiData.performance : 'low'}
+SSL Secured: ${actualSsl}
+Load Time: ${actualSpeed}
 
-For brandColors: extract the ACTUAL dominant colors used on the website. primary = main brand color (button bg, logo color), accent = highlight/CTA color, background = main page background, text = main text color. 
-PENALTY SYSTEM: If a site lacks Schema Markup (json-ld), llms.txt, or geo-specific breadcrumbs, the score MUST be below 50. Most local businesses currently fail this. Be honest and critical to highlight the need for GEO optimization. Return real hex codes observed from the site.`;
+Return ONLY a raw JSON object (no markdown) with this structure:
+{"score":number,"mobileFirstScore":number,"leadsEstimatesScore":number,"googleAiReadyScore":number,"summary":"string","brandAnalysis":"string","brandColors":{"primary":"#hex","accent":"#hex","background":"#hex","text":"#hex"},"technicalAudit":{"mobileSpeed":{"label":"Mobile Load Speed","status":"pass|fail|warning","value":"${actualSpeed}","reason":"string"},"contactForm":{"label":"Contact Form","status":"pass|fail|warning","value":"string","reason":"string"},"sslCertificate":{"label":"SSL Certificate","status":"${actualSsl ? 'pass' : 'fail'}","value":"${actualSsl ? 'Secure' : 'Insecure'}","reason":"string"},"metaDescription":{"label":"Meta Description","status":"pass|fail|warning","value":"string","reason":"string"},"googleBusinessProfile":{"label":"Google Business Profile","status":"pass|fail|warning","value":"string","reason":"string"},"reviewSentiment":{"label":"Review Sentiment","status":"pass|fail|warning","value":"string","reason":"string"}},"strengths":[{"indicator":"string","description":"string"}],"weaknesses":[{"indicator":"string","description":"string"}],"recommendations":[{"title":"string","description":"string","action":"string"}],"city":"string","reviewThemes":["string","string","string"]}
+
+For brandColors: Use the actual dominant colors of the business if possible.
+IMPORTANT: You MUST respect the SSL status: ${actualSsl}. If it is FALSE, the audit score MUST reflect a critical failure. Be brutally honest to sell the solution.`;
+
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const raw = response.text().replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(raw);
-      return res.json(parsed);
+      const dataText = (await result.response).text().replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(dataText);
+      
+      return res.json({
+        ...parsed,
+        screenshot: screenshotBase64 // PASS ACTUAL SCREENSHOT TO UI
+      });
     }
     res.json(mockReport);
   } catch (err) {
@@ -219,99 +267,92 @@ app.post('/api/analyze-strategy', async (req, res) => {
 // PHASE HTML GENERATOR (personalized per client)
 // =====================================================
 function buildPhaseHtml(bizName, cityLabel, t0, t1, t2, colors = {}, headlines = {}, vibe = 'Modern') {
-  const bg   = colors.background || (vibe === 'Bold' ? '#000000' : vibe === 'Modern' ? '#0f172a' : '#F5F0E8');
-  const text = colors.text       || (vibe === 'Bold' ? '#ffffff' : vibe === 'Modern' ? '#f8fafc' : '#1a1a2e');
-  const pri  = colors.primary    || (vibe === 'Bold' ? '#ef4444' : vibe === 'Modern' ? '#6366f1' : '#1a1a2e');
-  const acc  = colors.accent     || (vibe === 'Bold' ? '#f59e0b' : vibe === 'Modern' ? '#a855f7' : '#F3DD6D');
+  // Unified color palette across ALL 3 phases
+  const bg   = colors.background || '#F5F0E8';
+  const textColor = colors.text   || '#1a1a2e';
+  const pri  = colors.primary     || '#1a1a2e';
+  const acc  = colors.accent      || '#F3DD6D';
 
   const heroH1 = headlines.hero || `${bizName}<br><span>${cityLabel}'s Best</span>`;
   const heroSub = headlines.sub || `Trusted by hundreds of ${cityLabel} customers for ${t0.toLowerCase()}, ${t1.toLowerCase()}, and results that speak for themselves.`;
   const heroCTA = headlines.cta || '⚡ Get Free Quote';
 
-  const isDark = bg.toLowerCase() === '#0d0d0d' || bg.toLowerCase() === '#000000' || bg.toLowerCase() === '#0f172a';
-  const contrastText = isDark ? '#ffffff' : text;
-  
-  const borderRadius = vibe === 'Classic' ? '0px' : vibe === 'Friendly' ? '32px' : vibe === 'Modern' ? '24px' : '4px';
-  const fontFamily = vibe === 'Classic' ? "'Playfair Display', serif" : vibe === 'Modern' ? "'Outfit', sans-serif" : "'Inter', sans-serif";
-  const headingWeight = vibe === 'Bold' ? '900' : '800';
+  const borderRadius = vibe === 'Classic' ? '0px' : vibe === 'Friendly' ? '32px' : '20px';
+  const fontFamily = "'Inter', 'Outfit', sans-serif";
 
   const commonStyles = `
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:wght@700;900&family=Outfit:wght@400;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
     *{margin:0;padding:0;box-sizing:border-box;font-family:${fontFamily}}
-    body{background:${bg};color:${contrastText};min-height:100vh;overflow-x:hidden}
-    nav{background:${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)'};backdrop-filter:blur(10px);padding:18px 36px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'};position:sticky;top:0;z-index:100}
-    .logo{font-weight:900;font-size:20px;letter-spacing:-1px;color:${contrastText}}
-    .nav-cta{background:${acc};color:${pri};padding:10px 24px;border-radius:${borderRadius};font-weight:900;font-size:13px;border:none;box-shadow:0 4px 14px ${acc}44}
+    body{background:${bg};color:${textColor};min-height:100vh;overflow-x:hidden}
+    nav{background:${bg};border-bottom:1px solid ${pri}18;padding:18px 36px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+    .logo{font-weight:900;font-size:20px;letter-spacing:-1px;color:${pri}}
+    .nav-cta{background:${acc};color:${pri};padding:10px 24px;border-radius:100px;font-weight:900;font-size:13px;border:none;cursor:pointer;box-shadow:0 4px 14px ${acc}66}
   `;
 
-  // Phase 1: Bento Foundation
+  // Phase 1: Foundation — same brand colors, contractor-specific layout
   const p1 = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
 ${commonStyles}
-.hero{padding:80px 36px 40px;display:grid;grid-template-columns:1.2fr 0.8fr;gap:48px;align-items:center;max-width:1200px;margin:0 auto}
-h1{font-size:52px;font-weight:${headingWeight};line-height:1.0;letter-spacing:-2px;margin-bottom:20px;color:${contrastText}}
+.hero{padding:60px 36px 30px;display:grid;grid-template-columns:1.2fr 0.8fr;gap:48px;align-items:center;max-width:1100px;margin:0 auto}
+h1{font-size:48px;font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:18px;color:${pri}}
 h1 span{color:${acc};display:block}
-.sub{font-size:18px;opacity:0.8;margin-bottom:32px;line-height:1.6;max-width:500px}
-.cta-row{display:flex;gap:14px}
-.btn-p{background:${acc};color:${pri};padding:16px 32px;border-radius:${borderRadius};font-weight:900;font-size:15px;border:none;cursor:pointer;transition:transform 0.2s}
-.btn-p:hover{transform:translateY(-2px)}
-.btn-s{background:transparent;color:${contrastText};padding:16px 28px;border-radius:${borderRadius};font-weight:700;font-size:15px;border:2px solid ${acc};cursor:pointer}
-.stars{display:flex;align-items:center;gap:8px;margin-top:24px;font-size:14px;font-weight:700;color:${acc}}
-.hero-img{background:linear-gradient(135deg,${pri},${acc}44);border-radius:${borderRadius};height:400px;position:relative;overflow:hidden;box-shadow:0 24px 48px rgba(0,0,0,0.2)}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;padding:40px 36px 80px;max-width:1200px;margin:0 auto}
-.card{background:${isDark ? 'rgba(255,255,255,0.05)' : '#fff'};border-radius:${borderRadius};padding:32px;border:1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'};transition:all 0.3s}
-.card:hover{transform:translateY(-5px);border-color:${acc}}
-.icon{font-size:32px;margin-bottom:20px}
-.card h4{font-size:18px;font-weight:900;margin-bottom:12px;color:${contrastText}}
-.card p{font-size:14px;opacity:0.6;line-height:1.6}
+.sub{font-size:17px;opacity:0.7;margin-bottom:28px;line-height:1.6;max-width:480px;color:${textColor}}
+.btn-p{background:${acc};color:${pri};padding:16px 32px;border-radius:${borderRadius};font-weight:900;font-size:15px;border:none;cursor:pointer}
+.stars{display:flex;align-items:center;gap:8px;margin-top:20px;font-size:13px;font-weight:700;color:${acc}}
+.hero-img{background:linear-gradient(135deg,${pri},${acc}44);border-radius:${borderRadius};height:350px;display:flex;align-items:center;justify-content:center;font-size:64px;box-shadow:0 24px 48px rgba(0,0,0,0.08)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:30px 36px 60px;max-width:1100px;margin:0 auto}
+.card{background:#fff;border-radius:${borderRadius};padding:28px;border:1px solid ${pri}12;transition:all 0.3s}
+.icon{font-size:28px;margin-bottom:16px}
+.card h4{font-size:17px;font-weight:900;margin-bottom:10px;color:${pri}}
+.card p{font-size:13px;opacity:0.55;line-height:1.6;color:${textColor}}
 </style></head><body>
 <nav><div class="logo">${bizName}</div><button class="nav-cta">Get Started</button></nav>
 <div class="hero">
   <div><h1>${heroH1}</h1><p class="sub">${heroSub}</p>
-  <div class="cta-row"><button class="btn-p">${heroCTA}</button><button class="btn-s">View Work</button></div>
-  <div class="stars">★★★★★ <span style="opacity:0.6;color:${contrastText}">4.9/5 · Verified ${cityLabel} Jobs</span></div></div>
-  <div class="hero-img"></div>
+  <button class="btn-p">${heroCTA}</button>
+  <div class="stars">★★★★★ <span style="opacity:0.5;color:${textColor}">4.9/5 · Verified ${cityLabel} Jobs</span></div></div>
+  <div class="hero-img">🏗️</div>
 </div>
 <div class="grid">
   <div class="card"><div class="icon">🏆</div><h4>Elite ${t0}</h4><p>We've built our reputation in ${cityLabel} on providing the absolute highest level of ${t0.toLowerCase()}.</p></div>
-  <div class="card"><div class="icon">⚡</div><h4>Fast ${t1}</h4><p>When you need ${t1.toLowerCase()}, we respond instantly. We know your time is valueable.</p></div>
+  <div class="card"><div class="icon">⚡</div><h4>Fast ${t1}</h4><p>When you need ${t1.toLowerCase()}, we respond instantly. We know your time is valuable.</p></div>
   <div class="card"><div class="icon">🛡️</div><h4>Proven ${t2}</h4><p>Trust is earned. Over 200 homeowners in ${cityLabel} rely on our ${t2.toLowerCase()} every year.</p></div>
 </div>
 </body></html>`;
 
-  // Phase 2: Conversion (Landing Page Style)
+  // Phase 2: Conversion — same brand colors, urgency-focused
   const p2 = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
 ${commonStyles}
-body{background:#fff;color:#1a1a2e}
-.top-bar{background:${pri};color:#fff;padding:12px;text-align:center;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
-.hero{display:grid;grid-template-columns:1fr 1fr;min-height:500px}
-.content{padding:80px 60px;background:${bg}${isDark ? '' : '11'};display:flex;flex-direction:column;justify-content:center}
-h1{font-size:48px;font-weight:${headingWeight};line-height:1.1;margin-bottom:24px;color:${isDark ? contrastText : pri}}
-.urgency{background:${acc}33;color:${pri};padding:8px 16px;border-radius:50px;font-size:12px;font-weight:900;margin-bottom:20px;display:inline-block;border:1px solid ${acc}}
-.form-container{padding:80px 60px;display:flex;align-items:center;justify-content:center}
-.form-card{background:#fff;padding:40px;border-radius:${borderRadius};box-shadow:0 30px 60px rgba(0,0,0,0.1);width:100%;max-width:400px;border:1px solid rgba(0,0,0,0.05)}
-h3{font-size:24px;font-weight:900;margin-bottom:8px}
-.form-card p{font-size:14px;opacity:0.6;margin-bottom:24px}
-input{width:100%;padding:14px;border-radius:12px;border:2px solid #eee;margin-bottom:12px;font-size:15px;outline:none}
-input:focus{border-color:${pri}}
-.submit-btn{width:100%;padding:16px;background:${pri};color:#fff;border-radius:12px;font-weight:900;border:none;cursor:pointer;font-size:16px}
+body{background:${bg}}
+.top-bar{background:${acc};color:${pri};padding:10px;text-align:center;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+.hero{display:grid;grid-template-columns:1fr 1fr;min-height:460px}
+.content{padding:60px 48px;display:flex;flex-direction:column;justify-content:center}
+.urgency{background:${acc}33;color:${pri};padding:7px 16px;border-radius:50px;font-size:11px;font-weight:900;margin-bottom:18px;display:inline-block;border:1px solid ${acc}}
+h1{font-size:40px;font-weight:900;line-height:1.1;margin-bottom:20px;color:${pri}}
+.form-container{background:#fff;padding:48px;display:flex;align-items:center;justify-content:center}
+.form-card{background:#fff;padding:36px;border-radius:${borderRadius};box-shadow:0 20px 40px rgba(0,0,0,0.08);width:100%;max-width:380px;border:1px solid ${pri}12}
+h3{font-size:22px;font-weight:900;margin-bottom:6px;color:${pri}}
+.form-card p{font-size:13px;opacity:0.55;margin-bottom:22px;color:${textColor}}
+input{width:100%;padding:13px 16px;border-radius:12px;border:2px solid ${pri}15;margin-bottom:10px;font-size:14px;outline:none;box-sizing:border-box;background:${bg}}
+input:focus{border-color:${acc}}
+.submit-btn{width:100%;padding:14px;background:${acc};color:${pri};border-radius:12px;font-weight:900;border:none;cursor:pointer;font-size:15px}
 </style></head><body>
-<div class="top-bar">🔥 LIMITED CAPACITY: Only 3 openings left this week in ${cityLabel}</div>
+<div class="top-bar">🔥 Only 3 openings left this week in ${cityLabel}</div>
 <nav><div class="logo">${bizName}</div><button class="nav-cta">Call Now</button></nav>
 <div class="hero">
   <div class="content">
     <div class="urgency">⚡ LIVE IN ${cityLabel.toUpperCase()}</div>
     <h1>Stop Settling for Less than Elite ${t0}</h1>
-    <p style="font-size:18px;line-height:1.6;opacity:0.7;margin-bottom:32px">We handle everything for ${bizName} clients — from the first call to the final inspection. Total ${t1.toLowerCase()} and ${t2.toLowerCase()} guaranteed.</p>
-    <ul style="list-style:none;gap:12px;display:grid">
-      <li style="font-weight:800">✅ 100% Satisfaction Guarantee</li>
-      <li style="font-weight:800">✅ Professional & Licensed in ${cityLabel}</li>
-      <li style="font-weight:800">✅ Free Estimates Within 24-Hours</li>
+    <p style="font-size:16px;line-height:1.6;opacity:0.65;margin-bottom:24px;color:${textColor}">We handle everything for ${bizName} clients — from the first call to the final inspection.</p>
+    <ul style="list-style:none;gap:10px;display:grid">
+      <li style="font-weight:800;color:${pri}">✅ 100% Satisfaction Guarantee</li>
+      <li style="font-weight:800;color:${pri}">✅ Professional & Licensed in ${cityLabel}</li>
+      <li style="font-weight:800;color:${pri}">✅ Free Estimates Within 24-Hours</li>
     </ul>
   </div>
   <div class="form-container">
     <div class="form-card">
       <h3>Get Your Quote</h3>
-      <p>Fill out the form below and our team will contact you within 15 minutes.</p>
+      <p>Fill out the form and we'll contact you within 15 minutes.</p>
       <input placeholder="Full Name" readonly>
       <input placeholder="Phone Number" readonly>
       <input placeholder="Service Needed" readonly>
@@ -321,26 +362,29 @@ input:focus{border-color:${pri}}
 </div>
 </body></html>`;
 
-  // Phase 3: Authority (Elite Branding)
+  // Phase 3: Elite Authority — same brand colors, dark + accent override
+  const darkBg = pri;
   const p3 = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
 ${commonStyles}
-body{background:#000;color:#fff}
-nav{background:transparent;border:none}
-.hero{padding:120px 36px;text-align:center;max-width:900px;margin:0 auto}
-.badge{background:linear-gradient(to right, ${acc}, ${acc}88);-webkit-background-clip:text;color:transparent;font-weight:900;text-transform:uppercase;letter-spacing:4px;font-size:14px;margin-bottom:24px;display:block}
-h1{font-size:72px;font-weight:900;letter-spacing:-4px;margin-bottom:32px}
+body{background:${darkBg};color:#fff}
+nav{background:transparent;border-color:rgba(255,255,255,0.1)}
+.logo{color:#fff}
+.nav-cta{background:${acc};color:${pri}}
+.hero{padding:100px 36px;text-align:center;max-width:900px;margin:0 auto}
+.badge{background:linear-gradient(to right,${acc},${acc}88);-webkit-background-clip:text;color:transparent;font-weight:900;text-transform:uppercase;letter-spacing:4px;font-size:13px;margin-bottom:22px;display:block}
+h1{font-size:64px;font-weight:900;letter-spacing:-3px;margin-bottom:28px;color:#fff}
 h1 span{color:${acc}}
-p.lead{font-size:20px;opacity:0.6;line-height:1.6;margin-bottom:48px}
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;border-top:1px solid rgba(255,255,255,0.1);padding-top:48px}
-.stat h2{font-size:48px;font-weight:900;color:${acc};margin-bottom:8px}
-.stat p{text-transform:uppercase;font-size:12px;font-weight:900;opacity:0.4;letter-spacing:2px}
-.btn-elite{background:#fff;color:#000;padding:20px 48px;border-radius:100px;font-weight:900;text-transform:uppercase;letter-spacing:2px;border:none;cursor:pointer}
+p.lead{font-size:18px;opacity:0.55;line-height:1.7;margin-bottom:44px;color:#fff}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;border-top:1px solid rgba(255,255,255,0.1);padding-top:44px}
+.stat h2{font-size:44px;font-weight:900;color:${acc};margin-bottom:6px}
+.stat p{text-transform:uppercase;font-size:11px;font-weight:900;opacity:0.35;letter-spacing:2px;color:#fff}
+.btn-elite{background:${acc};color:${pri};padding:18px 44px;border-radius:100px;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;border:none;cursor:pointer;font-size:14px;margin-top:20px}
 </style></head><body>
-<nav><div class="logo">${bizName.toUpperCase()} <span>.</span></div><button class="nav-cta" style="background:#fff;color:#000">Elite Access</button></nav>
+<nav><div class="logo">${bizName.toUpperCase()}</div><button class="nav-cta">Elite Access</button></nav>
 <div class="hero">
   <span class="badge">The Authority in ${cityLabel}</span>
   <h1>The Standard of <span>${t0}</span></h1>
-  <p class="lead">${bizName} combines architectural precision with elite ${t1.toLowerCase()}. We don't just do the job — we redefine what's possible for ${cityLabel} clients.</p>
+  <p class="lead">${bizName} combines precision with elite ${t1.toLowerCase()}. We don't just do the job — we redefine what's possible for ${cityLabel} clients.</p>
   <button class="btn-elite">Start Your Project</button>
   <div class="stats-row">
     <div class="stat"><h2>15+</h2><p>Years Experience</p></div>

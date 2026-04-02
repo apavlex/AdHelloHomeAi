@@ -82,23 +82,33 @@ export default function BlueprintSalesPage() {
             transition={{ delay: 0.2 }}
             className="text-xl md:text-2xl text-brand-dark/70 max-w-3xl mx-auto leading-relaxed font-medium mb-12"
           >
-            Don't waste weeks on a "redesign." Get the high-fidelity mockups, the high-converting copy, and the exact Base44 code to launch your new $5,000-quality website in under 20 minutes.
+            Your audit exposed exactly what's broken. Now you have two options: hire a pro to fix it <span className="font-black text-brand-dark">for you</span>, or grab the exact strategy to handle it yourself.
           </motion.p>
 
+          {/* Dual Path CTA */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-5 justify-center items-center"
           >
             <button 
-              onClick={() => navigate(`/fulfillment?biz=${bizRaw}&score=${score}&city=${city}&themes=${themes}`)}
-              className="bg-primary hover:bg-primary-hover text-brand-dark px-10 py-5 rounded-full font-black text-xl flex items-center gap-3 mx-auto transition-all hover:scale-105 shadow-2xl shadow-primary/20 w-fit group"
+              onClick={() => navigate(`/strategy?biz=${bizRaw}&score=${score}&city=${city}`)}
+              className="bg-brand-dark hover:bg-black text-white px-10 py-5 rounded-full font-black text-xl flex items-center gap-3 transition-all hover:scale-105 shadow-2xl w-full sm:w-auto group"
             >
-              Get My Custom Blueprint & Base44 Code ($27)
+              <Sparkles className="w-6 h-6 text-primary" />
+              Have AdHello Build It For Me
               <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
             </button>
-            <p className="mt-4 text-sm font-bold text-brand-dark/40 uppercase tracking-widest">One-time payment. Instant Access.</p>
+            <button 
+              onClick={() => navigate(`/fulfillment?biz=${bizRaw}&score=${score}&city=${city}&themes=${themes}`)}
+              className="bg-white border border-brand-dark/20 text-brand-dark px-8 py-5 rounded-full font-black text-lg flex items-center gap-2 transition-all hover:bg-warm-cream w-full sm:w-auto"
+            >
+              Get DIY Blueprint ($27)
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </motion.div>
+          <p className="mt-4 text-sm font-bold text-brand-dark/40 italic">Most contractors choose the Done-For-You path. <span className="not-italic text-brand-dark/60">"I wish I did this sooner."</span></p>
         </div>
 
         <div className="pdf-page-break html2pdf__page-break" />
@@ -218,7 +228,70 @@ export default function BlueprintSalesPage() {
           </div>
         </section>
 
-        {/* Section 3: Speed Guarantee */}
+        {/* Section 3: AdHello Managed Service — PRIMARY PITCH */}
+        <section className="mb-20 relative">
+          <div className="bg-brand-dark rounded-[4rem] p-12 md:p-20 text-white relative overflow-hidden shadow-2xl">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-[100px] -translate-y-1/3 translate-x-1/3" />
+            <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 border border-primary/30 text-primary text-xs font-black uppercase tracking-widest mb-8">
+                  <Sparkles className="w-3.5 h-3.5" /> Recommended Path
+                </div>
+                <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
+                  Skip the DIY Struggle.<br /><span className="text-primary italic">We Build It For You.</span>
+                </h2>
+                <p className="text-white/70 text-xl font-medium leading-relaxed mb-8">
+                  Contractors don't have time to learn web design, hosting, and GEO-optimization. That's exactly why AdHello exists — we handle every technical detail so you can stay on the job site.
+                </p>
+                <ul className="space-y-4 mb-10">
+                  {[
+                    { label: 'Professional build in 7 days', sub: 'Not 7 weeks. Not months. 7 days.' },
+                    { label: 'Managed hosting & SSL included', sub: 'We handle all the technical infrastructure.' },
+                    { label: 'Ongoing GEO-rank optimization', sub: 'We update and optimize your site monthly.' },
+                    { label: '24/7 AI webchat for lead capture', sub: "Capture leads while you're on the job." },
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-4">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <CheckCircle2 className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <span className="font-black text-white block">{item.label}</span>
+                        <span className="text-white/40 font-bold text-sm">{item.sub}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex items-baseline gap-3 mb-8">
+                  <span className="text-5xl font-black text-primary">$0</span>
+                  <span className="text-white/60 font-bold">Setup · Then $97/mo · No Contracts</span>
+                </div>
+                <button
+                  onClick={() => navigate(`/strategy?biz=${bizRaw}&score=${score}&city=${city}`)}
+                  className="bg-primary hover:bg-primary-hover text-brand-dark px-10 py-5 rounded-full font-black text-xl flex items-center gap-3 transition-all hover:scale-105 shadow-2xl shadow-primary/30 w-fit group"
+                >
+                  Start My Professional Build
+                  <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { metric: '$0', label: 'Setup Fee', note: 'Limited Time Offer' },
+                  { metric: '7 Days', label: 'Go Live', note: 'Full build to launch' },
+                  { metric: '$97/mo', label: 'All-In Cost', note: 'Hosting, GEO & Support' },
+                  { metric: '95+', label: 'Target Score', note: 'vs your current score' },
+                ].map((stat, i) => (
+                  <div key={i} className="bg-white/5 border border-white/10 p-6 rounded-3xl">
+                    <p className="text-3xl font-black text-primary mb-1">{stat.metric}</p>
+                    <p className="font-bold text-white">{stat.label}</p>
+                    <p className="text-xs text-white/40 font-bold mt-1">{stat.note}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 4: Speed Guarantee */}
         <section className="mb-32 text-center bg-white border border-brand-dark/5 p-12 md:p-24 rounded-[4rem] shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
           <div className="relative z-10">
@@ -230,14 +303,14 @@ export default function BlueprintSalesPage() {
           </div>
         </section>
 
-        {/* Section 4: Strategic Upsell */}
+        {/* Section 5: Strategic Upsell — reduced to secondary */}
         <section className="mb-32 grid lg:grid-cols-2 gap-16 items-start">
           <div>
             <h3 className="text-3xl md:text-5xl font-black mb-8 leading-tight">
-              Is your business ready for more?
+              Rather build it yourself?
             </h3>
             <p className="text-xl text-brand-dark/70 leading-relaxed font-medium mb-8">
-              The $27 Blueprint gives you the world-class "Face" of your business. If you want us to build the "Brain"—including AdHello.ai automated traffic, CRM syncing, and 24/7 lead management—you can apply your $27 credit toward an Executive Agency Build at checkout.
+              The $27 Blueprint gives you the world-class strategy for your business in a copy-paste format. If you'd prefer to build it yourself on Base44, this is the perfect starting point.
             </p>
             <div className="flex items-center gap-4 text-primary font-black text-sm uppercase tracking-widest">
               <div className="w-10 h-1bg-primary rounded-full" />
@@ -269,46 +342,50 @@ export default function BlueprintSalesPage() {
           </div>
         </section>
 
-        {/* Final CTA */}
         <div id="pricing" className="text-center pt-20 border-t border-brand-dark/5 scroll-mt-24">
           <div className="pdf-page-break html2pdf__page-break" />
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-block"
+            className="inline-block w-full"
           >
-            <h2 className="text-4xl md:text-6xl font-black mb-12">Upgrade your <span className="text-primary italic">{score} score</span> to a <span className="italic underline underline-offset-8 decoration-primary">95</span> today.</h2>
-            <div className="bg-white p-12 rounded-[4rem] shadow-[0_30px_60px_-12px_rgba(0,0,0,0.15)] border border-brand-dark/5 relative max-w-2xl mx-auto">
-               <div className="flex justify-between items-center mb-8">
-                 <div className="text-left">
-                   <p className="text-sm font-black text-brand-dark/40 uppercase tracking-widest">Base44 Blueprint</p>
-                   <h3 className="text-3xl font-black">All-In-One Fix</h3>
-                 </div>
-                 <div className="text-right">
-                    <p className="text-4xl font-black text-primary">$27</p>
-                    <p className="text-xs font-bold text-brand-dark/40">One-time payment</p>
-                 </div>
-               </div>
-               
-               <button 
-                onClick={() => navigate(`/fulfillment?biz=${bizRaw}&score=${score}&city=${city}&themes=${themes}`)}
-                className="w-full py-6 bg-primary hover:bg-primary-hover text-brand-dark font-black rounded-3xl text-2xl transition-all hover:scale-[1.02] shadow-[0_20px_40px_-10px_rgba(243,221,109,0.5)] flex items-center justify-center gap-3 mb-6"
-               >
-                 <Lock className="w-6 h-6" />
-                 Get My Custom Blueprint Now
-               </button>
-               
-               <div className="flex items-center justify-center gap-6 text-sm font-bold text-brand-dark/40">
-                 <div className="flex items-center gap-1">
-                   <ShieldCheck className="w-4 h-4" />
-                   Secure SSL
-                 </div>
-                 <div className="flex items-center gap-1">
-                   <Zap className="w-4 h-4" />
-                   Instant Delivery
-                 </div>
-               </div>
+            <h2 className="text-4xl md:text-6xl font-black mb-12">Ready to get your <span className="text-primary italic">{score} score</span> to a <span className="italic underline underline-offset-8 decoration-primary">95</span>?</h2>
+            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-10">
+              {/* Primary: AdHello Build */}
+              <div className="bg-brand-dark text-white p-10 rounded-[3rem] shadow-2xl border border-white/5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                <div className="relative z-10">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/30 text-primary text-[10px] font-black uppercase tracking-widest mb-5">
+                    ⭐ Recommended
+                  </div>
+                  <h3 className="text-2xl font-black mb-2">AdHello Concierge Build</h3>
+                  <p className="text-4xl font-black text-primary mb-1">$0 Setup</p>
+                  <p className="text-white/50 font-bold text-sm mb-6">then $97/mo — No Contracts</p>
+                  <button
+                    onClick={() => navigate(`/strategy?biz=${bizRaw}&score=${score}&city=${city}`)}
+                    className="w-full py-4 bg-primary hover:bg-primary-hover text-brand-dark font-black rounded-2xl text-lg transition-all hover:scale-[1.02] shadow-xl flex items-center justify-center gap-2 mb-3"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    Build My Site Professionally
+                  </button>
+                  <p className="text-white/30 text-xs font-bold text-center">Live in 7 days · Fully managed</p>
+                </div>
+              </div>
+              {/* Secondary: DIY Blueprint */}
+              <div className="bg-white p-10 rounded-[3rem] shadow-xl border border-brand-dark/5">
+                <p className="text-brand-dark/40 font-bold text-sm mb-4 uppercase tracking-widest">DIY Path</p>
+                <h3 className="text-2xl font-black mb-2">Base44 Blueprint</h3>
+                <p className="text-4xl font-black text-brand-dark mb-1">$27</p>
+                <p className="text-brand-dark/40 font-bold text-sm mb-6">One-time payment</p>
+                <button 
+                 onClick={() => navigate(`/fulfillment?biz=${bizRaw}&score=${score}&city=${city}&themes=${themes}`)}
+                 className="w-full py-4 bg-warm-cream border border-brand-dark/10 text-brand-dark font-black rounded-2xl text-lg transition-all hover:bg-brand-dark/5 flex items-center justify-center gap-2 mb-3"
+                >
+                  <MousePointerClick className="w-5 h-5" /> Get DIY Blueprint
+                </button>
+                <p className="text-brand-dark/30 text-xs font-bold text-center">Build it yourself · Requires technical time</p>
+              </div>
             </div>
           </motion.div>
         </div>

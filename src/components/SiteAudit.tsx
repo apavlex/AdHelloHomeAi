@@ -51,6 +51,7 @@ interface Report {
   }[];
   city?: string;
   reviewThemes?: string[];
+  screenshot?: string;
 }
 
 function geoScoreLabel(score: number) {
@@ -98,7 +99,7 @@ function CrawlerIcon({ status }: { status: string }) {
 }
 
 // ── Mini score bar ─────────────────────────────────────────────────────────
-function ScoreBar({ score, label }: { score: number; label: string }) {
+function ScoreBar({ score, label }: { score: number; label: string; key?: string }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
@@ -733,8 +734,17 @@ export function SiteAudit({
                     <span className="w-1.5 h-1.5 rounded-full bg-green-600 inline-block"></span>
                     Optimized Blueprint
                   </div>
-                  {/* Blurred fake website preview that hints at the real thing */}
-                  <div className="w-full h-full bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 overflow-hidden" style={{ filter: 'blur(8px)', transform: 'scale(1.05)' }}>
+                  {/* Real website screenshot hint */}
+                  <div className="w-full h-full bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 overflow-hidden relative" style={{ filter: 'blur(8px)', transform: 'scale(1.05)' }}>
+                    {report.screenshot ? (
+                      <img 
+                        src={report.screenshot} 
+                        alt="Website Preview" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100" />
+                    )}
                     {/* Fake browser header */}
                     <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-2">
                       <div className="flex gap-1.5">
@@ -804,7 +814,7 @@ export function SiteAudit({
                 <Wrench className="w-5 h-5 text-primary" /> Technical Audit Details
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Object.entries(report.technicalAudit).map(([key, check]) => (
+                {(Object.entries(report.technicalAudit) as [string, AuditCheck][]).map(([key, check]) => (
                   <div key={key} className={`${isStudio ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100'} rounded-3xl p-6 border flex flex-col gap-4 group transition-all hover:shadow-lg hover:border-primary/30`}>
                     <div className="flex items-center justify-between">
                       <div>
