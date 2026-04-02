@@ -79,37 +79,59 @@ export default function StrategyResultsPage() {
     }
   };
 
-  const getNichePrompt = (industry: string = '', city: string = '', bizName: string = '', vibe: string = '') => {
+  const getMarketIntelligence = (industry: string = '', city: string = '') => {
     const ind = (industry || '').toLowerCase();
-    
-    const base = `Create a high-converting, premium website for ${bizName} in ${city}. Focus on mobile-first architecture, local GEO relevance, and high-trust conversion elements with a ${vibe} aesthetic.`;
+    const c = city || 'your city';
 
-    if (ind.includes('painter') || ind.includes('painting')) {
-      return `${base} Include: full-screen high-res project gallery, 'Book Your Estimate' sticky button, service breakdown cards for Interior/Exterior/Cabinetry, and a highlighted 'Reviews' section from ${city} homeowners. Use bold typography and a palette that colors ${vibe} values.`;
-    }
-    if (ind.includes('plumber') || ind.includes('plumbing')) {
-      return `${base} Include: prominent '24/7 Emergency Service' header, service categories for Leak Detection/Water Heaters/Drains, localized trust badges for ${city} licensing, and a simple 3-field booking form above the fold.`;
-    }
-    if (ind.includes('hvac') || ind.includes('heating') || ind.includes('air')) {
-      return `${base} Include: AC & Heating repair seasonal promos, high-contrast CTA buttons for 'Get a Quote', maintenance plan benefit grid, and technical spec icons for energy efficiency.`;
-    }
-    if (ind.includes('roof') || ind.includes('roofing')) {
-      return `${base} Include: 'Free Roof Inspection' primary CTA, durability/warranty proof points, high-impact background images of local ${city} homes, and a detailed storm damage service section.`;
-    }
-    if (ind.includes('electric') || ind.includes('electrical')) {
-      return `${base} Include: safety-first trust signals, service list for Panels/EV Charging/Lighting, 'Licensed & Insured' credential footer, and a direct-dial phone button for immediate inquiries.`;
-    }
-    if (ind.includes('clean') || ind.includes('maid')) {
-      return `${base} Include: 'Instant Quote' multi-step booking widget, eco-friendly product badges, recurring service pricing table, and satisfaction guarantee ribbons.`;
-    }
-    
-    // Fallback/General Contractor
-    return `${base} Include: service-specific landing sections, verified customer social proof, clear service-area map of ${city}, and multiple friction-free lead capture points.`;
+    if (ind.includes('painter') || ind.includes('painting')) return {
+      competitorStrength: 'HIGH',
+      topTactics: ['"Free Estimate" Google Ads', 'Before/After photo galleries', 'Google Business Profile with 50+ reviews'],
+      marketGap: `Most painters in ${c} have slow, photo-heavy sites with no GEO signals. AI search can't find them.`,
+      standOut: ['AI-ready schema markup for local visibility', 'Project gallery with city-tagged photos', 'Instant quote form above the fold', 'Automated review generation system'],
+      urgency: `There are 12+ painting contractors buying ads in ${c} right now. The first one to get GEO-optimized wins the market.`
+    };
+    if (ind.includes('plumber') || ind.includes('plumbing')) return {
+      competitorStrength: 'VERY HIGH',
+      topTactics: ['Emergency service Google Ads (very expensive)', '24/7 phone answering services', 'Yelp + Angi lead buying'],
+      marketGap: `Plumbers in ${c} spend heavily on ads but have no organic AI visibility. Most have zero schema markup.`,
+      standOut: ['"Emergency Service" AI-optimized landing pages', 'Structured data for service categories', 'SMS lead capture (faster than email)', 'GBP posts 3x per week'],
+      urgency: `Plumbing leads in ${c} cost $80-$200 each on Google Ads. GEO-organic leads cost nothing — and almost no one is doing it.`
+    };
+    if (ind.includes('hvac') || ind.includes('heating') || ind.includes('air')) return {
+      competitorStrength: 'HIGH',
+      topTactics: ['Seasonal Google Ads', 'Maintenance plan upsells', 'Big brand franchise competition'],
+      marketGap: `Independent HVAC companies in ${c} can't compete on ad spend with franchises. Local GEO authority is their only edge.`,
+      standOut: ['Seasonal AI search optimization', 'Energy savings calculator interactivity', 'Maintenance plan landing pages', 'YouTube brand authority channel'],
+      urgency: `Big HVAC franchises in ${c} are pouring $10k/mo into ads. Local GEO is the one place where a nimble independent can dominate.`
+    };
+    if (ind.includes('roof') || ind.includes('roofing')) return {
+      competitorStrength: 'VERY HIGH',
+      topTactics: ['Storm-chasing door-to-door tactics', 'Heavy Google Ads post-storm', 'Yelp and Angi for reviews'],
+      marketGap: `Roofing in ${c} is dominated by seasonal chasers and big-spend advertisers. No one is doing AI search optimization.`,
+      standOut: ['Storm damage response landing pages', 'Insurance claim guidance content', 'Local news/weather AI SEO hooks', '5-star review automation post-job'],
+      urgency: `When a storm hits ${c}, the first contractor Google AI finds gets dozens of calls. That could be you — if you're optimized.`
+    };
+    if (ind.includes('electric') || ind.includes('electrical')) return {
+      competitorStrength: 'MEDIUM',
+      topTactics: ['License/certification badge marketing', 'Google Local Services Ads', 'Nextdoor neighborhood referrals'],
+      marketGap: `Electricians in ${c} rely on referrals and badges. Almost none have structured service pages or AI-ready content.`,
+      standOut: ['EV charger installation landing pages (fast-growing)', 'Panel upgrade authority content', 'Safety-first trust schema markup', 'Neighborhood GEO clustering'],
+      urgency: `EV charger installs are exploding in ${c}. The electrician with the best local SEO right now will own that market for 5 years.`
+    };
+    // General contractor fallback
+    return {
+      competitorStrength: 'MEDIUM',
+      topTactics: ['Word of mouth + Angi/HomeAdvisor', 'Basic website with phone number', 'Some Google Ads activity'],
+      marketGap: `Home service businesses in ${c} are almost entirely invisible to AI search engines — creating a wide open opportunity.`,
+      standOut: ['Service-area authority pages per city/neighborhood', 'Structured FAQ content for AI Overviews', 'Automated reputation management', 'GBP optimization + weekly posts'],
+      urgency: `AI search features in ${c} are showing results from just 2-3 local businesses. The window to claim that position is closing fast.`
+    };
   };
 
   if (!formData) return null;
 
-  const promptString = getNichePrompt(formData.industry, formData.city, formData.bizName, formData.vibe);
+  const intel = getMarketIntelligence(formData.industry, formData.city);
+  const competitorStrengthColor = intel.competitorStrength === 'VERY HIGH' ? 'text-red-600' : intel.competitorStrength === 'HIGH' ? 'text-orange-500' : 'text-yellow-600';
 
   return (
     <div className="min-h-screen bg-warm-cream selection:bg-primary/40 text-brand-dark font-sans overflow-x-hidden">
@@ -134,7 +156,7 @@ export default function StrategyResultsPage() {
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary text-brand-dark text-xs font-black mb-6 shadow-sm uppercase tracking-widest"
           >
-            Phase 1: Architecture Complete
+            📈 Market Strategy Ready
           </motion.div>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
@@ -142,8 +164,8 @@ export default function StrategyResultsPage() {
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-6xl font-black mb-6 leading-tight tracking-tight"
           >
-            Your Strategy for <br />
-            <span className="text-primary italic">{formData.bizName}</span> is Prepared.
+            Your {formData.city} Market Report<br />
+            <span className="text-primary italic">for {formData.bizName}.</span>
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0 }}
@@ -151,49 +173,95 @@ export default function StrategyResultsPage() {
             transition={{ delay: 0.2 }}
             className="text-xl md:text-2xl text-brand-dark/60 max-w-2xl mx-auto leading-relaxed font-medium"
           >
-            We've distilled your goals into a high-converting blueprint. Now, choose the fastest path to launch.
+            We analyzed your market, your competitors, and your biggest opportunities. Here's what you need to dominate {formData.city}.
           </motion.p>
         </div>
 
-        {/* The Prompt Card */}
+        {/* Market Intelligence Report */}
         <section className="mb-20">
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-brand-dark text-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
           >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-primary" />
+            {/* Competitive Landscape Header */}
+            <div className="bg-brand-dark text-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              <div className="relative z-10">
+                <div className="flex items-start justify-between gap-6 mb-8">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shrink-0">
+                      <Search className="w-7 h-7 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black">Market Intelligence Report</h3>
+                      <p className="text-xs font-bold text-white/40 uppercase tracking-widest">{formData.industry} · {formData.city}</p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1">Competitor Strength</p>
+                    <span className={`text-lg font-black ${competitorStrengthColor}`}>{intel.competitorStrength}</span>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-black">Personalized AI Prompt</h3>
-                  <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Built-In Strategic Roadmap</p>
+
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-6">
+                  <p className="text-[11px] font-black uppercase tracking-widest text-primary mb-3">⚡ Market Gap Identified</p>
+                  <p className="text-lg font-bold text-white/90 leading-relaxed">{intel.marketGap}</p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-widest text-white/30 mb-4">What Your Top Competitors Are Doing</p>
+                    <ul className="space-y-3">
+                      {intel.topTactics.map((tactic, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <div className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="text-red-400 text-[10px] font-black">✕</span>
+                          </div>
+                          <span className="text-white/70 font-medium text-sm">{tactic}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-widest text-primary/80 mb-4">How {formData.bizName} Can Stand Out</p>
+                    <ul className="space-y-3">
+                      {intel.standOut.map((item, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <div className="w-5 h-5 rounded-full bg-primary/30 flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="text-primary text-[10px] font-black">✓</span>
+                          </div>
+                          <span className="text-white/90 font-bold text-sm">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
-              
-              <div className="bg-white/5 border border-white/10 p-6 md:p-8 rounded-3xl mb-8">
-                <p className="text-lg md:text-xl font-medium leading-relaxed italic text-white/90">
-                  "{promptString}"
-                </p>
+            </div>
+
+            {/* Urgency Banner */}
+            <div className="bg-primary rounded-[2rem] p-6 md:p-8 flex items-start gap-4 shadow-lg">
+              <div className="text-2xl shrink-0">🚨</div>
+              <div>
+                <p className="font-black text-brand-dark text-lg mb-1">Urgency Signal</p>
+                <p className="font-bold text-brand-dark/80 leading-relaxed">{intel.urgency}</p>
               </div>
-              
-              <div className="flex flex-wrap gap-4">
-                <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl">
-                  <p className="text-xs font-black uppercase tracking-widest text-white/40 mb-1">Vibe</p>
-                  <p className="font-bold">{formData.vibe}</p>
+            </div>
+
+            {/* Strategy Tags */}
+            <div className="flex flex-wrap gap-3">
+              {[
+                { label: 'Vibe', value: formData.vibe },
+                { label: 'Primary Goal', value: formData.goal },
+                { label: 'Industry', value: formData.industry },
+                { label: 'Market', value: formData.city || 'Local Area' },
+              ].map((tag, i) => (
+                <div key={i} className="bg-white rounded-2xl px-5 py-3 border border-brand-dark/5 shadow-sm">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-brand-dark/40 mb-0.5">{tag.label}</p>
+                  <p className="font-black text-brand-dark">{tag.value}</p>
                 </div>
-                <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl">
-                  <p className="text-xs font-black uppercase tracking-widest text-white/40 mb-1">Goal</p>
-                  <p className="font-bold">{formData.goal}</p>
-                </div>
-                <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl">
-                  <p className="text-xs font-black uppercase tracking-widest text-white/40 mb-1">Industry</p>
-                  <p className="font-bold">{formData.industry}</p>
-                </div>
-              </div>
+              ))}
             </div>
           </motion.div>
         </section>
@@ -202,28 +270,28 @@ export default function StrategyResultsPage() {
         <section className="grid lg:grid-cols-2 gap-12 items-start mb-20">
           <div className="space-y-8">
             <h2 className="text-3xl md:text-5xl font-black leading-tight">
-              Why Go Professional <br />
-              <span className="text-primary italic">with AdHello.ai?</span>
+              A website that<br />
+              <span className="text-primary italic">actually gets you jobs.</span>
             </h2>
-            <div className="bg-brand-dark/5 p-8 rounded-[2rem] border border-brand-dark/5 mb-8">
-              <h4 className="text-sm font-black uppercase tracking-widest text-brand-dark/40 mb-6">Compare the Value</h4>
-              <div className="space-y-6">
-                <div className="flex justify-between items-center pb-4 border-b border-brand-dark/5">
-                  <span className="text-brand-dark/60 font-bold">Traditional Agency Setup</span>
-                  <span className="text-xl font-black text-red-600">$5,000+</span>
-                </div>
-                <div className="flex justify-between items-center pb-4 border-b border-brand-dark/5">
-                  <span className="text-brand-dark/60 font-bold">Monthly Retainer & Hosting</span>
-                  <span className="text-xl font-black text-red-600">$497/mo</span>
-                </div>
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-brand-dark font-black">AdHello Concierge Build</span>
-                  <div className="text-right">
-                    <span className="block text-2xl font-black text-green-600">$0 Setup</span>
-                    <span className="text-sm font-bold text-brand-dark/40 italic">Then $97/mo - No Contracts</span>
+            <p className="text-brand-dark/60 font-medium text-lg leading-relaxed">
+              Most contractor websites just sit there. AdHello builds yours to <strong className="text-brand-dark">capture leads 24/7</strong> — so when someone in {formData.city} searches for {formData.industry}, your phone rings.
+            </p>
+            <div className="rounded-[2rem] border border-brand-dark/8 overflow-hidden mb-2">
+              {[
+                { label: 'Traditional agency', cost: '$5,000+ setup', sub: 'Slow, expensive, often no results', bad: true },
+                { label: 'DIY website builders', cost: 'Your time (lots of it)', sub: 'Generic templates, no lead strategy', bad: true },
+                { label: 'AdHello Lead Site', cost: '$0 Setup · $97/mo', sub: 'Built to get you calls. Managed for you.', bad: false },
+              ].map((row, i) => (
+                <div key={i} className={`flex items-center justify-between gap-4 p-5 ${i < 2 ? 'border-b border-brand-dark/5' : 'bg-primary/10'}`}>
+                  <div>
+                    <p className={`font-black ${row.bad ? 'text-brand-dark/50' : 'text-brand-dark'}`}>{row.label}</p>
+                    <p className="text-xs font-bold text-brand-dark/30">{row.sub}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className={`font-black text-sm ${row.bad ? 'text-red-500' : 'text-green-600'}`}>{row.cost}</span>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
 
             {/* Annual Presell Toggle */}
@@ -275,24 +343,24 @@ export default function StrategyResultsPage() {
             <div className="space-y-6">
               {[
                 { 
-                  icon: <Smartphone className="w-6 h-6" />, 
-                  title: "Concierge Build", 
-                  desc: "Stop wrestling with DIY builders. Our team handles the design, copy, and technical SEO structure for you." 
+                  icon: <Phone className="w-6 h-6" />, 
+                  title: "Your phone rings more.", 
+                  desc: `We build your site to show up when ${formData.city} homeowners search "${formData.industry} near me" — and make it dead-easy for them to call you.`
                 },
                 { 
-                  icon: <Globe className="w-6 h-6" />, 
-                  title: "Managed Hosting & Speed", 
-                  desc: "We host your site on ultra-fast edge servers, ensuring 99.9% uptime and lightning-fast load speeds." 
+                  icon: <Clock className="w-6 h-6" />, 
+                  title: "Leads come in while you work.", 
+                  desc: "While you're on a job, your site is capturing inquiries 24/7. Leads go straight to your phone — no manual follow-up needed." 
                 },
                 { 
                   icon: <Search className="w-6 h-6" />, 
-                  title: "Ongoing GEO Optimization", 
-                  desc: "The world changes. We continuously update your site's metadata to ensure you dominate local search as AI evolves." 
+                  title: `You show up first in ${formData.city}.`, 
+                  desc: "We continuously update your content so Google and AI search tools keep finding you above competitors. You own your local market." 
                 },
                 { 
                   icon: <Bot className="w-6 h-6" />, 
-                  title: "Built-in AI Automation", 
-                  desc: "Your site comes with 24/7 lead capture and smart CRM syncing ready to go from Day 1." 
+                  title: "Every visitor tracked. Every lead followed up.", 
+                  desc: "Built-in AI chat captures leads who don't call. They get an instant response. You get the job. No leads fall through the cracks." 
                 }
               ].map((benefit, i) => (
                 <div key={i} className="flex gap-4">
