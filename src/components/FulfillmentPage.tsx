@@ -104,7 +104,8 @@ export default function FulfillmentPage() {
         filename: `Strategic-Blueprint-${bizName.replace(/\s+/g, '-')}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
       await html2pdf().set(opt).from(element).save();
     } catch (err) {
@@ -234,30 +235,30 @@ export default function FulfillmentPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
                       {[
                         { 
-                          name: 'Modern Bento', 
+                          name: 'Phase 1: Foundation', 
                           icon: Layout, 
                           desc: 'High-velocity grid for ' + city, 
                           color: 'bg-blue-50 text-blue-600',
                           img: 'https://lh3.googleusercontent.com/aida/ADBb0uijG3rTrsWfhYDANe2sDIZ7QrdTsJpwoBa0t_VJfHfRZu01qv3wNh-h3ajdrsSAhp0flucJ5u4n_wOtmF3JgTYMMDH6oSaXYd746Cv-yWALpt8eHtm1j8M2hfDZcRr7R0bsXnwhHbNXbjO1d_tGYZXJiChDanbBDJiLzR_CpPdLTosg0_nYgYrWwZJTpba85cqge_DIKTm4IyaL9jkeRazVtcUg8PkSPu6C1pY9XBiJNOqVmHkiOXg58Mo'
                         },
                         { 
-                          name: 'Split-Hero', 
+                          name: 'Phase 2: Conversion', 
                           icon: Zap, 
-                          desc: 'Conversion-first structural layout', 
+                          desc: 'Conversion-first structural engine', 
                           color: 'bg-purple-50 text-purple-600',
-                          img: 'file:///Users/alexpavlenko/.gemini/antigravity/brain/f25ef922-6c2b-495b-b9d9-a6ceec11d2da/pressocoffee_split_hero_blueprint_1775093870868.png'
+                          img: '/assets/designs/split-hero.png'
                         },
                         { 
-                          name: 'Dark Elite', 
+                          name: 'Phase 3: Elite Authority', 
                           icon: ShieldCheck, 
-                          desc: 'Premium architectural authority', 
+                          desc: 'Premium B2B architectural status', 
                           color: 'bg-zinc-900 text-zinc-100',
-                          img: 'file:///Users/alexpavlenko/.gemini/antigravity/brain/f25ef922-6c2b-495b-b9d9-a6ceec11d2da/pressocoffee_dark_elite_blueprint_1775093888226.png'
+                          img: '/assets/designs/dark-elite.png'
                         }
                       ].map((style, i) => (
                         <div key={i} className={`p-6 rounded-3xl border border-brand-dark/5 shadow-sm transition-all hover:shadow-xl group overflow-hidden ${style.color}`}>
                           <div className="h-32 mb-4 rounded-2xl bg-white/50 overflow-hidden relative border border-current/5 shadow-inner">
-                            <img src={style.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={style.name} />
+                            <img src={style.img} className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-700" alt={style.name} />
                           </div>
                           <div className="mb-4">
                             <style.icon className="w-8 h-8" />
@@ -274,6 +275,8 @@ export default function FulfillmentPage() {
                   <div className="prose-manual max-w-none mb-20">
                     <ReactMarkdown>{blueprint || ''}</ReactMarkdown>
                   </div>
+
+                  <div className="pdf-page-break html2pdf__page-break" />
 
                   {/* DIGITAL AUTHORITY ROADMAP VISUALS */}
                   <div className="border-t border-brand-dark/5 pt-20 mt-20">
@@ -355,6 +358,8 @@ export default function FulfillmentPage() {
                       </div>
                     </div>
                   </div>
+
+                  <div className="pdf-page-break html2pdf__page-break" />
 
                   <div className="mt-20 pt-12 border-t border-brand-dark/5 text-center px-4 py-8 bg-brand-dark rounded-[2rem] text-white">
                     <TrendingUp className="w-12 h-12 text-primary mx-auto mb-6" />

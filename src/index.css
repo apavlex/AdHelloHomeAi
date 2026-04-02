@@ -98,6 +98,31 @@
   .prose-manual pre { @apply bg-brand-dark text-white p-6 rounded-3xl my-8 overflow-x-auto font-mono text-sm shadow-xl; }
   .prose-manual blockquote { @apply border-l-4 border-primary pl-6 py-2 italic my-8 text-brand-dark/60 font-medium; }
   .prose-manual hr { @apply my-12 border-brand-dark/5; }
+  .prose-manual img { 
+    @apply rounded-[2rem] shadow-2xl my-8 border border-brand-dark/5 w-full object-cover;
+    max-height: 500px;
+    object-position: top;
+  }
+  
+  .bento-strip-fix {
+    object-position: top !important;
+  }
+  
+  /* PDF Generation Utilities */
+  .pdf-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+    height: 0;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .html2pdf__page-break {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    page-break-before: always;
+  }
 }
 
 @media print {

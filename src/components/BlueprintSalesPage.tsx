@@ -229,7 +229,7 @@ export default function BlueprintSalesPage() {
         </section>
 
         {/* Section 4: Strategic Upsell */}
-        <section className="mb-32 grid lg:grid-cols-2 gap-16 items-center">
+        <section className="mb-32 grid lg:grid-cols-2 gap-16 items-start">
           <div>
             <h3 className="text-3xl md:text-5xl font-black mb-8 leading-tight">
               Is your business ready for more?
@@ -268,7 +268,8 @@ export default function BlueprintSalesPage() {
         </section>
 
         {/* Final CTA */}
-        <div id="pricing" className="text-center pt-20 border-t border-brand-dark/5">
+        <div id="pricing" className="text-center pt-20 border-t border-brand-dark/5 scroll-mt-24">
+          <div className="pdf-page-break html2pdf__page-break" />
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}

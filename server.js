@@ -417,31 +417,31 @@ Premium dark mode website for ${bizName}. Glassmorphism cards, blurred architect
     blueprintContent = `
 # Digital Blueprint: Architected for ${bizName}
 
-## 1. VISION PREVIEW: THE MODERN BENTO (STYLE A)
+## PHASE 1: THE MODERN FOUNDATION (STYLE A)
 ![Modern Bento Style](https://lh3.googleusercontent.com/aida/ADBb0uijG3rTrsWfhYDANe2sDIZ7QrdTsJpwoBa0t_VJfHfRZu01qv3wNh-h3ajdrsSAhp0flucJ5u4n_wOtmF3JgTYMMDH6oSaXYd746Cv-yWALpt8eHtm1j8M2hfDZcRr7R0bsXnwhHbNXbjO1d_tGYZXJiChDanbBDJiLzR_CpPdLTosg0_nYgYrWwZJTpba85cqge_DIKTm4IyaL9jkeRazVtcUg8PkSPu6C1pY9XBiJNOqVmHkiOXg58Mo)
 
-**Design Analysis:** This elite Seattle-inspired layout utilizes a #0F172A navy core with #38BDF8 sky accents. The bento grid ensures high-velocity information capture for ${city} customers.
+**Design Analysis:** This Seattle-inspired layout uses a high-velocity Bento Grid to capture attention instantly. It is built for raw speed and clarity, ensuring ${city} customers find what they need in under 3 seconds.
 
 ---
 
-## 2. SPLIT-HERO CONVERSION ARCHITECTURE (STYLE B)
-![Split Hero Architecture](file:///Users/alexpavlenko/.gemini/antigravity/brain/f25ef922-6c2b-495b-b9d9-a6ceec11d2da/pressocoffee_split_hero_blueprint_1775093870868.png)
+## PHASE 2: THE CONVERSION MULTIPLIER (STYLE B)
+![Split Hero Architecture](/assets/designs/split-hero.png)
 
-**Design Analysis:** Focused on direct activation. The left-aligned value prop targets ${reviewThemes?.[0] || 'Quality'} while the right-aligned spatial imagery builds immediate local trust.
-
----
-
-## 3. DARK ELITE AUTHORITY (STYLE C)
-![Dark Elite Authority](file:///Users/alexpavlenko/.gemini/antigravity/brain/f25ef922-6c2b-495b-b9d9-a6ceec11d2da/pressocoffee_dark_elite_blueprint_1775093888226.png)
-
-**Design Analysis:** Positions ${bizName} as the undisputed technical leader in ${city}. Glassmorphism cards and gold accents create a premium "Architectural" feel.
+**Design Analysis:** This architecture splits the screen between your value prop and local trust signals. It is engineered specifically to convert mobile traffic from users searching for ${reviewThemes?.[0] || 'Quality'} in ${city}.
 
 ---
 
-## 4. THE DIGITAL AUTHORITY ROADMAP
-The transition from backlinking to total **Brand Signals**.
-*   **GEO Matrix**: Target "${bizName} Seattle" and "Best coffee in ${city}".
-*   **Signals**: Launch a YouTube series on "The Science of a Perfect Roast."
+## PHASE 3: THE ELITE MARKET AUTHORITY (STYLE C)
+![Dark Elite Authority](/assets/designs/dark-elite.png)
+
+**Design Analysis:** This is the terminal state of your digital identity. By utilizando Dark Mode, glassmorphism, and gold architectural accents, we position ${bizName} as the undisputed premium choice in ${city}. This design isn't just about looks—it's about commanding a premium price point through visual authority.
+
+---
+
+## THE DIGITAL AUTHORITY ROADMAP
+Transitioning from "Backlinks" to total **Brand Signals**.
+*   **GEO Matrix**: Targeting high-intent local phrases like "${bizName} near me".
+*   **Freshness**: Update your Brand Signal Hub quarterly to maintain AI ranking dominance.
 
 ---
 
