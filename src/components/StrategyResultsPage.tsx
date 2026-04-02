@@ -18,11 +18,12 @@ import {
   Search,
   Bot
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Logo } from './Logo';
 
 export default function StrategyResultsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -35,11 +36,36 @@ export default function StrategyResultsPage() {
   const ANNUAL_SAVINGS = MONTHLY_PRICE * 12 - ANNUAL_PRICE;
 
   useEffect(() => {
-    const data = sessionStorage.getItem('quizData');
-    if (data) {
-      setFormData(JSON.parse(data));
+    // Check session storage first (quiz flow)
+    const storedData = sessionStorage.getItem('quizData');
+    
+    // Check URL params (blueprint flow)
+    const bizParam = searchParams.get('biz');
+    const cityParam = searchParams.get('city');
+    const scoreParam = searchParams.get('score');
+
+    if (bizParam) {
+      // If we have URL params, they take priority for the blueprint flow
+      const bizName = bizParam
+        .replace(/(\. )([a-z])/g, (match, p1, p2) => p1 + p2.toUpperCase())
+        .replace(/[-_]/g, ' ')
+        .split(' ')
+        .filter(Boolean)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+
+      setFormData({
+        bizName: bizName,
+        industry: 'Home Services', // Default category
+        city: cityParam || 'Local Area',
+        goal: 'Leads',
+        vibe: 'Modern',
+        score: scoreParam ? parseInt(scoreParam) : 78
+      });
+    } else if (storedData) {
+      setFormData(JSON.parse(storedData));
     } else {
-      // Fallback if no data (rare)
+      // Fallback
       setFormData({
         bizName: 'Your Business',
         industry: 'Home Services',
@@ -48,7 +74,7 @@ export default function StrategyResultsPage() {
         vibe: 'Modern'
       });
     }
-  }, []);
+  }, [searchParams]);
 
   const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

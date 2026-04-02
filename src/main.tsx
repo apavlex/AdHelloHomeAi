@@ -35,6 +35,10 @@ const router = createBrowserRouter([
     element: <StrategyResultsPage />,
   },
   {
+    path: "/strategy",
+    element: <StrategyResultsPage />,
+  },
+  {
     path: "/studio",
     element: <AdStudio />,
   },

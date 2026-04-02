@@ -118,7 +118,7 @@ async function callKie(prompt, systemPrompt = '', history = []) {
 /**
  * Helper to call Gemini AI via native fetch REST API.
  */
-async function callGemini(prompt, modelName = 'gemini-2.0-flash', base64Image = null) {
+async function callGemini(prompt, modelName = 'gemini-2.0-flash', base64Image = null, forceJson = false) {
   if (!GEMINI_API_KEY) {
     console.warn('[GEMINI] API Key missing. Returning null.');
     return null;
@@ -155,7 +155,7 @@ async function callGemini(prompt, modelName = 'gemini-2.0-flash', base64Image = 
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 2048,
-          response_mime_type: "application/json"
+          ...(forceJson ? { response_mime_type: "application/json" } : {})
         }
       })
     });
@@ -173,13 +173,13 @@ async function callGemini(prompt, modelName = 'gemini-2.0-flash', base64Image = 
 /**
  * Unified AI orchestrator: Tries Kie.ai first, falls back to Gemini.
  */
-async function callAI(prompt, systemPrompt = '', history = []) {
+async function callAI(prompt, systemPrompt = '', history = [], forceJson = false) {
   // 1. Try Kie.ai
   const kieResult = await callKie(prompt, systemPrompt, history);
   if (kieResult) return kieResult;
   
   // 2. Fallback to Gemini
-  console.log('[AI] Falling back to Gemini...');
+  console.log(`[AI] Falling back to Gemini (JSON: ${forceJson})...`);
   const historyText = (history || []).map(m => 
     `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content || m.text || ''}`
   ).join('\n\n');
@@ -191,7 +191,7 @@ async function callAI(prompt, systemPrompt = '', history = []) {
     'Assistant:'
   ].filter(Boolean).join('\n\n');
 
-  return await callGemini(fullPrompt);
+  return await callGemini(fullPrompt, 'gemini-2.0-flash', null, forceJson);
 }
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -295,11 +295,10 @@ Return ONLY a raw JSON object (no markdown) with this structure:
 For brandColors: Use the actual dominant colors of the business if possible.
 IMPORTANT: You MUST respect the SSL status: ${actualSsl}. If it is FALSE, the audit score MUST reflect a critical failure. Be brutally honest to sell the solution.`;
 
-      const resultText = await callAI(prompt);
+      const resultText = await callAI(prompt, '', [], true);
       if (!resultText) throw new Error('Empty response from AI providers');
       
-      const dataText = resultText.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(dataText);
+      const parsed = JSON.parse(resultText);
       
       return res.json({
         ...parsed,
@@ -356,7 +355,7 @@ app.post('/api/analyze-strategy', async (req, res) => {
         }
       }`;
 
-      const resultText = await callAI(prompt);
+      const resultText = await callAI(prompt, '', [], true);
       if (!resultText) throw new Error('Empty response from AI providers');
       
       const raw = resultText.replace(/```json|```/g, '').trim();
@@ -895,7 +894,7 @@ app.post('/api/ad-brief/analyze', async (req, res) => {
   Be specific and professional.`;
 
   try {
-    const aiResponse = await callAI(prompt, "You are a master direct-response ad strategist.", 'gemini-2.0-flash', image);
+    const aiResponse = await callGemini(prompt, 'gemini-2.0-flash', image, true);
     if (!aiResponse) throw new Error("AI analysis failed.");
     
     // Attempt to parse AI response
