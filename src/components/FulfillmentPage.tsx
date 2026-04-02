@@ -21,6 +21,7 @@ import {
 import { Logo } from './Logo';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
+import { BeforeAfterSlider } from './BeforeAfterSlider';
 import ReactMarkdown from 'react-markdown';
 
 export default function FulfillmentPage() {
@@ -37,12 +38,17 @@ export default function FulfillmentPage() {
   const score = searchParams.get('score') || '78';
   const city = searchParams.get('city') || '';
   const themes = searchParams.get('themes')?.split(',') || [];
+  const ss = searchParams.get('ss') || '';
+  const du = searchParams.get('du') || '';
   
   const [status, setStatus] = useState<'analyzing' | 'complete' | 'error'>('analyzing');
   const [progress, setProgress] = useState(0);
   const [blueprint, setBlueprint] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const blueprintRef = useRef<HTMLDivElement>(null);
+
+  // Affiliate Link
+  const AFFILIATE_LINK = "https://base44.pxf.io/c/6926562/2049275/25619?trafcat=base";
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -243,7 +249,50 @@ export default function FulfillmentPage() {
                     </div>
                   </div>
 
-                  <div className="prose max-w-none">
+                  {/* High Fidelity Design Reveal */}
+                  {ss && (
+                    <div className="mb-20 animate-in fade-in slide-in-from-bottom-5 duration-1000">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 bg-primary text-brand-dark rounded-xl flex items-center justify-center shadow-lg">
+                          <Palette className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-black uppercase tracking-tight">Revealed Architecture</h4>
+                          <p className="text-xs font-bold text-brand-dark/40 uppercase tracking-widest">Post-Payment Design Unlocked</p>
+                        </div>
+                      </div>
+                      
+                      <div className="rounded-[2rem] border-4 border-brand-dark/5 shadow-2xl overflow-hidden relative group h-[400px]">
+                        <BeforeAfterSlider 
+                          beforeImage={`https://s0.wp.com/mshots/v1/${encodeURIComponent(searchParams.get('url') || bizName + '.com')}?w=1280`}
+                          afterImage={decodeURIComponent(ss)}
+                          beforeLabel="CURRENT DESIGN"
+                          afterLabel="PROPOSED VIBE"
+                        />
+                        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
+                          <div className="bg-primary text-brand-dark px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-2xl flex items-center gap-2 border border-white/20">
+                            <Sparkles className="w-3 h-3" />
+                            AI-GENERATED ARCHITECTURE
+                          </div>
+                        </div>
+                        {du && (
+                          <div className="absolute bottom-4 right-4 z-[60] opacity-0 group-hover:opacity-100 transition-opacity">
+                            <a 
+                              href={decodeURIComponent(du)} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="bg-brand-dark text-white font-black py-2.5 px-6 rounded-xl shadow-2xl flex items-center gap-2 hover:scale-105 transition-transform text-xs"
+                            >
+                              <Zap className="w-3.5 h-3.5" />
+                              Open Live Preview
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="prose max-w-none mb-16">
                     <ReactMarkdown>{blueprint || ''}</ReactMarkdown>
                   </div>
 
@@ -254,10 +303,10 @@ export default function FulfillmentPage() {
                        Blueprint synced to your dashboard. To turn this design into revenue, you need automated traffic. Activate your AdHello.ai engine today.
                     </p>
                     <button 
-                      onClick={() => window.open('https://calendar.app.google/QQsVbiAt4QdCX8mx8', '_blank')}
+                      onClick={() => window.open(AFFILIATE_LINK, '_blank')}
                       className="bg-primary text-brand-dark px-10 py-4 rounded-xl font-black text-lg hover:scale-105 transition-all flex items-center gap-2 mx-auto"
                     >
-                      Book My Scale Session
+                      Redesign this in Base44 AI
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>

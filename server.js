@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from "@google/genai";
+import { StitchClient } from "@google/stitch-sdk";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -379,6 +380,90 @@ Analyze this image and create a targeted marketing brief. Return ONLY valid JSON
     return;
   }
 
+  // API Endpoint for Stitch AI design generation
+  if (req.method === 'POST' && reqPath === '/api/stitch-design') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const { companyName, website, trade } = JSON.parse(body);
+        const apiKey = process.env.STITCH_API_KEY;
+        const projectId = process.env.STITCH_PROJECT_ID;
+
+        if (!apiKey || apiKey === 'your_stitch_api_key_here') {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'STITCH_API_KEY is not configured.' }));
+        }
+
+        console.log(`[STITCH] Generating design for: ${companyName} (${trade})`);
+        
+        const stitch = new StitchClient({ apiKey });
+        let prompt = `A professional, high-converting modern landing page for '${companyName}', a ${trade} business. Focus on trust, quality workmanship, and clear calls to action. Use high-quality imagery relevant to ${trade}.`;
+        
+        // Refinement for specific trades if needed
+        if (trade === 'coffee roastery') {
+          prompt = `A premium, artisanal landing page for '${companyName}', a specialty coffee roastery and cafe. Use warm, rich tones (espresso, cream, gold), focus on the craft of roasting, and include clear 'Shop Now' and 'Visit Us' calls to action. Emphasize high-end lifestyle imagery of coffee brewing and beans.`;
+        } else if (trade === 'local business') {
+          prompt = `A clean, professional, and trustworthy local business landing page for '${companyName}'. Focus on local reliability, friendly service, and a prominent 'Contact Us' section. Use neutral, modern professional imagery.`;
+        }
+
+        const result = await stitch.generateScreenFromText({
+          projectId: projectId,
+          prompt: prompt,
+          deviceType: 'DESKTOP'
+        });
+
+        // Parse the result to find the generated screen details
+        const screen = result.outputComponents?.[0]?.design?.screens?.[0];
+        
+        if (!screen) {
+          throw new Error('Stitch failed to generate a screen.');
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          screenId: screen.id,
+          title: screen.title,
+          downloadUrl: screen.htmlCode?.downloadUrl,
+          screenshotUrl: screen.screenshot?.downloadUrl
+        }));
+
+        // Passive sync to LeadsOS
+        setImmediate(async () => {
+          try {
+            const LEADS_BASE_URL = process.env.LEADS_BASE_URL || 'https://leads.adhello.ai';
+            const SYNC_URL = `${LEADS_BASE_URL}/api/leads/stitch-sync`;
+            const API_KEY = process.env.API_INGEST_KEY || 'adhello_secret_123';
+            
+            await fetch(SYNC_URL, {
+                method: 'POST',
+                headers: { 
+                  'Content-Type': 'application/json',
+                  'x-api-key': API_KEY
+                },
+                body: JSON.stringify({
+                  title: companyName,
+                  website: website,
+                  stitchDesignUrl: screen.htmlCode?.downloadUrl,
+                  stitchScreenshotUrl: screen.screenshot?.downloadUrl,
+                  stitchScreenId: screen.id
+                })
+            });
+            console.log(`[STITCH-SYNC] Design synced to LeadsOS for ${companyName}`);
+          } catch (e) {
+            console.error(`[STITCH-SYNC] Failed to sync to LeadsOS:`, e.message);
+          }
+        });
+      } catch (err) {
+        console.error('[STITCH] Error:', err.message);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Failed to generate design', detail: err.message }));
+      }
+    });
+    return;
+  }
+
   // API Endpoint for ad image generation (Imagen 3)
   if (req.method === 'POST' && reqPath === '/api/generate-ad-image') {
     let body = '';
@@ -603,11 +688,20 @@ If they want to talk to a human: click the phone icon above or call (360) 773-15
 
 ---
 
-### 2. THE HIGH-FIDELITY DESIGN PROMPT (For Base44)
+### 2. THE HIGH-FIDELITY DESIGN PROMPT (Base44 Vibe Code)
 * **Instruction:** Create a specialized prompt for the user to paste into the Base44 AI Engine.
 * **Format:** Provide this in a CLEAR CODE BLOCK.
-* **Logic:** Use a 'Bento Grid' or 'Split-Hero' layout. 
-* **Details:** Include Hex codes: #0F172A (Deep Navy), #38BDF8 (Electric Blue), and #F8FAFC (Clean White). Specify "High-contrast typography" and "Professional Service Imagery."
+* **Prompt Content:** "Create a premium, conversion-optimized bento-grid website for ${bizName}. Use Deep Navy (#0F172A) and Electric Blue (#38BDF8) with high-contrast typography and professional service imagery focused on ${city || 'your area'}."
+
+---
+
+### 3. THE GEO-OPTIMIZATION INSTRUCTION SET (For AI Search)
+* **Goal:** Instructions for the user to optimize their site for AI-driven search engines (ChatGPT, Google AI, Perplexity).
+* **Format:** Provide as a numbered, actionable list.
+* **Instructions:**
+    1. **Schema Markup:** Install LocalBusiness and Service structured data to help AI crawlers link your business to ${city || 'your area'}.
+    2. **EEAT Logic:** Implement a dedicated 'Results' page with 5+ verified case studies to prove Experience and Expertise to LLMs.
+    3. **LLM.txt:** Create a /llms.txt file to explicitly tell AI scrapers which parts of your history and pricing to prioritize.
 
 ---
 

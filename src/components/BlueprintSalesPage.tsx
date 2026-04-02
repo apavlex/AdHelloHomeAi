@@ -32,6 +32,8 @@ export default function BlueprintSalesPage() {
   const score = scoreRaw ? parseInt(scoreRaw) : 78;
   const city = searchParams.get('city') || '';
   const themes = searchParams.get('themes') || '';
+  const ss = searchParams.get('ss') || '';
+  const du = searchParams.get('du') || '';
   
   // Calculate revenue leak (X%)
   const revenueLeak = 100 - score;
@@ -89,7 +91,7 @@ export default function BlueprintSalesPage() {
             transition={{ delay: 0.3 }}
           >
             <button 
-              onClick={() => navigate(`/fulfillment?biz=${bizRaw}&score=${score}&city=${city}&themes=${themes}`)}
+              onClick={() => navigate(`/fulfillment?biz=${bizRaw}&score=${score}&city=${city}&themes=${themes}&ss=${encodeURIComponent(ss)}&du=${encodeURIComponent(du)}`)}
               className="bg-primary hover:bg-primary-hover text-brand-dark px-10 py-5 rounded-full font-black text-xl flex items-center gap-3 mx-auto transition-all hover:scale-105 shadow-2xl shadow-primary/20 w-fit group"
             >
               Get My Custom Blueprint & Base44 Code ($27)

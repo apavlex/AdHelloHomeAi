@@ -339,6 +339,11 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
   const gateEmail = modalEmail;
   const reportRef = useRef<HTMLDivElement>(null);
 
+  // Stitch AI Design states
+  const [isGeneratingStitch, setIsGeneratingStitch] = useState(false);
+  const [stitchResult, setStitchResult] = useState<{ title: string, downloadUrl?: string, screenshotUrl?: string } | null>(null);
+  const [stitchError, setStitchError] = useState<string | null>(null);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const sharedData = params.get('report');
@@ -371,6 +376,51 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
   }, [status]);
 
   const [errorInfo, setErrorInfo] = useState<{ message: string, detail?: string } | null>(null);
+
+  const handleGenerateDesign = async () => {
+    if (!report || isGeneratingStitch) return;
+    
+    setIsGeneratingStitch(true);
+    setStitchError(null);
+    setStitchResult(null);
+
+    try {
+      const response = await fetch('/api/stitch-design', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          companyName: report.companyName || url.replace(/^(?:https?:\/\/)?(?:www\.)?/i, "").split('/')[0].split('.')[0],
+          website: report.url || url,
+          trade: (() => {
+            const analysis = (report.brandAnalysis || '').toLowerCase();
+            const fullUrl = (report.url || url || '').toLowerCase();
+            const coffeeWords = ['coffee', 'cafe', 'roastery', 'espresso', 'beans', 'press'];
+            
+            if (coffeeWords.some(w => analysis.includes(w) || fullUrl.includes(w))) return 'coffee roastery';
+            if (analysis.includes('plumbing') || fullUrl.includes('plumb')) return 'plumbing';
+            if (analysis.includes('electrician') || analysis.includes('electrical') || fullUrl.includes('electric')) return 'electrical';
+            if (analysis.includes('hvac') || analysis.includes('air conditioning') || fullUrl.includes('hvac')) return 'hvac';
+            if (analysis.includes('roofing') || analysis.includes('roofer') || fullUrl.includes('roof')) return 'roofing';
+            if (analysis.includes('painting') || analysis.includes('painter') || fullUrl.includes('paint')) return 'painting';
+            if (analysis.includes('flooring') || fullUrl.includes('floor')) return 'flooring';
+            if (analysis.includes('moving') || analysis.includes('movers') || fullUrl.includes('mov')) return 'moving';
+            
+            return 'local business';
+          })()
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || data.error || 'Failed to generate design');
+
+      setStitchResult(data);
+    } catch (err: any) {
+      console.error('[STITCH] Error:', err);
+      setStitchError(err.message);
+    } finally {
+      setIsGeneratingStitch(false);
+    }
+  };
 
   const handleModalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -835,56 +885,105 @@ export function SiteAudit({ isStudio = false }: { isStudio?: boolean }) {
                   </div>
                 </div>
 
-                {/* Vision Preview (The Hook) */}
-                <div className="mb-20 print:hidden">
-                  <div className="flex items-center justify-between mb-8">
-                     <h3 className={`text-3xl font-black italic ${isStudio ? 'text-white' : 'text-brand-dark'}`}>The Vision Preview</h3>
-                     <div className="bg-primary/10 text-primary px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest border border-primary/20">
-                       AI-Generated Architecture
-                     </div>
-                  </div>
-                  <BeforeAfterSlider 
-                    beforeImage={(() => {
-                      const analysis = report.brandAnalysis.toLowerCase() + " " + report.summary.toLowerCase();
-                      if (analysis.includes('paint')) return '/old-site.png';
-                      if (analysis.includes('move')) return '/old-movers-site.png';
-                      if (analysis.includes('plumb')) return '/old-plumbing-site.png';
-                      if (analysis.includes('hvac') || analysis.includes('ac')) return '/old-hvac-site.png';
-                      if (analysis.includes('electric')) return '/templates/template-bright-electric-old.png';
-                      if (analysis.includes('roof')) return '/old-roofing-site.png';
-                      if (analysis.includes('coffee') || analysis.includes('cafe')) return '/old-site.png'; // Fallback to generic for now
-                      return '/old-site.png';
-                    })()} 
-                    afterImage={(() => {
-                      const analysis = report.brandAnalysis.toLowerCase() + " " + report.summary.toLowerCase();
-                      if (analysis.includes('paint')) return '/new-site.png';
-                      if (analysis.includes('move')) return '/new-movers-site.png';
-                      if (analysis.includes('plumb')) return '/templates/template-proplumb.png';
-                      if (analysis.includes('hvac') || analysis.includes('ac')) return '/templates/template-joes-home.png';
-                      if (analysis.includes('electric')) return '/templates/template-bright-electric-new.png';
-                      if (analysis.includes('roof')) return '/templates/template-roofing-home.png';
-                      return '/new-site.png';
-                    })()} 
-                    beforeLabel="Current Design"
-                    afterLabel="Proposed Vibe"
-                  />
-                  <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className={`${isStudio ? 'bg-white/5 text-white/60' : 'bg-white text-brand-dark/60'} p-4 rounded-2xl border border-brand-dark/5 text-sm font-bold flex items-center gap-2`}>
-                      <Palette className="w-4 h-4 text-primary" />
-                      Dynamic Color Balancing
+                </div>
+
+                {/* Stitch AI Live Preview — The ACTUAL fix */}
+                <div className={`mb-20 rounded-[3rem] p-8 md:p-12 border relative overflow-hidden ${isStudio ? 'bg-white/5 border-white/10' : 'bg-primary/5 border-primary/20'}`}>
+                  <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
+                    <div className="flex-1 text-left">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary text-[10px] font-black uppercase tracking-widest mb-4">
+                        <Bot className="w-3 h-3" />
+                        Live AI Architect (BETA)
+                      </div>
+                      <h3 className={`text-3xl md:text-4xl font-black mb-4 leading-tight ${isStudio ? 'text-white' : 'text-brand-dark'}`}>
+                        See Your Brand Reimagined. <br/>
+                        <span className="text-primary italic">Live & Functional.</span>
+                      </h3>
+                      <p className={`text-base md:text-lg mb-8 font-medium ${isStudio ? 'text-white/60' : 'text-brand-dark/70'}`}>
+                        Our AI doesn't just show screenshots. It architects a fully functional, high-converting landing page built specifically for your business's core trade and local market.
+                      </p>
+
+                      {!stitchResult && !isGeneratingStitch && (
+                        <button 
+                          onClick={handleGenerateDesign}
+                          className="group relative bg-brand-dark text-white hover:bg-primary font-black py-4 px-10 rounded-full transition-all duration-300 shadow-xl hover:shadow-primary/20 flex items-center gap-3 overflow-hidden"
+                        >
+                          <Sparkles className="w-5 h-5 animate-pulse" />
+                          <span>Generate Live AI Concept</span>
+                          <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                      )}
+
+                      {isGeneratingStitch && (
+                        <div className="flex flex-col gap-4">
+                          <div className="flex items-center gap-3 text-primary font-black animate-pulse">
+                            <Loader2 className="w-6 h-6 animate-spin" />
+                            Architecting Digital Blueprint...
+                          </div>
+                          <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-primary h-full animate-[loading_10s_ease-in-out_infinite]" style={{ width: '60%' }} />
+                          </div>
+                        </div>
+                      )}
+
+                      {stitchError && (
+                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-sm font-bold flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4" />
+                          {stitchError}
+                        </div>
+                      )}
                     </div>
-                    <div className={`${isStudio ? 'bg-white/5 text-white/60' : 'bg-white text-brand-dark/60'} p-4 rounded-2xl border border-brand-dark/5 text-sm font-bold flex items-center gap-2`}>
-                      <Layout className="w-4 h-4 text-primary" />
-                      Conversion-Optimized Flow
-                    </div>
-                    <div className={`${isStudio ? 'bg-white/5 text-white/60' : 'bg-white text-brand-dark/60'} p-4 rounded-2xl border border-brand-dark/5 text-sm font-bold flex items-center gap-2`}>
-                      <Search className="w-4 h-4 text-primary" />
-                      GEO Rank Signals
-                    </div>
-                    <div className={`${isStudio ? 'bg-white/5 text-white/60' : 'bg-white text-brand-dark/60'} p-4 rounded-2xl border border-brand-dark/5 text-sm font-bold flex items-center gap-2`}>
-                      <MousePointerClick className="w-4 h-4 text-primary" />
-                      High-Trust Micro-Interactions
-                    </div>
+
+                    {stitchResult && (
+                      <div className="flex-1 w-full animate-in zoom-in-95 duration-500 relative group/stitch">
+                        <div className={`rounded-[2.5rem] border-4 ${isStudio ? 'border-white/10' : 'border-white'} shadow-2xl overflow-hidden relative h-[500px] bg-brand-dark/5`}>
+                          
+                          {/* Locked/Blurred Content */}
+                          <div className="w-full h-full blur-2xl grayscale brightness-[0.4] pointer-events-none">
+                            <BeforeAfterSlider 
+                              beforeImage={`https://s0.wp.com/mshots/v1/${encodeURIComponent(report.url || url)}?w=1280`}
+                              afterImage={stitchResult.screenshotUrl || "/new-site.png"}
+                              beforeLabel="CURRENT DESIGN"
+                              afterLabel="PROPOSED VIBE"
+                            />
+                          </div>
+                          
+                          {/* Frosted Glass Lock Overlay */}
+                          <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center p-8 text-center bg-brand-dark/20 backdrop-blur-sm shadow-inner group-hover/stitch:bg-brand-dark/10 transition-colors duration-500">
+                            <div className="relative mb-8">
+                               <div className="absolute inset-0 bg-primary/20 blur-3xl animate-pulse rounded-full" />
+                               <div className="relative w-24 h-24 bg-primary text-brand-dark rounded-[2rem] flex items-center justify-center shadow-[0_20px_50px_rgba(255,204,0,0.3)] border-8 border-white/20">
+                                 <Lock className="w-12 h-12" />
+                               </div>
+                            </div>
+
+                            <h4 className={`text-3xl font-black mb-3 tracking-tight ${isStudio ? 'text-white' : 'text-brand-dark'}`}>Architecture Locked</h4>
+                            <p className={`text-base font-bold mb-10 max-w-sm leading-relaxed ${isStudio ? 'text-white/70' : 'text-brand-dark/60'}`}>
+                               We've architected a $1,500 custom identity for {report.companyName}. Purchase your Strategic Blueprint to unlock the Base44 'Vibe Code' and full design.
+                            </p>
+                            
+                            <button 
+                              onClick={() => {
+                                const bizRaw = (report.url || url).replace(/https?:\/\//, '').replace(/\//g, '-');
+                                const city = report.technicalAudit?.googleBusinessProfile?.value?.includes(',') ? report.technicalAudit.googleBusinessProfile.value.split(',')[1].trim() : '';
+                                const themes = report.brandAnalysis ? encodeURIComponent(report.brandAnalysis.split('.').slice(0, 3).join('.')) : '';
+                                
+                                navigate(`/blueprint?biz=${bizRaw}&score=${report.score}&city=${city}&themes=${themes}&ss=${encodeURIComponent(stitchResult.screenshotUrl || '')}&du=${encodeURIComponent(stitchResult.downloadUrl || '')}`);
+                              }}
+                              className="bg-brand-dark hover:bg-black text-white px-10 py-5 rounded-[1.5rem] font-black flex items-center gap-3 transform transition-all hover:scale-105 shadow-[0_15px_30px_rgba(0,0,0,0.3)] active:scale-95 group"
+                            >
+                               Unlock My Full Blueprint
+                               <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                            </button>
+
+                            <div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-brand-dark/40">
+                               <ShieldCheck className="w-4 h-4" />
+                               Secure 256-bit Architecture
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
