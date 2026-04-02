@@ -69,6 +69,12 @@ app.post('/api/analyze', async (req, res) => {
     googleAiReadyScore: 71,
     summary: "Your site has foundational elements but is missing key conversion and local GEO signals that modern AI search engines require to feature local businesses.",
     brandAnalysis: "Established local presence with growth potential.",
+    brandColors: {
+      primary: "#1a1a2e",
+      accent: "#F3DD6D",
+      background: "#F5F0E8",
+      text: "#1a1a2e"
+    },
     technicalAudit: {
       mobileSpeed: { label: "Mobile Load Speed", status: "warning", value: "3.1s", reason: "Page load exceeds 2s threshold. Images not optimized for mobile." },
       contactForm: { label: "Lead Capture Form", status: "pass", value: "Found", reason: "Contact form detected on homepage." },
@@ -98,7 +104,9 @@ app.post('/api/analyze', async (req, res) => {
   try {
     if (genAI) {
       const prompt = `Analyze the website ${url} and return ONLY a raw JSON object (no markdown, no backticks) with this exact structure:
-{"score":number,"mobileFirstScore":number,"leadsEstimatesScore":number,"googleAiReadyScore":number,"summary":"string","brandAnalysis":"string","technicalAudit":{"mobileSpeed":{"label":"Mobile Load Speed","status":"pass|fail|warning","value":"string","reason":"string"},"contactForm":{"label":"Contact Form","status":"pass|fail|warning","value":"string","reason":"string"},"sslCertificate":{"label":"SSL Certificate","status":"pass|fail|warning","value":"string","reason":"string"},"metaDescription":{"label":"Meta Description","status":"pass|fail|warning","value":"string","reason":"string"},"googleBusinessProfile":{"label":"Google Business Profile","status":"pass|fail|warning","value":"string","reason":"string"},"reviewSentiment":{"label":"Review Sentiment","status":"pass|fail|warning","value":"string","reason":"string"}},"strengths":[{"indicator":"string","description":"string"}],"weaknesses":[{"indicator":"string","description":"string"}],"recommendations":[{"title":"string","description":"string","action":"string"}],"city":"string","reviewThemes":["string","string","string"]}`;
+{"score":number,"mobileFirstScore":number,"leadsEstimatesScore":number,"googleAiReadyScore":number,"summary":"string","brandAnalysis":"string","brandColors":{"primary":"#hex","accent":"#hex","background":"#hex","text":"#hex"},"technicalAudit":{"mobileSpeed":{"label":"Mobile Load Speed","status":"pass|fail|warning","value":"string","reason":"string"},"contactForm":{"label":"Contact Form","status":"pass|fail|warning","value":"string","reason":"string"},"sslCertificate":{"label":"SSL Certificate","status":"pass|fail|warning","value":"string","reason":"string"},"metaDescription":{"label":"Meta Description","status":"pass|fail|warning","value":"string","reason":"string"},"googleBusinessProfile":{"label":"Google Business Profile","status":"pass|fail|warning","value":"string","reason":"string"},"reviewSentiment":{"label":"Review Sentiment","status":"pass|fail|warning","value":"string","reason":"string"}},"strengths":[{"indicator":"string","description":"string"}],"weaknesses":[{"indicator":"string","description":"string"}],"recommendations":[{"title":"string","description":"string","action":"string"}],"city":"string","reviewThemes":["string","string","string"]}
+
+For brandColors: extract the ACTUAL dominant colors used on the website. primary = main brand color (button bg, logo color), accent = highlight/CTA color, background = main page background, text = main text color. Return real hex codes observed from the site.`;
       const result = await genAI.models.generateContent({ model: 'gemini-1.5-flash', contents: prompt });
       const raw = (result.text || '').replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(raw);
@@ -114,37 +122,45 @@ app.post('/api/analyze', async (req, res) => {
 // =====================================================
 // PHASE HTML GENERATOR (personalized per client)
 // =====================================================
-function buildPhaseHtml(bizName, cityLabel, t0, t1, t2) {
+function buildPhaseHtml(bizName, cityLabel, t0, t1, t2, colors = {}) {
+  // Use brand colors with sensible fallbacks
+  const bg   = colors.background || '#F5F0E8';
+  const text = colors.text       || '#1a1a2e';
+  const pri  = colors.primary    || '#1a1a2e';
+  const acc  = colors.accent     || '#F3DD6D';
+  // Ensure contrast: if accent is very light, use primary for text on accent
+  const accText = acc.toLowerCase() === '#ffffff' || acc.toLowerCase() === '#fff' ? text : (acc > '#888888' ? text : '#ffffff');
+
   const p1 = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
-body{background:#F5F0E8;color:#1a1a2e;min-height:100vh}
-nav{background:#fff;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e8e2d8;position:sticky;top:0;z-index:10}
-.logo{font-weight:900;font-size:17px;letter-spacing:-0.5px}
-.nav-cta{background:#F3DD6D;color:#1a1a2e;padding:8px 18px;border-radius:50px;font-weight:800;font-size:12px;border:none}
+body{background:${bg};color:${text};min-height:100vh}
+nav{background:#fff;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(0,0,0,0.08);position:sticky;top:0;z-index:10}
+.logo{font-weight:900;font-size:17px;letter-spacing:-0.5px;color:${text}}
+.nav-cta{background:${acc};color:${pri};padding:8px 18px;border-radius:50px;font-weight:800;font-size:12px;border:none}
 .hero{padding:52px 28px 36px;display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center}
-h1{font-size:38px;font-weight:900;line-height:1.05;letter-spacing:-1.5px;margin-bottom:14px}
-h1 span{color:#F3DD6D;background:#1a1a2e;padding:2px 8px;border-radius:6px}
+h1{font-size:38px;font-weight:900;line-height:1.05;letter-spacing:-1.5px;margin-bottom:14px;color:${text}}
+h1 span{color:${acc};background:${pri};padding:2px 8px;border-radius:6px}
 .sub{font-size:14px;color:#555;margin-bottom:24px;line-height:1.6}
 .cta-row{display:flex;gap:10px}
-.btn-p{background:#F3DD6D;color:#1a1a2e;padding:12px 24px;border-radius:50px;font-weight:900;font-size:13px;border:none;cursor:pointer}
-.btn-s{background:transparent;color:#1a1a2e;padding:12px 20px;border-radius:50px;font-weight:700;font-size:13px;border:2px solid #1a1a2e;cursor:pointer}
+.btn-p{background:${acc};color:${pri};padding:12px 24px;border-radius:50px;font-weight:900;font-size:13px;border:none;cursor:pointer}
+.btn-s{background:transparent;color:${text};padding:12px 20px;border-radius:50px;font-weight:700;font-size:13px;border:2px solid ${text};cursor:pointer}
 .stars{display:flex;align-items:center;gap:6px;margin-top:18px;font-size:12px;font-weight:700;color:#555}
-.star{color:#F3DD6D;font-size:15px}
-.hero-img{background:linear-gradient(135deg,#1a1a2e,#2d3a5c);border-radius:20px;height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:20px;text-align:center}
-.hero-img h3{color:#F3DD6D;font-size:22px;font-weight:900;margin-bottom:8px}
+.star{color:${acc};font-size:15px}
+.hero-img{background:linear-gradient(135deg,${pri},${pri}cc);border-radius:20px;height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:20px;text-align:center}
+.hero-img h3{color:${acc};font-size:22px;font-weight:900;margin-bottom:8px}
 .hero-img p{color:rgba(255,255,255,0.6);font-size:13px}
-.badge{position:absolute;top:14px;right:14px;background:#F3DD6D;color:#1a1a2e;padding:5px 10px;border-radius:50px;font-size:10px;font-weight:900}
+.badge{position:absolute;top:14px;right:14px;background:${acc};color:${pri};padding:5px 10px;border-radius:50px;font-size:10px;font-weight:900}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 28px 36px}
-.card{background:#fff;border-radius:18px;padding:20px;border:1px solid #e8e2d8}
-.icon{width:40px;height:40px;background:#F5F0E8;border-radius:10px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;font-size:20px}
-.card h4{font-size:14px;font-weight:800;margin-bottom:6px}
+.card{background:#fff;border-radius:18px;padding:20px;border:1px solid rgba(0,0,0,0.08)}
+.icon{width:40px;height:40px;background:${bg};border-radius:10px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.card h4{font-size:14px;font-weight:800;margin-bottom:6px;color:${text}}
 .card p{font-size:11px;color:#888;line-height:1.5}
 .reviews{padding:0 28px 36px}
-.reviews h2{font-size:22px;font-weight:900;margin-bottom:16px}
+.reviews h2{font-size:22px;font-weight:900;margin-bottom:16px;color:${text}}
 .r-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-.rc{background:#fff;padding:18px;border-radius:18px;border:1px solid #e8e2d8}
+.rc{background:#fff;padding:18px;border-radius:18px;border:1px solid rgba(0,0,0,0.08)}
 .rc p{font-size:12px;color:#444;line-height:1.6;margin-bottom:10px}
-.author{font-size:11px;font-weight:800;color:#1a1a2e}
+.author{font-size:11px;font-weight:800;color:${text}}
 </style></head><body>
 <nav><div class="logo">📍 ${bizName}</div><button class="nav-cta">Book Now →</button></nav>
 <div class="hero">
@@ -167,28 +183,28 @@ h1 span{color:#F3DD6D;background:#1a1a2e;padding:2px 8px;border-radius:6px}
 
   const p2 = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
-body{background:#fff;color:#1a1a2e;min-height:100vh}
-.top-bar{background:#1a1a2e;color:#fff;padding:10px 28px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}
-.bar-cta{background:#F3DD6D;color:#1a1a2e;padding:7px 16px;border-radius:50px;font-weight:900;border:none;cursor:pointer;font-size:12px}
+body{background:#fff;color:${text};min-height:100vh}
+.top-bar{background:${pri};color:#fff;padding:10px 28px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}
+.bar-cta{background:${acc};color:${pri};padding:7px 16px;border-radius:50px;font-weight:900;border:none;cursor:pointer;font-size:12px}
 .hero{display:grid;grid-template-columns:1fr 1fr;min-height:380px}
-.hl{background:#6C3FC5;padding:52px 36px;color:#fff;display:flex;flex-direction:column;justify-content:center}
+.hl{background:${pri};padding:52px 36px;color:#fff;display:flex;flex-direction:column;justify-content:center}
 .hl h1{font-size:34px;font-weight:900;line-height:1.1;letter-spacing:-1px;margin-bottom:14px}
 .hl p{font-size:14px;opacity:0.8;margin-bottom:24px;line-height:1.6}
-.urgency{background:rgba(243,221,109,0.15);border:1px solid #F3DD6D;border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:12px;font-weight:700;color:#F3DD6D}
-.cta-btn{background:#F3DD6D;color:#1a1a2e;padding:14px 28px;border-radius:50px;font-weight:900;font-size:14px;border:none;cursor:pointer;width:fit-content}
-.hr{background:#f8f6ff;padding:36px;display:flex;flex-direction:column;justify-content:center}
-.book{background:#fff;border-radius:18px;padding:24px;box-shadow:0 4px 24px rgba(0,0,0,0.08);border:1px solid #e8e2d8}
-.book h3{font-size:16px;font-weight:900;margin-bottom:5px}
+.urgency{background:rgba(255,255,255,0.1);border:1px solid ${acc};border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:12px;font-weight:700;color:${acc}}
+.cta-btn{background:${acc};color:${pri};padding:14px 28px;border-radius:50px;font-weight:900;font-size:14px;border:none;cursor:pointer;width:fit-content}
+.hr{background:#f8f8ff;padding:36px;display:flex;flex-direction:column;justify-content:center}
+.book{background:#fff;border-radius:18px;padding:24px;box-shadow:0 4px 24px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.08)}
+.book h3{font-size:16px;font-weight:900;margin-bottom:5px;color:${text}}
 .book p{font-size:12px;color:#888;margin-bottom:16px}
-input{width:100%;padding:11px 14px;border:1.5px solid #e0d8f0;border-radius:10px;margin-bottom:10px;font-size:13px;font-family:inherit;background:#faf8ff;display:block}
-.book-btn{width:100%;background:#6C3FC5;color:#fff;padding:13px;border-radius:10px;font-weight:900;border:none;cursor:pointer;font-size:13px}
-.social{padding:32px 28px;background:#fafafa;border-top:1px solid #f0ecf8}
-.social h2{font-size:20px;font-weight:900;margin-bottom:16px;text-align:center}
+input{width:100%;padding:11px 14px;border:1.5px solid rgba(0,0,0,0.1);border-radius:10px;margin-bottom:10px;font-size:13px;font-family:inherit;background:#fafafa;display:block}
+.book-btn{width:100%;background:${pri};color:#fff;padding:13px;border-radius:10px;font-weight:900;border:none;cursor:pointer;font-size:13px}
+.social{padding:32px 28px;background:#fafafa;border-top:1px solid rgba(0,0,0,0.06)}
+.social h2{font-size:20px;font-weight:900;margin-bottom:16px;text-align:center;color:${text}}
 .tg{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-.tc{background:#fff;border-radius:18px;padding:18px;border:1px solid #e8e2d8}
-.ts{color:#F3DD6D;font-size:13px;margin-bottom:7px}
+.tc{background:#fff;border-radius:18px;padding:18px;border:1px solid rgba(0,0,0,0.08)}
+.ts{color:${acc};font-size:13px;margin-bottom:7px}
 .tt{font-size:12px;color:#444;line-height:1.6;margin-bottom:10px}
-.ta{font-size:11px;font-weight:800;color:#6C3FC5}
+.ta{font-size:11px;font-weight:800;color:${pri}}
 </style></head><body>
 <div class="top-bar"><span>🔥 Limited appointment slots this week — ${cityLabel}</span><button class="bar-cta">Book Now</button></div>
 <div class="hero">
@@ -207,17 +223,17 @@ input{width:100%;padding:11px 14px;border:1.5px solid #e0d8f0;border-radius:10px
 body{background:#0D0D0D;color:#fff;min-height:100vh}
 nav{padding:18px 36px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08)}
 .logo{font-weight:900;font-size:18px;letter-spacing:-0.5px}
-.logo span{color:#F3DD6D}
+.logo span{color:${acc}}
 .nav-links{display:flex;gap:28px;font-size:12px;font-weight:700;color:rgba(255,255,255,0.5)}
-.nav-cta{background:#F3DD6D;color:#0D0D0D;padding:9px 22px;border-radius:50px;font-weight:900;font-size:12px;border:none;cursor:pointer}
+.nav-cta{background:${acc};color:${pri};padding:9px 22px;border-radius:50px;font-weight:900;font-size:12px;border:none;cursor:pointer}
 .hero{padding:52px 36px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06)}
-.badge{display:inline-flex;align-items:center;gap:7px;background:rgba(243,221,109,0.1);border:1px solid rgba(243,221,109,0.3);border-radius:50px;padding:7px 18px;font-size:11px;font-weight:900;color:#F3DD6D;letter-spacing:1px;margin-bottom:20px}
+.badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:50px;padding:7px 18px;font-size:11px;font-weight:900;color:${acc};letter-spacing:1px;margin-bottom:20px}
 .hero h1{font-size:46px;font-weight:900;line-height:1.0;letter-spacing:-2px;margin-bottom:14px}
-.hero h1 span{color:#F3DD6D}
+.hero h1 span{color:${acc}}
 .hero p{font-size:15px;color:rgba(255,255,255,0.5);max-width:460px;margin:0 auto}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,0.06);border-radius:18px;overflow:hidden;margin:32px 36px}
 .stat{background:#0D0D0D;padding:24px;text-align:center}
-.stat-num{font-size:32px;font-weight:900;color:#F3DD6D;letter-spacing:-1px}
+.stat-num{font-size:32px;font-weight:900;color:${acc};letter-spacing:-1px}
 .stat-label{font-size:11px;color:rgba(255,255,255,0.35);font-weight:700;margin-top:5px;text-transform:uppercase;letter-spacing:1px}
 .press{padding:24px 36px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:center}
 .press-label{font-size:10px;font-weight:900;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
@@ -245,7 +261,7 @@ nav{padding:18px 36px;display:flex;justify-content:space-between;align-items:cen
 // FULFILLMENT ENGINE
 // =====================================================
 app.post('/api/fulfill', async (req, res) => {
-  const { bizName, city, score, reviewThemes } = req.body;
+  const { bizName, city, score, reviewThemes, brandColors } = req.body;
   if (!bizName) return res.status(400).json({ error: 'BizName required' });
 
   const cityLabel = city || 'your local area';
@@ -309,7 +325,7 @@ Modern AI search engines (Google AI Overviews, Bing Copilot, ChatGPT) feature bu
 - **Month 3**: ${bizName} appearing in Google AI Overviews for "${cityLabel}" searches, dominant in the local map pack
 `;
 
-  const phaseHtml = buildPhaseHtml(bizName, cityLabel, t0, t1, t2);
+  const phaseHtml = buildPhaseHtml(bizName, cityLabel, t0, t1, t2, brandColors || {});
   res.json({ blueprint, phaseHtml });
 });
 

@@ -182,7 +182,7 @@ export default function FulfillmentPage() {
       const response = await fetch('/api/fulfill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bizName, city, score: parseInt(score), reviewThemes: themes })
+        body: JSON.stringify({ bizName, city, score: parseInt(score), reviewThemes: themes, brandColors: auditReport?.brandColors || null })
       });
 
       if (!response.ok) throw new Error('Fulfillment failed');
