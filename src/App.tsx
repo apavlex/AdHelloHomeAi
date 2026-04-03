@@ -1278,7 +1278,7 @@ export default function App() {
               <div className="flex items-center gap-3 mb-8">
                 <Logo variant="dark" className="h-12 w-auto" />
               </div>
-              <SatisfactionGuarantee variant="compact" />
+              <SatisfactionGuarantee variant="compact" className="mb-8" />
               <div className="flex gap-4">
                 <a
                   className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-brand-dark transition-all text-brand-dark"

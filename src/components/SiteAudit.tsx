@@ -422,6 +422,9 @@ export function SiteAudit({
     e.preventDefault();
     if (!modalName.trim() || !modalEmail.trim()) return;
     setModalSubmitting(true);
+    const bizName = getBusinessName();
+    const currentAuditUrl = `${window.location.origin}/strategy?biz=${encodeURIComponent(bizName)}&score=${report?.score || 0}&city=${encodeURIComponent(report?.city || 'Needs Audit')}`;
+
     try {
       await fetch('/api/lead', {
         method: 'POST',
@@ -430,8 +433,11 @@ export function SiteAudit({
           name: modalName, 
           email: modalEmail, 
           siteUrl: report?.url || url, 
+          title: bizName,
+          totalScore: report?.score || 0,
+          auditUrl: currentAuditUrl,
           auditData: report,
-          source: 'site-audit' 
+          source: 'adhello_audit' 
         })
       });
     } catch (_) {}

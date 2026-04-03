@@ -33,21 +33,44 @@ export function SatisfactionGuarantee({ className = "", variant = 'full' }: Sati
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
-        className={`py-4 ${className}`}
+        className={`relative ${className}`}
       >
-        <div className="flex items-start gap-5">
-          <div className="bg-gradient-to-br from-amber-400 to-yellow-500 p-3 rounded-2xl shadow-lg shadow-amber-200">
-            <ShieldCheck className="w-6 h-6 text-brand-dark" />
+        <div className="flex items-start gap-6">
+          <div className="shrink-0 relative">
+            <div className="bg-gradient-to-br from-amber-400 to-yellow-500 p-3.5 rounded-2xl shadow-lg shadow-amber-200 relative z-10">
+              <ShieldCheck className="w-6 h-6 text-brand-dark" />
+            </div>
+            {/* Tiny "IT'S FREE" sticker for compact view */}
+            <div className="absolute -top-4 -left-4 yellow-burst !py-1 !px-2 !text-[9px] font-black !rotate-[-12deg] z-20 whitespace-nowrap shadow-xl !transform-none">
+              IT'S FREE!
+            </div>
           </div>
-          <div>
-            <h4 className="text-xl font-black text-brand-dark mb-2">30-Day Happiness Guarantee</h4>
-            <p className="text-brand-dark/70 text-sm font-medium leading-relaxed mb-6">
-              Not delighted? Just message us within 30 days for a prompt refund. <span className="text-brand-dark font-black">No questions asked.</span>
-            </p>
-            <div className="pt-4 border-t border-brand-dark/5 flex items-center justify-between">
-              <span className="digital-signature text-3xl opacity-80">Alex Pavlenko</span>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-1.5 flex-wrap">
+              <h4 className="text-xl font-black text-brand-dark">30-Day Happiness Guarantee</h4>
               <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map(s => <Star key={s} className="w-3 h-3 fill-amber-500 text-amber-500" />)}
+              </div>
+            </div>
+            
+            <p className="text-brand-dark/70 text-[13px] font-medium leading-relaxed mb-4">
+              Not delighted? Just message us within 30 days for a prompt refund. <span className="text-brand-dark font-black underline decoration-amber-400/40 decoration-2 underline-offset-2">No questions asked.</span>
+            </p>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-brand-dark/5">
+              <div className="flex flex-col">
+                <span className="digital-signature text-2xl -mt-1 scale-90 origin-left">Alex Pavlenko</span>
+                <span className="text-[9px] font-black uppercase tracking-widest text-brand-dark/30 ml-1">Founder, AdHello.ai</span>
+              </div>
+              
+              <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+                <div className="flex -space-x-1">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="w-4 h-4 rounded-full bg-amber-200 border border-white" />
+                  ))}
+                </div>
+                <span className="text-[10px] font-black text-amber-700 uppercase tracking-tight">500+ Businesses</span>
               </div>
             </div>
           </div>

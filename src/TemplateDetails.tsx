@@ -5,7 +5,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Star, ChevronRight, Monitor, Smartphone, Zap } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { getTemplateById, getRelatedTemplates } from './data/templates';
-import logoImg from './assets/logo.png';
+import { Logo } from './components/Logo';
 import SEO from './components/SEO';
 
 // Fallback dynamic icon renderer
@@ -64,7 +64,7 @@ export default function TemplateDetails() { useAnalytics(); useAnalytics();
                                 Back to {template.categoryName}
                             </Link>
                             <div className="h-6 w-px bg-gray-200 hidden md:block"></div>
-                            <img src={logoImg} alt="AdHello.ai Logo" className="h-8 w-auto hidden md:block" />
+                            <Logo className="hidden md:flex ml-2" />
                         </div>
 
                         <div className="flex items-center gap-4">
