@@ -234,6 +234,31 @@ async function getPageSpeedInsights(targetUrl) {
   }
 }
 
+// --- ANALYTICS PROXY ---
+// Forwards tracking data to Agency OS (leadsos) to bypass DNS/CORS issues
+app.post('/api/track', async (req, res) => {
+  const LEADSOS_URL = 'https://adhello-leadsos-346957283381.us-west1.run.app';
+  console.log('[ANALYTICS] Proxy received ping for:', req.body.path);
+  
+  try {
+    const clientIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+    
+    const forwardRes = await fetch(`${LEADSOS_URL}/api/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...req.body,
+        ip: clientIp // Forward the real client IP to the backend
+      })
+    });
+    
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('[ANALYTICS-PROXY] Failed to forward tracking data:', err.message);
+    res.status(200).json({ success: false, error: 'Proxy failed silently' });
+  }
+});
+
 app.post('/api/analyze', async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'URL is required' });

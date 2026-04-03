@@ -11,57 +11,63 @@ import AdStudio from './AdStudio.tsx';
 import BlueprintSalesPage from './components/BlueprintSalesPage.tsx';
 import FulfillmentPage from './components/FulfillmentPage.tsx';
 import StrategyResultsPage from './components/StrategyResultsPage.tsx';
+import { AnalyticsWrapper } from './components/AnalyticsWrapper';
 import './index.css';
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <App />,
-  },
-  {
-    path: "/blueprint",
-    element: <BlueprintSalesPage />,
-  },
-  {
-    path: "/fulfillment",
-    element: <FulfillmentPage />,
-  },
-  {
-    path: "/fulfillment/:id",
-    element: <FulfillmentPage />,
-  },
-  {
-    path: "/strategy-results",
-    element: <StrategyResultsPage />,
-  },
-  {
-    path: "/strategy",
-    element: <StrategyResultsPage />,
-  },
-  {
-    path: "/studio",
-    element: <AdStudio />,
-  },
-  {
-    path: "/templates",
-    element: <TemplatesIndex />,
-  },
-  {
-    path: "/templates/:category",
-    element: <TemplatesIndex />,
-  },
-  {
-    path: "/templates/:category/:templateId",
-    element: <TemplateDetails />,
-  },
-  {
-    path: "/about",
-    element: <AboutPage />,
-  },
-  {
-    path: "/geo",
-    element: <AeoLandingPage />,
-  },
+    element: <AnalyticsWrapper />,
+    children: [
+      {
+        path: "/",
+        element: <App />,
+      },
+      {
+        path: "/blueprint",
+        element: <BlueprintSalesPage />,
+      },
+      {
+        path: "/fulfillment",
+        element: <FulfillmentPage />,
+      },
+      {
+        path: "/fulfillment/:id",
+        element: <FulfillmentPage />,
+      },
+      {
+        path: "/strategy-results",
+        element: <StrategyResultsPage />,
+      },
+      {
+        path: "/strategy",
+        element: <StrategyResultsPage />,
+      },
+      {
+        path: "/studio",
+        element: <AdStudio />,
+      },
+      {
+        path: "/templates",
+        element: <TemplatesIndex />,
+      },
+      {
+        path: "/templates/:category",
+        element: <TemplatesIndex />,
+      },
+      {
+        path: "/templates/:category/:templateId",
+        element: <TemplateDetails />,
+      },
+      {
+        path: "/about",
+        element: <AboutPage />,
+      },
+      {
+        path: "/geo",
+        element: <AeoLandingPage />,
+      },
+    ]
+  }
 ]);
 
 createRoot(document.getElementById('root')!).render(

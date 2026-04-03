@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-const LEADSOS_URL = 'https://leads.adhello.ai';
+const LEADSOS_URL = 'https://adhello-leadsos-346957283381.us-west1.run.app' || 'https://leads.adhello.ai';
 
 export const useAnalytics = () => {
   const location = useLocation();
@@ -9,7 +9,7 @@ export const useAnalytics = () => {
   useEffect(() => {
     const trackVisit = async () => {
       try {
-        await fetch(`${LEADSOS_URL}/api/track`, {
+        await fetch('/api/track', { // Hits the local proxy
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

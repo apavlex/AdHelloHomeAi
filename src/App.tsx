@@ -50,7 +50,7 @@ import { Logo } from './components/Logo';
 import SEO from './components/SEO';
 import { EventBanner } from './components/EventBanner';
 import { SmartSiteQuiz } from './components/SmartSiteQuiz';
-import { useAnalytics } from './hooks/useAnalytics';
+import { SatisfactionGuarantee } from './components/SatisfactionGuarantee';
 
 const HERO_VARIANTS = [
   {
@@ -130,7 +130,6 @@ const PORTFOLIO_EXAMPLES = [
 ];
 
 export default function App() {
-  useAnalytics();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
@@ -161,24 +160,6 @@ export default function App() {
   };
 
   useEffect(() => {
-    // Visitor Pulse Tracking
-    const trackVisit = async () => {
-      try {
-        await fetch('/api/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            path: window.location.pathname,
-            referrer: document.referrer || 'direct',
-            userAgent: navigator.userAgent
-          })
-        });
-      } catch (e) {
-        console.error('Tracking pulse failed:', e);
-      }
-    };
-    trackVisit();
-
     const timer = setInterval(() => {
       setHeroIndex((prev) => (prev + 1) % HERO_VARIANTS.length);
     }, 15000);
@@ -1292,14 +1273,12 @@ export default function App() {
 
       <footer className="bg-warm-cream text-brand-dark/60 py-12 border-t border-brand-dark/5">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-10">
             <div>
               <div className="flex items-center gap-3 mb-8">
                 <Logo variant="dark" className="h-12 w-auto" />
               </div>
-              <p className="text-lg leading-relaxed mb-8 italic text-brand-dark/80">
-                "Websites built for home service businesses that want more leads."
-              </p>
+              <SatisfactionGuarantee variant="compact" />
               <div className="flex gap-4">
                 <a
                   className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-brand-dark transition-all text-brand-dark"
@@ -1351,6 +1330,11 @@ export default function App() {
                     Pricing
                   </a>
                 </li>
+                <li>
+                  <a className="hover:text-primary-dark transition-colors" href="https://leads.adhello.ai" target="_blank" rel="noopener noreferrer">
+                    Agency OS
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
@@ -1394,6 +1378,28 @@ export default function App() {
                 <li>
                   <a className="hover:text-primary-dark transition-colors" href="#">
                     Terms of Service
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-brand-dark text-xl font-extrabold mb-6">
+                X Presso
+              </h4>
+              <ul className="space-y-4 text-base font-medium">
+                <li>
+                  <a className="hover:text-primary-dark transition-colors" href="/presso-home.html">
+                    Presso Home
+                  </a>
+                </li>
+                <li>
+                  <a className="hover:text-primary-dark transition-colors" href="/presso-partners.html">
+                    Partner Program
+                  </a>
+                </li>
+                <li>
+                  <a className="hover:text-primary-dark transition-colors" href="/presso-brands.html">
+                    Brand Placement
                   </a>
                 </li>
               </ul>

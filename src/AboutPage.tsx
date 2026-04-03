@@ -255,6 +255,7 @@ export default function AboutPage() { useAnalytics(); useAnalytics();
                       <li><Link className="hover:text-primary transition-colors" to="/templates">View Templates</Link></li>
                       <li><a className="hover:text-primary transition-colors" href="/service-booking.html">Booking Engine</a></li>
                       <li><a className="hover:text-primary transition-colors" href="/#pricing">Pricing</a></li>
+                      <li><a className="hover:text-primary transition-colors" href="https://leads.adhello.ai" target="_blank" rel="noopener noreferrer">Agency OS</a></li>
                     </ul>
                   </div>
                   <div>

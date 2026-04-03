@@ -1,4 +1,3 @@
-import { useAnalytics } from '../hooks/useAnalytics';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -21,8 +20,9 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Logo } from './Logo';
+import { SatisfactionGuarantee } from './SatisfactionGuarantee';
 
-export default function StrategyResultsPage() { useAnalytics(); useAnalytics();
+export default function StrategyResultsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState<any>(null);
@@ -530,6 +530,11 @@ export default function StrategyResultsPage() { useAnalytics(); useAnalytics();
           </div>
         </section>
 
+        {/* Guarantee Section */}
+        <section className="mb-20">
+          <SatisfactionGuarantee />
+        </section>
+
         {/* DIY Last Resort */}
         <section className="text-center pt-20 border-t border-brand-dark/5 pb-10">
           <div className="max-w-xl mx-auto">
@@ -538,7 +543,7 @@ export default function StrategyResultsPage() { useAnalytics(); useAnalytics();
               Want to handle your own hosting, design updates, and manual SEO? Take your strategy and try to build it manually.
             </p>
             <a 
-              href="https://base44.ai?ref=adhello" 
+              href="https://base44.pxf.io/c/6926562/2049275/25619?trafcat=base" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-brand-dark/20 hover:text-brand-dark/40 font-bold transition-colors text-sm"
