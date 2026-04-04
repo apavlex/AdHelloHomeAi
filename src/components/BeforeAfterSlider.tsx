@@ -6,13 +6,15 @@ interface BeforeAfterSliderProps {
   afterImage: string;
   beforeLabel?: string;
   afterLabel?: string;
+  demoUrl?: string;
 }
 
 export function BeforeAfterSlider({
   beforeImage,
   afterImage,
   beforeLabel = "Old Site",
-  afterLabel = "AdHello Smart Site"
+  afterLabel = "AdHello Smart Site",
+  demoUrl
 }: BeforeAfterSliderProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -181,7 +183,7 @@ export function BeforeAfterSlider({
         </div>
       </div>
       
-      <div className="absolute top-8 right-8 z-10 pointer-events-none">
+      <div className="absolute top-8 right-8 z-10 pointer-events-none flex flex-col items-end gap-3">
         <div 
           className="transition-all duration-500 ease-out"
           style={{ 
@@ -194,6 +196,28 @@ export function BeforeAfterSlider({
             {afterLabel.toUpperCase()}
           </div>
         </div>
+
+        {demoUrl && (
+          <div 
+            className="transition-all duration-500 ease-out delay-100 pointer-events-auto"
+            style={{ 
+              opacity: sliderPosition < 70 ? 1 : 0,
+              transform: `translateX(${sliderPosition < 70 ? 0 : 20}px)`
+            }}
+          >
+            <a 
+              href={demoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white/90 backdrop-blur-sm hover:bg-white text-brand-dark px-4 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-lg flex items-center gap-2 transition-all hover:scale-105 active:scale-95 border border-brand-dark/5"
+            >
+              <span>View Live Site</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
+              </svg>
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Dynamic Info Badge */}

@@ -7,7 +7,7 @@ interface LogoProps {
 }
 
 export function Logo({ variant = 'dark', className = "" }: LogoProps) {
-  const logoSrc = variant === 'light' ? '/logo-dark.png' : '/logo-light.png';
+  const logoSrc = variant === 'light' ? '/logo-dark.svg' : '/logo-light.svg';
   
   return (
     <div className={`flex items-center gap-2 ${className}`}>
@@ -17,7 +17,10 @@ export function Logo({ variant = 'dark', className = "" }: LogoProps) {
         className="h-5 md:h-7 w-auto object-contain transition-transform hover:scale-105"
         onError={(e) => {
           // Fallback if specific variants are missing
-          e.currentTarget.src = '/logo.png';
+          const target = e.currentTarget;
+          if (target.src.endsWith('.svg')) {
+            target.src = '/logo.png';
+          }
         }}
       />
     </div>

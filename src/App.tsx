@@ -95,31 +95,36 @@ const PORTFOLIO_EXAMPLES = [
     id: 'plumbing',
     name: 'Plumbers',
     beforeImage: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800',
-    afterImage: '/templates/template-plumbing-light.png'
+    afterImage: '/templates/template-plumbing-light.png',
+    demoUrl: '/presso-home.html'
   },
   {
     id: 'hvac',
     name: 'HVAC',
     beforeImage: 'https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?auto=format&fit=crop&q=80&w=800',
-    afterImage: '/templates/template-joes-home.png'
+    afterImage: '/templates/template-joes-home.png',
+    demoUrl: '/presso-partners.html'
   },
   {
     id: 'roofing',
     name: 'Roofing',
     beforeImage: 'https://images.unsplash.com/photo-1632759145351-1d592919f522?auto=format&fit=crop&q=80&w=800',
-    afterImage: '/templates/template-roofing-light.png'
+    afterImage: '/templates/template-roofing-light.png',
+    demoUrl: '/presso-brands.html'
   },
   {
     id: 'emergency',
     name: 'Emergency',
     beforeImage: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
-    afterImage: '/templates/template-joes-emergency.png'
+    afterImage: '/templates/template-joes-emergency.png',
+    demoUrl: '/presso-home.html'
   },
   {
     id: 'dashboard',
     name: 'Client Portal',
     beforeImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800',
-    afterImage: '/templates/template-joes-dashboard.png'
+    afterImage: '/templates/template-joes-dashboard.png',
+    demoUrl: '/presso-partners.html'
   }
 ];
 
@@ -598,6 +603,7 @@ export default function App() {
                   afterImage={PORTFOLIO_EXAMPLES[portfolioIndex].afterImage}
                   beforeLabel="Old Site"
                   afterLabel="AdHello Smart Site"
+                  demoUrl={PORTFOLIO_EXAMPLES[portfolioIndex].demoUrl}
                 />
               </motion.div>
             </AnimatePresence>
