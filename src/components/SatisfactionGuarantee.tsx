@@ -49,9 +49,6 @@ export function SatisfactionGuarantee({ className = "", variant = 'full' }: Sati
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-1.5 flex-wrap">
               <h4 className="text-xl font-black text-brand-dark">30-Day Happiness Guarantee</h4>
-              <div className="flex gap-0.5">
-                {[1, 2, 3, 4, 5].map(s => <Star key={s} className="w-3 h-3 fill-amber-500 text-amber-500" />)}
-              </div>
             </div>
             
             <p className="text-brand-dark/70 text-[13px] font-medium leading-relaxed mb-4">
@@ -127,13 +124,10 @@ export function SatisfactionGuarantee({ className = "", variant = 'full' }: Sati
             <motion.div variants={itemVars} className="pt-10 border-t border-brand-dark/5 flex flex-col sm:flex-row sm:items-center gap-8">
               <div className="space-y-1">
                 <span className="digital-signature text-6xl text-brand-dark/90">Alex Pavlenko</span>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-dark/40 px-1">Founder & CEO, AdHello.ai</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-dark/40 px-1">Founder, AdHello.ai</p>
               </div>
               <div className="hidden sm:block w-px h-12 bg-brand-dark/10"></div>
               <div className="flex flex-col gap-2">
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map(s => <Star key={s} className="w-4 h-4 fill-amber-500 text-amber-500" />)}
-                </div>
                 <span className="text-[10px] font-bold text-brand-dark/40 uppercase tracking-widest">500+ Businesses Delighted</span>
               </div>
             </motion.div>
