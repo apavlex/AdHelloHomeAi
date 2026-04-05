@@ -919,10 +919,15 @@ app.post('/api/leads', async (req, res) => {
 });
 
 app.post('/api/ad-brief/generate-image', (req, res) => {
-  const { prompt, originalImage } = req.body;
+  const { headline, body, platform, originalImage, visualStyle } = req.body;
+  console.log(`[GEN-IMAGE] Request for ${platform}: "${headline}" with style: ${visualStyle}`);
+  
   // If we have an original image, use that as the primary visual interest.
-  // Otherwise, return a generic but professional business placeholder.
-  res.json({ imageUrl: originalImage || 'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&q=80&w=1000' });
+  // In a production environment, this would call a real Image-to-Image API.
+  res.json({ 
+    imageUrl: originalImage || 'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&q=80&w=1000',
+    success: true
+  });
 });
 
 function cleanAIResponse(text) {

@@ -92,10 +92,24 @@ const HERO_VARIANTS = [
 
 const PORTFOLIO_EXAMPLES = [
   {
+    id: 'painting',
+    name: 'Painting',
+    beforeImage: '/templates/painting-before.png',
+    afterImage: '/templates/painting-after.png',
+    demoUrl: '/templates/painting-preview'
+  },
+  {
+    id: 'movers',
+    name: 'Movers',
+    beforeImage: 'https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?auto=format&fit=crop&q=80&w=800',
+    afterImage: 'https://images.unsplash.com/photo-1533158307587-828f0a76ef46?auto=format&fit=crop&q=80&w=1200',
+    demoUrl: '/templates/movers-preview'
+  },
+  {
     id: 'plumbing',
     name: 'Plumbers',
-    beforeImage: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800',
-    afterImage: '/templates/template-plumbing-light.png',
+    beforeImage: '/templates/plumbing-before.png',
+    afterImage: '/templates/plumbing-after.png',
     demoUrl: '/presso-home.html'
   },
   {
@@ -111,20 +125,6 @@ const PORTFOLIO_EXAMPLES = [
     beforeImage: 'https://images.unsplash.com/photo-1632759145351-1d592919f522?auto=format&fit=crop&q=80&w=800',
     afterImage: '/templates/template-roofing-light.png',
     demoUrl: '/presso-brands.html'
-  },
-  {
-    id: 'emergency',
-    name: 'Emergency',
-    beforeImage: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
-    afterImage: '/templates/template-joes-emergency.png',
-    demoUrl: '/presso-home.html'
-  },
-  {
-    id: 'dashboard',
-    name: 'Client Portal',
-    beforeImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800',
-    afterImage: '/templates/template-joes-dashboard.png',
-    demoUrl: '/presso-partners.html'
   }
 ];
 
@@ -256,7 +256,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <header className="flex items-center justify-between h-16 sm:h-20">
             <div className="flex items-center gap-2">
-              <a href="/" aria-label="AdHello.ai home" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}><Logo variant="dark" /></a>
+              <a href="/" aria-label="AdHello.ai home" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}><Logo variant="light" /></a>
             </div>
             <div className="hidden md:flex items-center gap-10">
               <nav className="flex gap-10">

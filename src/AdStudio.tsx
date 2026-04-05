@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { SiteAudit } from './components/SiteAudit';
 import { Logo } from './components/Logo';
+import { DtcAdCard } from './components/DtcAdCard';
 import { Link, useSearchParams } from 'react-router-dom';
 
 // @ts-ignore
@@ -95,7 +96,8 @@ export default function AdStudio() { useAnalytics(); useAnalytics();
           headline: ad.headline,
           body: ad.body,
           visualStyle: briefData.visualPrompt,
-          platform: ad.platform
+          platform: ad.platform,
+          originalImage: selectedImage
         })
       });
 
@@ -602,43 +604,32 @@ export default function AdStudio() { useAnalytics(); useAnalytics();
                           <h3 className="text-2xl font-bold mb-8">Ad Concepts</h3>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {briefData?.adConcepts.map((ad: any, i: number) => (
-                              <div key={i} className="bg-[#121417] rounded-3xl overflow-hidden border border-white/5 flex flex-col">
-                                <div className="aspect-square bg-white/5 flex items-center justify-center relative group">
-                                  <img 
-                                    src={generatedImages[i] || selectedImage || ''} 
-                                    alt="Ad" 
-                                    className={`w-full h-full object-cover transition-opacity duration-500 ${generatedImages[i] ? 'opacity-100' : 'opacity-50'}`} 
-                                  />
-                                  <button 
-                                    onClick={() => generateAdImage(i, ad)}
-                                    disabled={generatingIndices.has(i)}
-                                    className="absolute bg-primary text-brand-dark px-6 py-3 rounded-full font-bold flex items-center gap-2 transform transition-transform group-hover:scale-105 disabled:opacity-50 disabled:scale-100"
-                                  >
-                                    {generatingIndices.has(i) ? (
-                                      <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <Sparkles className="w-4 h-4" />
-                                    )}
-                                    {generatingIndices.has(i) ? 'Generating...' : 'Generate Image'}
-                                  </button>
-                                </div>
-                                <div className="p-6 flex-grow flex flex-col">
-                                  <div className="flex items-center gap-2 text-primary text-xs font-black uppercase tracking-widest mb-4">
-                                    {ad.platform === 'Instagram' ? <Instagram className="w-5 h-5" /> : ad.platform === 'Facebook' ? <Facebook className="w-5 h-5" /> : <TikTokIcon className="w-5 h-5" />}
-                                    {ad.platform}
-                                  </div>
-                                  <h4 className="text-xl font-bold mb-2">{ad.headline}</h4>
-                                  <p className="text-white/40 text-sm mb-6 flex-grow">{ad.body}</p>
-                                  <div className="flex items-center gap-2">
-                                    <button className="flex-grow bg-primary hover:bg-primary-hover text-brand-dark px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2">
-                                      {ad.platform === 'Instagram' ? 'Shop Now' : ad.platform === 'Facebook' ? 'Learn More' : 'Get Started'}
-                                    </button>
-                                    <button className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors">
-                                      <Copy className="w-4 h-4" />
-                                      Copy Text
+                              <div key={i} className="relative group">
+                                <DtcAdCard 
+                                  platform={ad.platform}
+                                  headline={ad.headline}
+                                  body={ad.body}
+                                  image={generatedImages[i] || selectedImage || ''}
+                                  benefits={briefData.competitiveAdvantages}
+                                  vibe={i === 0 ? 'peach' : i === 1 ? 'green' : 'cream'}
+                                  layout={i === 1 ? 'comparison' : 'standard'}
+                                />
+                                {!generatedImages[i] && (
+                                  <div className="absolute inset-x-8 top-1/3 flex justify-center z-20">
+                                    <button 
+                                      onClick={() => generateAdImage(i, ad)}
+                                      disabled={generatingIndices.has(i)}
+                                      className="bg-primary hover:bg-primary-hover text-brand-dark px-6 py-4 rounded-full font-black flex items-center gap-2 transform transition-all group-hover:scale-110 disabled:opacity-50 disabled:scale-100 shadow-2xl border-4 border-white/20"
+                                    >
+                                      {generatingIndices.has(i) ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                      ) : (
+                                        <Sparkles className="w-5 h-5" />
+                                      )}
+                                      {generatingIndices.has(i) ? 'GENERATING...' : 'ENHANCE WITH AI'}
                                     </button>
                                   </div>
-                                </div>
+                                )}
                               </div>
                             ))}
                           </div>
