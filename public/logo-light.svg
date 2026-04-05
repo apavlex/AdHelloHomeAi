@@ -1,5 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40">
-  <path d="M12 2L2 22h8v16l10-20h-8l8-16z" fill="#F9FAFB" />
-  <text x="32" y="26" font-family="Arial, sans-serif" font-weight="900" font-size="24" fill="#F9FAFB" letter-spacing="-1">adhello</text>
-  <text x="120" y="26" font-family="Arial, sans-serif" font-weight="500" font-size="24" fill="#9CA3AF" letter-spacing="-1">leadsOS</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 48" fill="none">
+  <defs>
+    <linearGradient id="gold-grad-light" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD700" />
+      <stop offset="1" stop-color="#DAA520" />
+    </linearGradient>
+  </defs>
+  <!-- Gold Icon Square -->
+  <rect x="0" y="4" width="40" height="40" rx="10" fill="url(#gold-grad-light)" />
+  <!-- 'A' Symbol -->
+  <path d="M20 13L10 32.5M20 13L30 32.5M14 26H26" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Text -->
+  <text x="50" y="35" font-family="Inter, -apple-system, sans-serif" font-weight="800" font-size="32" fill="#FFFFFF" letter-spacing="-1.5">adhello<tspan fill="#FFD700">.ai</tspan></text>
 </svg>
