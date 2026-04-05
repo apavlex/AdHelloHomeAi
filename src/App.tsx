@@ -101,9 +101,23 @@ const PORTFOLIO_EXAMPLES = [
   {
     id: 'movers',
     name: 'Movers',
-    beforeImage: 'https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?auto=format&fit=crop&q=80&w=800',
-    afterImage: 'https://images.unsplash.com/photo-1533158307587-828f0a76ef46?auto=format&fit=crop&q=80&w=1200',
+    beforeImage: '/templates/movers-before.png',
+    afterImage: '/templates/movers-after.png',
     demoUrl: '/templates/movers-preview'
+  },
+  {
+    id: 'electrical',
+    name: 'Electrical',
+    beforeImage: '/templates/electrical-before.png',
+    afterImage: '/templates/electrical-after.png',
+    demoUrl: '/templates/electrical-preview'
+  },
+  {
+    id: 'restoration',
+    name: 'Property Restoration',
+    beforeImage: '/templates/old-site copy.png',
+    afterImage: '/templates/property-after.png',
+    demoUrl: '/templates/restoration-preview'
   },
   {
     id: 'plumbing',
@@ -111,20 +125,6 @@ const PORTFOLIO_EXAMPLES = [
     beforeImage: '/templates/plumbing-before.png',
     afterImage: '/templates/plumbing-after.png',
     demoUrl: '/presso-home.html'
-  },
-  {
-    id: 'hvac',
-    name: 'HVAC',
-    beforeImage: 'https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?auto=format&fit=crop&q=80&w=800',
-    afterImage: '/templates/template-joes-home.png',
-    demoUrl: '/presso-partners.html'
-  },
-  {
-    id: 'roofing',
-    name: 'Roofing',
-    beforeImage: 'https://images.unsplash.com/photo-1632759145351-1d592919f522?auto=format&fit=crop&q=80&w=800',
-    afterImage: '/templates/template-roofing-light.png',
-    demoUrl: '/presso-brands.html'
   }
 ];
 
