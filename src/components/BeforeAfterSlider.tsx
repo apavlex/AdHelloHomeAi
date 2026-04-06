@@ -2,17 +2,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Expand, X } from 'lucide-react';
 
 interface BeforeAfterSliderProps {
-  beforeImage: string;
+  beforeImage?: string | null;
   afterImage: string;
   beforeLabel?: string;
   afterLabel?: string;
+  className?: string;
 }
 
 export function BeforeAfterSlider({
   beforeImage,
   afterImage,
   beforeLabel = "Old Site",
-  afterLabel = "AdHello Smart Site"
+  afterLabel = "AdHello Smart Site",
+  className = ""
 }: BeforeAfterSliderProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -77,10 +79,47 @@ export function BeforeAfterSlider({
     { top: '80%', left: '60%', text: 'Integrated Trust Signals' },
   ];
 
+  if (!beforeImage) {
+    return (
+      <div className={`relative w-full max-w-5xl mx-auto overflow-hidden rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/20 bg-gray-50 h-[70vh] min-h-[500px] ${className}`}>
+        <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
+          <div className="relative h-[2000px] w-full">
+            <img
+              src={afterImage}
+              alt="New AdHello Smart Site"
+              className="w-full h-auto object-top"
+            />
+          </div>
+        </div>
+        
+        {/* New Launch Badge */}
+        <div className="absolute top-8 left-8 z-10">
+          <div className="bg-brand-dark/80 backdrop-blur-xl text-white px-5 py-2.5 rounded-2xl font-black text-xs md:text-sm border border-white/10 shadow-2xl flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
+            NEW BUSINESS LAUNCH
+          </div>
+        </div>
+
+        <div className="absolute top-8 right-8 z-10">
+          <div className="bg-primary/90 backdrop-blur-xl text-brand-dark px-5 py-2.5 rounded-2xl font-black text-xs md:text-sm border border-brand-dark/10 shadow-2xl flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-bounce"></div>
+            {afterLabel.toUpperCase()}
+          </div>
+        </div>
+
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50">
+           <div className="bg-white/20 backdrop-blur-md text-white/80 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 shadow-lg">
+             Scroll to see full site
+           </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
     <div 
-      className="relative w-full max-w-5xl mx-auto overflow-hidden rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/20 select-none bg-gray-50 group h-[70vh] min-h-[500px]"
+      className={`relative w-full max-w-5xl mx-auto overflow-hidden rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/20 select-none bg-gray-50 group h-[70vh] min-h-[500px] ${className}`}
       ref={containerRef}
       style={{ 
         ['--slider-pos' as any]: `${sliderPosition}%`

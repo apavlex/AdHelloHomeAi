@@ -919,11 +919,11 @@ export default function App() {
               <div className="relative shrink-0">
                 <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-2 border-gray-100 shadow-sm">
                   <img 
-                    src="/alex-profile.png" 
+                    src="https://images.unsplash.com/photo-1544168190-79c17527004f?auto=format&fit=facearea&facepad=2&w=400&h=400&q=80" 
                     alt="Alex Pavlenko" 
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.currentTarget.src = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=400&h=400&q=80";
+                      e.currentTarget.src = "https://ui-avatars.com/api/?name=Alex+Pavlenko&background=FF8C69&color=fff&size=128";
                     }}
                   />
                 </div>
@@ -963,10 +963,10 @@ export default function App() {
             <div className="bg-brand-dark px-6 py-5 flex items-center gap-4">
               <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary/30 flex-shrink-0">
                 <img 
-                  src="/alex-profile.png" 
+                  src="https://images.unsplash.com/photo-1544168190-79c17527004f?auto=format&fit=facearea&facepad=2&w=400&h=400&q=80" 
                   alt="Alex" 
                   className="w-full h-full object-cover" 
-                  onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=100&q=80"; }} 
+                  onError={(e) => { e.currentTarget.src = "https://ui-avatars.com/api/?name=Alex+Pavlenko&background=FF8C69&color=fff&size=128"; }} 
                 />
               </div>
               <div className="flex-1">
@@ -1300,7 +1300,7 @@ export default function App() {
         </div>
       </section>
 
-      <SatisfactionGuarantee className="mt-20 px-4 max-w-6xl mx-auto" />
+
 
       <footer className="bg-warm-cream text-brand-dark/60 py-12 border-t border-brand-dark/5">
         <div className="max-w-7xl mx-auto px-4">
@@ -1312,6 +1312,9 @@ export default function App() {
               <p className="text-lg leading-relaxed mb-8 italic text-brand-dark/80">
                 "Websites built for home service businesses that want more leads."
               </p>
+              
+              <SatisfactionGuarantee variant="footer" className="!mt-2 !pt-6 mb-8" />
+              
               <div className="flex gap-4">
                 <a
                   className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-brand-dark transition-all text-brand-dark"

@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 
 interface SatisfactionGuaranteeProps {
   className?: string;
-  variant?: 'compact' | 'full';
+  variant?: 'compact' | 'full' | 'footer';
 }
 
 const containerVars = {
@@ -26,6 +26,28 @@ const itemVars = {
 };
 
 export function SatisfactionGuarantee({ className = "", variant = 'full' }: SatisfactionGuaranteeProps) {
+  if (variant === 'footer') {
+    return (
+      <div className={`mt-8 pt-8 border-t border-brand-dark/5 ${className}`}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="bg-amber-400 p-2 rounded-lg shadow-sm">
+            <ShieldCheck className="w-5 h-5 text-brand-dark" />
+          </div>
+          <div className="yellow-burst !py-0.5 !px-2 !text-[8px] font-black !rotate-[-10deg] whitespace-nowrap !shadow-none !static">
+            30-DAY GUARANTEE
+          </div>
+        </div>
+        <p className="text-[13px] font-bold text-brand-dark/60 leading-relaxed mb-4">
+          "If our smart site doesn't outperform your best ads within 30 days, <span className="text-brand-dark underline decoration-amber-400/50 decoration-2">we'll refund every cent.</span>"
+        </p>
+        <div className="flex flex-col">
+          <span className="digital-signature text-3xl -mt-1 scale-90 origin-left text-brand-dark/80">Alex Pavlenko</span>
+          <span className="text-[8px] font-black uppercase tracking-widest text-brand-dark/30 ml-2">Founder, AdHello.ai</span>
+        </div>
+      </div>
+    );
+  }
+
   if (variant === 'compact') {
     return (
       <motion.div 
