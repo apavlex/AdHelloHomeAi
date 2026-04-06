@@ -62,18 +62,25 @@ const getPublicAsset = (path: string) => {
 
 const HERO_VARIANTS = [
   {
-    trade: "HVAC",
-    tagline: "Built for HVAC Professionals",
-    headline: "Capture emergency calls 24/7 on autopilot.",
-    subheadline: "When a furnace breaks at midnight, your AI receptionist is there to book the job. No more missed calls, no more lost revenue. Just a booked schedule.",
-    image: getPublicAsset("templates/template-joes-home.png")
-  },
-  {
     trade: "Electrical",
     tagline: "Built for Electrical Services",
     headline: "Power up your business with more electrical leads.",
     subheadline: "While you’re wiring a panel, AdHello is working on autopilot—optimizing your site, boosting your search rank, and finding new lead opportunities automatically.",
     image: "https://images.unsplash.com/photo-1558444479-c8f010b487c2?auto=format&fit=crop&w=1200&q=80"
+  },
+  {
+    trade: "Flooring",
+    tagline: "Built for Flooring Specialists",
+    headline: "Showcase your craftsmanship, capture more leads.",
+    subheadline: "Your work speaks for itself—your website should too. AdHello builds a stunning, lead-focused site that turns gallery visits into installation jobs.",
+    image: "https://images.unsplash.com/photo-1581850518616-bcb8077fa2aa?auto=format&fit=crop&w=1200&q=80"
+  },
+  {
+    trade: "HVAC",
+    tagline: "Built for HVAC Professionals",
+    headline: "Capture emergency calls 24/7 on autopilot.",
+    subheadline: "When a furnace breaks at midnight, your AI receptionist is there to book the job. No more missed calls, no more lost revenue. Just a booked schedule.",
+    image: getPublicAsset("templates/template-joes-home.png")
   },
   {
     trade: "Plumbing",
@@ -88,13 +95,6 @@ const HERO_VARIANTS = [
     headline: "Turn storm chasers into long-term growth.",
     subheadline: "Don't just wait for the next storm. Build a dominant local brand that generates roofing leads year-round with AdHello's AI-driven growth engine.",
     image: getPublicAsset("templates/template-roofing-light.png")
-  },
-  {
-    trade: "Flooring",
-    tagline: "Built for Flooring Specialists",
-    headline: "Showcase your craftsmanship, capture more leads.",
-    subheadline: "Your work speaks for itself—your website should too. AdHello builds a stunning, lead-focused site that turns gallery visits into installation jobs.",
-    image: "https://images.unsplash.com/photo-1581850518616-bcb8077fa2aa?auto=format&fit=crop&w=1200&q=80"
   }
 ];
 
@@ -457,7 +457,7 @@ export default function App() {
                     See How It Works
                   </button>
                 </div>
-                <p className="text-sm font-bold text-brand-dark/40 ml-4 mt-2">No long-term contracts. Setup in 7 days. Built for HVAC, Plumbing, Electrical, Roofing &amp; More.</p>
+                <p className="text-sm font-bold text-brand-dark/40 ml-4 mt-2">No long-term contracts. Setup in 7 days. Built for Electrical, Flooring, HVAC, Plumbing, Roofing &amp; More.</p>
               </div>
             </div>
             <div className="hidden lg:flex relative order-1 lg:order-2 flex-col items-center justify-center h-[500px] lg:h-[650px]">
