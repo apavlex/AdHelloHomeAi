@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-const LEADSOS_URL = 'https://adhello-leadsos-346957283381.us-west1.run.app' || 'https://leads.adhello.ai';
+const LEADSOS_URL = 'https://adhello-leadsos-346957283381.us-west1.run.app';
 
 export const useAnalytics = () => {
   const location = useLocation();

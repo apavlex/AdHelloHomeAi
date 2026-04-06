@@ -43,7 +43,7 @@ export const DtcAdCard = ({
         filter: (node: any) => {
           return !node.classList?.contains('download-exclude');
         }
-      };
+      });
       
       const link = document.createElement('a');
       link.download = `AdHello-${platform}-${headline.slice(0, 15)}.png`;

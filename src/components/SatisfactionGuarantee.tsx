@@ -14,7 +14,7 @@ const containerVars = {
     y: 0,
     transition: {
       duration: 0.8,
-      ease: [0.16, 1, 0.3, 1],
+      ease: "cubic-bezier(0.16, 1, 0.3, 1)" as any,
       staggerChildren: 0.1
     }
   }
