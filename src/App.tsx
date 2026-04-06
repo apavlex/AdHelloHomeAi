@@ -51,13 +51,22 @@ import { SatisfactionGuarantee } from './components/SatisfactionGuarantee';
 import SEO from './components/SEO';
 import { EventBanner } from './components/EventBanner';
 
+// Helper to resolve public assets correctly in all environments (root or sub-paths)
+const getPublicAsset = (path: string) => {
+  const base = import.meta.env.BASE_URL;
+  // Ensure we don't have double slashes
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  const cleanBase = base.endsWith('/') ? base : `${base}/`;
+  return `${cleanBase}${cleanPath}`;
+};
+
 const HERO_VARIANTS = [
   {
     trade: "HVAC",
     tagline: "Built for HVAC Professionals",
     headline: "Capture emergency calls 24/7 on autopilot.",
     subheadline: "When a furnace breaks at midnight, your AI receptionist is there to book the job. No more missed calls, no more lost revenue. Just a booked schedule.",
-    image: "./templates/template-joes-home.png"
+    image: getPublicAsset("templates/template-joes-home.png")
   },
   {
     trade: "Electrical",
@@ -71,14 +80,14 @@ const HERO_VARIANTS = [
     tagline: "Built for Plumbing Services",
     headline: "Fill your plumbing schedule with high-quality leads.",
     subheadline: "Put your marketing on autopilot. AdHello handles the technical stuff, constantly improving your rank and suggesting growth strategies so you can focus on the pipes.",
-    image: "./templates/template-plumbing-light.png"
+    image: getPublicAsset("templates/template-plumbing-light.png")
   },
   {
     trade: "Roofing",
     tagline: "Built for Roofing Contractors",
     headline: "Turn storm chasers into long-term growth.",
     subheadline: "Don't just wait for the next storm. Build a dominant local brand that generates roofing leads year-round with AdHello's AI-driven growth engine.",
-    image: "./templates/template-roofing-light.png"
+    image: getPublicAsset("templates/template-roofing-light.png")
   },
   {
     trade: "Flooring",
@@ -93,26 +102,26 @@ const PORTFOLIO_EXAMPLES = [
   {
     id: 'painter',
     name: 'Painting',
-    beforeImage: '/templates/painting-before.png',
-    afterImage: '/templates/painting-after.png'
+    beforeImage: getPublicAsset('templates/painting-before.png'),
+    afterImage: getPublicAsset('templates/painting-after.png')
   },
   {
     id: 'movers',
     name: 'Movers',
-    beforeImage: '/templates/movers-before.png',
-    afterImage: '/templates/movers-after.png'
+    beforeImage: getPublicAsset('templates/movers-before.png'),
+    afterImage: getPublicAsset('templates/movers-after.png')
   },
   {
     id: 'electrical',
     name: 'Electrical',
-    beforeImage: '/templates/electrical-before.png',
-    afterImage: '/templates/electrical-after.png'
+    beforeImage: getPublicAsset('templates/electrical-before.png'),
+    afterImage: getPublicAsset('templates/electrical-after.png')
   },
   {
     id: 'restoration',
     name: 'Property Restoration',
     beforeImage: null,
-    afterImage: '/templates/property-after.png',
+    afterImage: getPublicAsset('templates/property-after.png'),
     highlights: [
       "Brand Logo Development",
       "Conversion Copywriting",
@@ -123,19 +132,19 @@ const PORTFOLIO_EXAMPLES = [
     id: 'hvac',
     name: 'HVAC',
     beforeImage: null,
-    afterImage: '/templates/template-joes-home.png'
+    afterImage: getPublicAsset('templates/template-joes-home.png')
   },
   {
     id: 'plumbing',
     name: 'Plumbing',
-    beforeImage: '/templates/plumbing-before.png',
-    afterImage: '/templates/plumbing-after.png'
+    beforeImage: getPublicAsset('templates/plumbing-before.png'),
+    afterImage: getPublicAsset('templates/plumbing-after.png')
   },
   {
     id: 'roofing',
     name: 'Roofing',
     beforeImage: null,
-    afterImage: '/templates/template-roofing-light.png'
+    afterImage: getPublicAsset('templates/template-roofing-light.png')
   }
 ];
 
@@ -794,21 +803,21 @@ export default function App() {
                 step: 1,
                 title: "The Professional Foundation",
                 desc: "We build your high-converting, AI-ready website in just 7 days. No tech headaches or complex builders—just a professional, foundational asset that belongs in the modern era.",
-                image: "./templates/template-joes-home.png",
+                image: getPublicAsset("templates/template-joes-home.png"),
                 highlight: false
               },
               {
                 step: 2,
                 title: "Capture Every Lead",
                 desc: "Launch your AI receptionist to instantly stop lead leakage. Your intelligent assistant greets visitors, qualifies leads, and books jobs 24/7—while you're on a call or asleep.",
-                image: "./templates/template-joes-emergency.png",
+                image: getPublicAsset("templates/template-joes-emergency.png"),
                 highlight: true
               },
               {
                 step: 3,
                 title: "A Scalable Growth Journey",
                 desc: "This is where the real journey begins. We provide the tools, AI-driven insights, and continuous support to help your business grow and become more optimized every single day.",
-                image: "./templates/template-joes-dashboard.png",
+                image: getPublicAsset("templates/template-joes-dashboard.png"),
                 highlight: false
               }
             ].map((card, index) => (
@@ -919,7 +928,7 @@ export default function App() {
               <div className="relative shrink-0">
                 <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-2 border-gray-100 shadow-sm">
                   <img 
-                    src="./alex.png" 
+                    src={getPublicAsset("alex.png")} 
                     alt="Alex Pavlenko" 
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -1310,7 +1319,7 @@ export default function App() {
                 <Logo variant="dark" className="h-12 w-auto" />
               </div>
               <SatisfactionGuarantee variant="footer" className="!mt-2 !pt-6 mb-8" />
-              <div className="text-[10px] font-bold opacity-30 mt-2">DEPLOY_VERSION_2.3_VERIFIED</div>
+              <div className="text-[10px] font-bold opacity-30 mt-2">DEPLOY_VERSION_2.4_VERIFIED</div>
               
               <div className="flex gap-4">
                 <a
