@@ -49,8 +49,6 @@ import { AssessmentCTA } from './components/AssessmentCTA';
 import { Logo } from './components/Logo';
 import SEO from './components/SEO';
 import { EventBanner } from './components/EventBanner';
-import { SmartSiteQuiz } from './components/SmartSiteQuiz';
-import { SatisfactionGuarantee } from './components/SatisfactionGuarantee';
 
 const HERO_VARIANTS = [
   {
@@ -92,39 +90,40 @@ const HERO_VARIANTS = [
 
 const PORTFOLIO_EXAMPLES = [
   {
-    id: 'painting',
+    id: 'painter',
     name: 'Painting',
-    beforeImage: '/templates/painting-before.png',
-    afterImage: '/templates/painting-after.png',
-    demoUrl: '/templates/painting-preview'
+    beforeImage: '/old-site.png',
+    afterImage: '/new-site.png'
   },
   {
     id: 'movers',
     name: 'Movers',
-    beforeImage: '/templates/movers-before.png',
-    afterImage: '/templates/movers-after.png',
-    demoUrl: '/templates/movers-preview'
+    beforeImage: '/old-movers-site.png',
+    afterImage: '/new-movers-site.png'
+  },
+  {
+    id: 'plumbing',
+    name: 'Plumbing',
+    beforeImage: '/old-plumbing-site.png',
+    afterImage: '/templates/template-proplumb.png'
+  },
+  {
+    id: 'hvac',
+    name: 'HVAC',
+    beforeImage: '/old-hvac-site.png',
+    afterImage: '/templates/template-joes-home.png'
   },
   {
     id: 'electrical',
     name: 'Electrical',
-    beforeImage: '/templates/electrical-before.png',
-    afterImage: '/templates/electrical-after.png',
-    demoUrl: '/templates/electrical-preview'
+    beforeImage: '/templates/template-bright-electric-old.png',
+    afterImage: '/templates/template-bright-electric-new.png'
   },
   {
-    id: 'restoration',
-    name: 'Property Restoration',
-    beforeImage: null,
-    afterImage: '/templates/property-after.png',
-    demoUrl: null
-  },
-  {
-    id: 'plumbing',
-    name: 'Plumbers',
-    beforeImage: '/templates/plumbing-before.png',
-    afterImage: '/templates/plumbing-after.png',
-    demoUrl: '/presso-home.html'
+    id: 'roofing',
+    name: 'Roofing',
+    beforeImage: '/old-roofing-site.png',
+    afterImage: '/templates/template-roofing-home.png'
   }
 ];
 
@@ -141,13 +140,6 @@ export default function App() {
   const [activeStudioTab, setActiveStudioTab] = useState<'audit' | 'brief'>('audit');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [portfolioIndex, setPortfolioIndex] = useState(0);
-  const [auditReport, setAuditReport] = useState<any>(null);
-  const [isQuizOpen, setIsQuizOpen] = useState(false);
-
-  const handleStartQuiz = (e?: React.MouseEvent) => {
-    if (e) e.preventDefault();
-    setIsQuizOpen(true);
-  };
 
   const scrollToAudit = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -159,6 +151,24 @@ export default function App() {
   };
 
   useEffect(() => {
+    // Visitor Pulse Tracking
+    const trackVisit = async () => {
+      try {
+        await fetch('/api/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            path: window.location.pathname,
+            referrer: document.referrer || 'direct',
+            userAgent: navigator.userAgent
+          })
+        });
+      } catch (e) {
+        console.error('Tracking pulse failed:', e);
+      }
+    };
+    trackVisit();
+
     const timer = setInterval(() => {
       setHeroIndex((prev) => (prev + 1) % HERO_VARIANTS.length);
     }, 15000);
@@ -256,7 +266,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <header className="flex items-center justify-between h-16 sm:h-20">
             <div className="flex items-center gap-2">
-              <a href="/" aria-label="AdHello.ai home" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}><Logo variant="light" /></a>
+              <a href="/" aria-label="AdHello.ai home" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}><Logo variant="dark" /></a>
             </div>
             <div className="hidden md:flex items-center gap-10">
               <nav className="flex gap-10">
@@ -281,7 +291,7 @@ export default function App() {
                   Sign In
                 </a>
                 <button
-                  onClick={handleStartQuiz}
+                  onClick={openChat}
                   className="bg-primary hover:bg-primary-hover text-brand-dark text-sm font-bold px-6 py-3 rounded-full transition-all duration-300 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] hover:shadow-[0_0_15px_rgba(243,221,109,0.6)] hover:-translate-y-0.5 hover:scale-105 flex items-center gap-2"
                 >
                   Build My Smart Site
@@ -324,7 +334,7 @@ export default function App() {
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  handleStartQuiz();
+                  openChat();
                 }}
                 className="flex bg-primary hover:bg-primary-hover text-brand-dark text-base font-bold px-6 py-3 rounded-full transition-all duration-300 hover:shadow-[0_0_15px_rgba(243,221,109,0.6)] hover:-translate-y-0.5 hover:scale-105 items-center justify-center gap-2 mt-2"
               >
@@ -413,7 +423,7 @@ export default function App() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                   <button
-                    onClick={handleStartQuiz}
+                    onClick={openChat}
                     className="px-10 py-5 bg-primary hover:bg-primary-hover text-brand-dark font-bold rounded-full transition-all shadow-[6px_6px_0px_rgba(45,52,54,0.1)] hover:shadow-none hover:translate-y-[4px] flex items-center justify-center gap-2 text-xl w-full sm:w-auto border-2 border-transparent group"
                   >
                     <Sparkles className="w-6 h-6 text-brand-dark group-hover:animate-pulse" />
@@ -423,7 +433,7 @@ export default function App() {
                     onClick={scrollToAudit}
                     className="px-10 py-5 bg-white hover:bg-gray-50 text-brand-dark font-bold rounded-full transition-all shadow-[6px_6px_0px_rgba(45,52,54,0.1)] hover:shadow-none hover:translate-y-[4px] flex items-center justify-center gap-2 text-xl w-full sm:w-auto border-2 border-brand-dark/5"
                   >
-                    Get AI Site Audit
+                    See How It Works
                   </button>
                 </div>
                 <p className="text-sm font-bold text-brand-dark/40 ml-4 mt-2">No long-term contracts. Setup in 7 days. Built for HVAC, Plumbing, Electrical, Roofing &amp; More.</p>
@@ -598,35 +608,12 @@ export default function App() {
                 exit={{ opacity: 0, scale: 1.02 }}
                 transition={{ duration: 0.4 }}
               >
-                {PORTFOLIO_EXAMPLES[portfolioIndex].beforeImage ? (
-                  <BeforeAfterSlider 
-                    beforeImage={PORTFOLIO_EXAMPLES[portfolioIndex].beforeImage}
-                    afterImage={PORTFOLIO_EXAMPLES[portfolioIndex].afterImage}
-                    beforeLabel="Old Site"
-                    afterLabel="AdHello Smart Site"
-                    demoUrl={PORTFOLIO_EXAMPLES[portfolioIndex].demoUrl}
-                  />
-                ) : (
-                  <div className="relative aspect-[4/3] md:aspect-[16/9] rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white/20">
-                    <img 
-                      src={PORTFOLIO_EXAMPLES[portfolioIndex].afterImage} 
-                      alt={PORTFOLIO_EXAMPLES[portfolioIndex].name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-6 right-6 bg-primary text-brand-dark px-4 py-2 rounded-full font-black text-xs shadow-xl flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      ADHELLO SMART SITE
-                    </div>
-                    <div className="absolute bottom-6 left-6 right-6 bg-white/20 backdrop-blur-md border border-white/20 p-4 rounded-2xl">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-white text-xs font-bold uppercase tracking-widest opacity-60 mb-1">Status</p>
-                          <p className="text-white text-lg font-black italic">Conversion-Optimized Layout</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <BeforeAfterSlider 
+                  beforeImage={PORTFOLIO_EXAMPLES[portfolioIndex].beforeImage}
+                  afterImage={PORTFOLIO_EXAMPLES[portfolioIndex].afterImage}
+                  beforeLabel="Old Site"
+                  afterLabel="AdHello Smart Site"
+                />
               </motion.div>
             </AnimatePresence>
             
@@ -896,7 +883,7 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
               >
-                <SiteAudit onAuditComplete={setAuditReport} />
+                <SiteAudit />
               </motion.div>
             ) : (
               <motion.div
@@ -906,7 +893,7 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
               >
-                <AdBrief auditReport={auditReport} />
+                <AdBrief />
               </motion.div>
             )}
           </AnimatePresence>
@@ -1165,7 +1152,7 @@ export default function App() {
                 <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> AI Growth Coach</li>
                 <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> Hosting & updates included</li>
               </ul>
-              <button onClick={handleStartQuiz} className="w-full py-4 bg-brand-dark hover:bg-brand-dark/90 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
+              <button onClick={openChat} className="w-full py-4 bg-brand-dark hover:bg-brand-dark/90 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
                 Start Here
               </button>
             </div>
@@ -1188,7 +1175,7 @@ export default function App() {
                 <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Advanced analytics & competitor tracking</li>
                 <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Credits system — use what you need, buy more as you grow</li>
               </ul>
-              <button onClick={handleStartQuiz} className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
+              <button onClick={openChat} className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
                 Join the Waitlist
               </button>
             </div>
@@ -1213,7 +1200,7 @@ export default function App() {
                 <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Agent Automation</li>
               </ul>
               <p className="text-white/50 text-sm mb-6 italic">This isn't for everyone — it's for businesses serious about dominating their local market.</p>
-              <button onClick={handleStartQuiz} className="w-full py-4 bg-white hover:bg-gray-100 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg mt-auto">
+              <button onClick={openChat} className="w-full py-4 bg-white hover:bg-gray-100 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg mt-auto">
                 Apply for Managed
               </button>
             </div>
@@ -1283,7 +1270,7 @@ export default function App() {
           </div>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <button
-              onClick={handleStartQuiz}
+              onClick={openChat}
               className="bg-primary hover:bg-primary-hover text-brand-dark font-extrabold py-5 px-12 rounded-full shadow-[0px_0px_20px_rgba(243,221,109,0.3)] hover:shadow-[0px_0px_30px_rgba(243,221,109,0.5)] transition-all transform hover:scale-105 flex items-center justify-center gap-3 text-xl md:text-2xl group"
             >
               <Sparkles className="w-8 h-8 text-brand-dark group-hover:scale-110 transition-transform" />
@@ -1295,12 +1282,14 @@ export default function App() {
 
       <footer className="bg-warm-cream text-brand-dark/60 py-12 border-t border-brand-dark/5">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-10">
             <div>
               <div className="flex items-center gap-3 mb-8">
                 <Logo variant="dark" className="h-12 w-auto" />
               </div>
-              <SatisfactionGuarantee variant="compact" className="mb-8" />
+              <p className="text-lg leading-relaxed mb-8 italic text-brand-dark/80">
+                "Websites built for home service businesses that want more leads."
+              </p>
               <div className="flex gap-4">
                 <a
                   className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-brand-dark transition-all text-brand-dark"
@@ -1343,18 +1332,13 @@ export default function App() {
                   </Link>
                 </li>
                 <li>
-                  <a className="hover:text-primary-dark transition-colors" href="/#faq">
-                    Common Questions
+                  <a className="hover:text-primary-dark transition-colors" href="/presso-home.html">
+                    AdHello × Presso
                   </a>
                 </li>
                 <li>
                   <a className="hover:text-primary-dark transition-colors" href="/#pricing">
                     Pricing
-                  </a>
-                </li>
-                <li>
-                  <a className="hover:text-primary-dark transition-colors" href="https://leads.adhello.ai" target="_blank" rel="noopener noreferrer">
-                    Agency OS
                   </a>
                 </li>
               </ul>
@@ -1400,28 +1384,6 @@ export default function App() {
                 <li>
                   <a className="hover:text-primary-dark transition-colors" href="#">
                     Terms of Service
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-brand-dark text-xl font-extrabold mb-6">
-                X Presso
-              </h4>
-              <ul className="space-y-4 text-base font-medium">
-                <li>
-                  <a className="hover:text-primary-dark transition-colors" href="/presso-home.html">
-                    Presso Home
-                  </a>
-                </li>
-                <li>
-                  <a className="hover:text-primary-dark transition-colors" href="/presso-partners.html">
-                    Partner Program
-                  </a>
-                </li>
-                <li>
-                  <a className="hover:text-primary-dark transition-colors" href="/presso-brands.html">
-                    Brand Placement
                   </a>
                 </li>
               </ul>
@@ -1519,7 +1481,6 @@ export default function App() {
           </div>
         )
       }
-      <SmartSiteQuiz isOpen={isQuizOpen} onClose={() => setIsQuizOpen(false)} />
     </div >
   );
 }

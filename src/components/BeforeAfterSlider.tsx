@@ -6,15 +6,13 @@ interface BeforeAfterSliderProps {
   afterImage: string;
   beforeLabel?: string;
   afterLabel?: string;
-  demoUrl?: string;
 }
 
 export function BeforeAfterSlider({
   beforeImage,
   afterImage,
   beforeLabel = "Old Site",
-  afterLabel = "AdHello Smart Site",
-  demoUrl
+  afterLabel = "AdHello Smart Site"
 }: BeforeAfterSliderProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -147,23 +145,22 @@ export function BeforeAfterSlider({
         className="absolute inset-0 z-40 pointer-events-none"
       >
         <div 
-          className="absolute top-0 bottom-0 w-1 bg-white/40 backdrop-blur-md cursor-ew-resize pointer-events-auto shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+          className="absolute top-0 bottom-0 w-1 bg-white/80 backdrop-blur-sm cursor-ew-resize pointer-events-auto"
           style={{ left: `calc(var(--slider-pos) - 2px)` }}
           onMouseDown={() => setIsDragging(true)}
           onTouchStart={() => setIsDragging(true)}
         >
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white/90 backdrop-blur-2xl rounded-full shadow-[0_15px_45px_rgba(0,0,0,0.3)] flex items-center justify-center border-4 border-white transition-all duration-300 hover:scale-110 active:scale-95 z-50">
-            <div className="flex gap-1.5 items-center text-brand-dark">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.4)] flex items-center justify-center border-4 border-white transition-transform duration-300 hover:scale-110 active:scale-95">
+            <div className="flex gap-0.5 items-center text-brand-dark">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <div className="w-[2px] h-6 bg-brand-dark/10 rounded-full"></div>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="rotate-180">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="rotate-180">
                 <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
           </div>
-          <div className="absolute inset-0 w-20 -left-[38px] bg-white/20 blur-2xl pointer-events-none"></div>
+          <div className="absolute inset-0 w-12 -left-[22px] bg-white/10 blur-xl pointer-events-none"></div>
         </div>
       </div>
 
@@ -183,7 +180,7 @@ export function BeforeAfterSlider({
         </div>
       </div>
       
-      <div className="absolute top-8 right-8 z-10 pointer-events-none flex flex-col items-end gap-3">
+      <div className="absolute top-8 right-8 z-10 pointer-events-none">
         <div 
           className="transition-all duration-500 ease-out"
           style={{ 
@@ -196,28 +193,6 @@ export function BeforeAfterSlider({
             {afterLabel.toUpperCase()}
           </div>
         </div>
-
-        {demoUrl && (
-          <div 
-            className="transition-all duration-500 ease-out delay-100 pointer-events-auto"
-            style={{ 
-              opacity: sliderPosition < 70 ? 1 : 0,
-              transform: `translateX(${sliderPosition < 70 ? 0 : 20}px)`
-            }}
-          >
-            <a 
-              href={demoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-white/90 backdrop-blur-sm hover:bg-white text-brand-dark px-4 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-lg flex items-center gap-2 transition-all hover:scale-105 active:scale-95 border border-brand-dark/5"
-            >
-              <span>View Live Site</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
-              </svg>
-            </a>
-          </div>
-        )}
       </div>
 
       {/* Dynamic Info Badge */}

@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { CheckCircle2, Instagram, Facebook, Share2, ArrowRight, Sparkles, Download } from 'lucide-react';
+import React from 'react';
+import { CheckCircle2, Instagram, Facebook, ArrowRight, Sparkles } from 'lucide-react';
 import { toPng } from 'html-to-image';
 
 interface DtcAdCardProps {
@@ -13,7 +13,7 @@ interface DtcAdCardProps {
   layout?: 'standard' | 'comparison';
 }
 
-export function DtcAdCard({ 
+export const DtcAdCard = ({ 
   platform, 
   headline, 
   body, 
@@ -22,9 +22,8 @@ export function DtcAdCard({
   benefits = ['Clinically Proven', 'Boosts Hydration', 'Visible Results'],
   vibe = 'peach',
   layout = 'standard'
-}: DtcAdCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  
+}: DtcAdCardProps) => {
+  const cardRef = React.useRef<HTMLDivElement>(null);
   const vibes = {
     peach: { bg: 'bg-[#FEF1E2]', text: 'text-[#FF8C69]', accent: '#FF8C69' },
     green: { bg: 'bg-[#F1F5E1]', text: 'text-[#2A4D3E]', accent: '#2A4D3E' },
@@ -34,17 +33,17 @@ export function DtcAdCard({
   const currentVibe = vibes[vibe];
 
   const handleDownload = async () => {
-    if (!cardRef.current) return;
+    const element = cardRef.current;
+    if (!element) return;
     
     try {
-      const dataUrl = await toPng(cardRef.current, {
+      const dataUrl = await toPng(element, {
         quality: 1.0,
         pixelRatio: 2,
         filter: (node: any) => {
-          // Filter out the action buttons from the download
           return !node.classList?.contains('download-exclude');
         }
-      });
+      };
       
       const link = document.createElement('a');
       link.download = `AdHello-${platform}-${headline.slice(0, 15)}.png`;
@@ -64,52 +63,31 @@ export function DtcAdCard({
   return (
     <div 
       ref={cardRef}
-      className={`group relative ${currentVibe.bg} rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl transition-all hover:scale-[1.02] hover:shadow-primary/10`}
+      className={`group/card relative ${currentVibe.bg} rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl transition-all hover:shadow-primary/10`}
     >
-      {/* Ad Image / Preview Section */}
       <div className={`relative ${layout === 'comparison' ? 'aspect-[4/5]' : 'aspect-square'} overflow-hidden`}>
-        {layout === 'comparison' ? (
-          <div className="flex w-full h-full">
-            <div className="w-1/2 h-full relative overflow-hidden bg-white/10">
-              <img src={image} alt="Us" className="w-full h-full object-cover grayscale-[0.5]" />
-              <div className="absolute top-4 left-4 bg-primary text-brand-dark px-3 py-1 rounded-lg font-black text-[10px]">US</div>
-            </div>
-            <div className="w-1/2 h-full relative overflow-hidden bg-black/20">
-              <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=800" alt="Them" className="w-full h-full object-cover grayscale opacity-40" />
-              <div className="absolute top-4 right-4 bg-white/20 text-white px-3 py-1 rounded-lg font-black text-[10px]">THEM</div>
-            </div>
-          </div>
-        ) : (
-          <img 
-            src={image} 
-            alt="Ad Visual" 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          />
-        )}
-        
-        {/* DTC Overlays */}
+        <img 
+          src={image} 
+          alt="Ad Visual" 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none"></div>
-
-        {/* Watermark */}
         <div className="absolute bottom-4 right-6 pointer-events-none opacity-30 select-none">
           <span className="text-brand-dark text-xs font-black tracking-tighter uppercase italic">adhello.ai</span>
         </div>
-        
-        {/* Dynamic Badges */}
-        <div className="absolute top-6 left-6 flex flex-col gap-2">
+        <div className="absolute top-4 left-4 right-4 flex flex-col gap-1.5 items-start">
           {benefits.slice(0, 2).map((benefit, idx) => (
             <div 
               key={idx}
-              className="bg-white/95 backdrop-blur-md text-brand-dark px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-xl flex items-center gap-2 border border-brand-dark/5"
+              className="bg-white/95 backdrop-blur-md text-brand-dark px-2.5 py-1 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-tight shadow-lg flex items-center gap-1.5 border border-brand-dark/5 max-w-[85%] leading-tight"
             >
-              <CheckCircle2 className="w-3 h-3 text-green-600" />
-              {benefit}
+              <CheckCircle2 className="w-2.5 h-2.5 text-green-600 shrink-0" />
+              <span className="truncate">{benefit}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Content Section */}
       <div className="p-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: currentVibe.accent }}>
@@ -123,30 +101,28 @@ export function DtcAdCard({
           {headline}
         </div>
 
-        <p className="text-brand-dark/60 text-sm leading-relaxed mb-8 line-clamp-3">
+        <p className="text-brand-dark/60 text-sm leading-relaxed mb-8 line-clamp-3 font-medium">
           {body}
         </p>
 
         <div className="space-y-4">
-          <div className="flex items-center gap-4 download-exclude">
-            <button 
-              className="flex-grow py-4 rounded-2xl font-black text-sm transition-all hover:brightness-110 active:scale-95 flex items-center justify-center gap-2 shadow-xl"
-              style={{ backgroundColor: currentVibe.accent, color: 'white' }}
-            >
-              {platform === 'TikTok' ? 'GET STARTED' : 'SHOP NOW'}
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+          <button 
+            className="w-full py-4 rounded-2xl font-black text-sm active:scale-95 flex items-center justify-center gap-2 shadow-xl download-exclude"
+            style={{ backgroundColor: currentVibe.accent, color: 'white' }}
+          >
+            {platform === 'TikTok' ? 'GET STARTED' : 'SHOP NOW'}
+            <ArrowRight className="w-4 h-4" />
+          </button>
 
           <button 
             onClick={handleDownload}
             className="w-full py-4 bg-white/40 backdrop-blur-md hover:bg-white/60 text-brand-dark/60 hover:text-brand-dark rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-3 border border-white/20 download-exclude"
           >
             <Sparkles className="w-4 h-4" />
-            Approve to Download
+            Download Brand Asset
           </button>
         </div>
       </div>
     </div>
   );
-}
+};
