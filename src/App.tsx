@@ -54,38 +54,38 @@ import { EventBanner } from './components/EventBanner';
 const HERO_VARIANTS = [
   {
     trade: "HVAC",
-    tagline: "Built for HVAC Services",
-    headline: "Get more HVAC leads with a website built for comfort.",
-    subheadline: "Your smart website works for you 24/7. It automatically optimizes your content, improves your rank, and finds new leads while you're fixing an AC.",
-    image: "https://drive.google.com/thumbnail?id=1e4CPR8UPUMtsTQyKGUnil51Cf9qg2S1b&sz=w1000"
+    tagline: "Built for HVAC Professionals",
+    headline: "Capture emergency calls 24/7 on autopilot.",
+    subheadline: "When a furnace breaks at midnight, your AI receptionist is there to book the job. No more missed calls, no more lost revenue. Just a booked schedule.",
+    image: "/templates/template-joes-home.png"
   },
   {
     trade: "Electrical",
     tagline: "Built for Electrical Services",
     headline: "Power up your business with more electrical leads.",
     subheadline: "While you’re wiring a panel, AdHello is working on autopilot—optimizing your site, boosting your search rank, and finding new lead opportunities automatically.",
-    image: "/templates/electrical-after.png"
+    image: "https://images.unsplash.com/photo-1558444479-c8f010b487c2?auto=format&fit=crop&w=1200&q=80"
   },
   {
     trade: "Plumbing",
     tagline: "Built for Plumbing Services",
     headline: "Fill your plumbing schedule with high-quality leads.",
     subheadline: "Put your marketing on autopilot. AdHello handles the technical stuff, constantly improving your rank and suggesting growth strategies so you can focus on the pipes.",
-    image: "/templates/plumbing-after.png"
+    image: "/templates/template-plumbing-light.png"
   },
   {
     trade: "Roofing",
-    tagline: "Built for Roofing Services",
-    headline: "Get more roofing estimates without lifting a finger.",
-    subheadline: "Marketing that grows your business for you. AdHello automates your search optimization 24/7, finding the best ways to capture more roofing leads.",
-    image: "https://drive.google.com/thumbnail?id=1oCWDHteOB-GWTxZAA73MktTXMb0dD6to&sz=w1000"
+    tagline: "Built for Roofing Contractors",
+    headline: "Turn storm chasers into long-term growth.",
+    subheadline: "Don't just wait for the next storm. Build a dominant local brand that generates roofing leads year-round with AdHello's AI-driven growth engine.",
+    image: "/templates/template-roofing-light.png"
   },
   {
     trade: "Flooring",
-    tagline: "Built for Flooring",
-    headline: "Step up your business with more flooring leads.",
-    subheadline: "While you’re installing hardwood or laying tile, your smart website helps book your next job. Built to convert local traffic from Google, Maps, and AI search.",
-    image: "/flooring-workers.jpg"
+    tagline: "Built for Flooring Specialists",
+    headline: "Showcase your craftsmanship, capture more leads.",
+    subheadline: "Your work speaks for itself—your website should too. AdHello builds a stunning, lead-focused site that turns gallery visits into installation jobs.",
+    image: "https://images.unsplash.com/photo-1581850518616-bcb8077fa2aa?auto=format&fit=crop&w=1200&q=80"
   }
 ];
 
@@ -103,28 +103,10 @@ const PORTFOLIO_EXAMPLES = [
     afterImage: '/templates/movers-after.png'
   },
   {
-    id: 'plumbing',
-    name: 'Plumbing',
-    beforeImage: '/templates/plumbing-before.png',
-    afterImage: '/templates/plumbing-after.png'
-  },
-  {
-    id: 'hvac',
-    name: 'HVAC',
-    beforeImage: null,
-    afterImage: '/templates/template-joes-home.png'
-  },
-  {
     id: 'electrical',
     name: 'Electrical',
     beforeImage: '/templates/electrical-before.png',
     afterImage: '/templates/electrical-after.png'
-  },
-  {
-    id: 'roofing',
-    name: 'Roofing',
-    beforeImage: null,
-    afterImage: '/templates/template-roofing-light.png'
   },
   {
     id: 'restoration',
@@ -136,6 +118,24 @@ const PORTFOLIO_EXAMPLES = [
       "Conversion Copywriting",
       "Premium UI Design"
     ]
+  },
+  {
+    id: 'hvac',
+    name: 'HVAC',
+    beforeImage: null,
+    afterImage: '/templates/template-joes-home.png'
+  },
+  {
+    id: 'plumbing',
+    name: 'Plumbing',
+    beforeImage: '/templates/plumbing-before.png',
+    afterImage: '/templates/plumbing-after.png'
+  },
+  {
+    id: 'roofing',
+    name: 'Roofing',
+    beforeImage: null,
+    afterImage: '/templates/template-roofing-light.png'
   }
 ];
 
@@ -794,21 +794,21 @@ export default function App() {
                 step: 1,
                 title: "The Professional Foundation",
                 desc: "We build your high-converting, AI-ready website in just 7 days. No tech headaches or complex builders—just a professional, foundational asset that belongs in the modern era.",
-                image: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                image: "/templates/template-joes-home.png",
                 highlight: false
               },
               {
                 step: 2,
                 title: "Capture Every Lead",
                 desc: "Launch your AI receptionist to instantly stop lead leakage. Your intelligent assistant greets visitors, qualifies leads, and books jobs 24/7—while you're on a call or asleep.",
-                image: "/ai-receptionist.jpg",
+                image: "/templates/template-joes-emergency.png",
                 highlight: true
               },
               {
                 step: 3,
                 title: "A Scalable Growth Journey",
                 desc: "This is where the real journey begins. We provide the tools, AI-driven insights, and continuous support to help your business grow and become more optimized every single day.",
-                image: "/dashboard.jpg",
+                image: "/templates/template-joes-dashboard.png",
                 highlight: false
               }
             ].map((card, index) => (
@@ -818,10 +818,10 @@ export default function App() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.2, duration: 0.5 }}
-                className={`group relative flex flex-col h-full rounded-[3.5rem] overflow-hidden transition-all duration-500 hover:translate-y-[-12px] ${
+                className={`group relative flex flex-col h-full rounded-[3.5rem] overflow-hidden transition-all duration-500 hover:translate-y-[-12px] bg-white/40 backdrop-blur-md border border-white/50 shadow-xl ${
                   card.highlight 
-                    ? 'bg-white shadow-2xl z-20 border-2 border-primary ring-4 ring-primary/5' 
-                    : 'bg-white/40 backdrop-blur-md border border-white/50 shadow-xl'
+                    ? 'z-20 border-primary ring-4 ring-primary/5' 
+                    : ''
                 }`}
               >
                 <div className="h-64 w-full relative overflow-hidden">
@@ -919,7 +919,7 @@ export default function App() {
               <div className="relative shrink-0">
                 <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-2 border-gray-100 shadow-sm">
                   <img 
-                    src="https://images.unsplash.com/photo-1544168190-79c17527004f?auto=format&fit=facearea&facepad=2&w=400&h=400&q=80" 
+                    src="/alex.png" 
                     alt="Alex Pavlenko" 
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -1309,10 +1309,6 @@ export default function App() {
               <div className="flex items-center gap-3 mb-8">
                 <Logo variant="dark" className="h-12 w-auto" />
               </div>
-              <p className="text-lg leading-relaxed mb-8 italic text-brand-dark/80">
-                "Websites built for home service businesses that want more leads."
-              </p>
-              
               <SatisfactionGuarantee variant="footer" className="!mt-2 !pt-6 mb-8" />
               
               <div className="flex gap-4">

@@ -1,22 +1,22 @@
-const portlandProBlue = '/templates/template-portland-pro-blue.png';
-const portlandProYellow = '/templates/template-portland-pro-yellow.png';
-const portlandElectricHome = '/templates/template-portland-electric-home.png';
-const portlandElectricServices = '/templates/template-portland-electric-services.png';
-const portlandElectricQuote = '/templates/template-portland-electric-quote.png';
+const portlandProBlue = 'https://images.unsplash.com/photo-1558444479-c8f010b487c2?auto=format&fit=crop&w=1200&q=80'; // Light Professional Site
+const portlandProYellow = '/templates/electrical-after.png'; // Dark Professional Site
+const portlandElectricHome = '/templates/electrical-after.png';
+const portlandElectricServices = '/templates/template-joes-dashboard.png';
+const portlandElectricQuote = '/templates/template-joes-emergency.png';
 
 const plumbingLight = '/templates/template-plumbing-light.png';
-const proPlumb = '/templates/template-proplumb.png';
+const proPlumb = '/templates/plumbing-after.png';
 const joesHome = '/templates/template-joes-home.png';
 const joesEmergency = '/templates/template-joes-emergency.png';
 const joesDashboard = '/templates/template-joes-dashboard.png';
 
 const roofingLight = '/templates/template-roofing-light.png';
-const roofingEmergency = '/templates/template-roofing-emergency.png';
-const roofingCorporate = '/templates/template-roofing-corporate.png';
-const roofingDashboard = '/templates/template-roofing-dashboard.png';
-const roofingHome = '/templates/template-roofing-home.png';
-const brightElectricNew = '/templates/template-bright-electric-new.png';
-const brightElectricOld = '/templates/template-bright-electric-old.png';
+const roofingEmergency = '/templates/template-joes-emergency.png';
+const roofingCorporate = '/templates/template-roofing-light.png';
+const roofingDashboard = '/templates/template-joes-dashboard.png';
+const roofingHome = '/templates/template-roofing-light.png';
+const brightElectricNew = '/templates/electrical-after.png';
+const brightElectricOld = '/templates/electrical-before.png';
 
 export interface TemplateFeature {
     icon: string; // lucide-react icon name as a string, e.g., 'ShieldCheck'
@@ -44,9 +44,6 @@ export const CATEGORIES = [
     { id: 'electrician', name: 'Electricians' },
     { id: 'plumbing', name: 'Plumbers' },
     { id: 'roofing', name: 'Roofers' },
-    { id: 'electrician-pro', name: 'Electricians' },
-    // Future categories:
-    // { id: 'hvac', name: 'HVAC' },
 ];
 
 export const TEMPLATES: Template[] = [

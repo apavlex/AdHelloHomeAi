@@ -81,35 +81,41 @@ export function BeforeAfterSlider({
 
   if (!beforeImage) {
     return (
-      <div className={`relative w-full max-w-5xl mx-auto overflow-hidden rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/20 bg-gray-50 h-[70vh] min-h-[500px] ${className}`}>
+      <div className={`relative w-full max-w-5xl mx-auto overflow-hidden rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.15)] border border-white/20 bg-gray-50 h-[70vh] min-h-[500px] group ${className}`}>
         <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
           <div className="relative h-[2000px] w-full">
             <img
               src={afterImage}
               alt="New AdHello Smart Site"
-              className="w-full h-auto object-top"
+              className="w-full h-auto object-top transition-transform duration-700 group-hover:scale-[1.01]"
             />
           </div>
         </div>
         
+        {/* Premium Overlay Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none"></div>
+
         {/* New Launch Badge */}
         <div className="absolute top-8 left-8 z-10">
-          <div className="bg-brand-dark/80 backdrop-blur-xl text-white px-5 py-2.5 rounded-2xl font-black text-xs md:text-sm border border-white/10 shadow-2xl flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
+          <div className="bg-brand-dark/90 backdrop-blur-xl text-white px-6 py-3 rounded-2xl font-black text-xs md:text-sm border border-white/10 shadow-2xl flex items-center gap-3">
+            <div className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+            </div>
             NEW BUSINESS LAUNCH
           </div>
         </div>
 
         <div className="absolute top-8 right-8 z-10">
-          <div className="bg-primary/90 backdrop-blur-xl text-brand-dark px-5 py-2.5 rounded-2xl font-black text-xs md:text-sm border border-brand-dark/10 shadow-2xl flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-bounce"></div>
+          <div className="bg-primary/95 backdrop-blur-xl text-brand-dark px-6 py-3 rounded-2xl font-black text-xs md:text-sm border border-brand-dark/10 shadow-2xl flex items-center gap-2">
+            <Sparkles className="w-4 h-4 fill-brand-dark/20" />
             {afterLabel.toUpperCase()}
           </div>
         </div>
 
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50">
-           <div className="bg-white/20 backdrop-blur-md text-white/80 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 shadow-lg">
-             Scroll to see full site
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50">
+           <div className="bg-white/10 backdrop-blur-md text-white/90 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-white/20 shadow-2xl animate-bounce">
+             Scroll to explore the build
            </div>
         </div>
       </div>
