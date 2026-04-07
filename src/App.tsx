@@ -94,14 +94,14 @@ const HERO_VARIANTS = [
     tagline: "Built for Plumbing Services",
     headline: "Fill your plumbing schedule with high-quality leads.",
     subheadline: "Put your marketing on autopilot. AdHello handles the technical stuff, constantly improving your rank and suggesting growth strategies so you can focus on the pipes.",
-    image: getPublicAsset("templates/template-plumbing-light.png")
+    image: getPublicAsset("plumbers.jpeg")
   },
   {
     trade: "Roofing",
     tagline: "Built for Roofing Contractors",
     headline: "Turn storm chasers into long-term growth.",
     subheadline: "Don't just wait for the next storm. Build a dominant local brand that generates roofing leads year-round with AdHello's AI-driven growth engine.",
-    image: getPublicAsset("dashboard.jpg")
+    image: getPublicAsset("roofing.jpeg")
   }
 ];
 
@@ -811,21 +811,21 @@ export default function App() {
                 step: 1,
                 title: "The Professional Foundation",
                 desc: "We build your high-converting, AI-ready website in just 7 days. No tech headaches or complex builders—just a professional, foundational asset that belongs in the modern era.",
-                image: getPublicAsset("alex-profile.png"),
+                image: getPublicAsset("website-framework.jpeg"),
                 highlight: false
               },
               {
                 step: 2,
                 title: "Capture Every Lead",
                 desc: "Launch your AI receptionist to instantly stop lead leakage. Your intelligent assistant greets visitors, qualifies leads, and books jobs 24/7—while you're on a call or asleep.",
-                image: getPublicAsset("templates/template-joes-emergency.png"),
+                image: getPublicAsset("ai-receptionist.jpg"),
                 highlight: true
               },
               {
                 step: 3,
                 title: "A Scalable Growth Journey",
                 desc: "This is where the real journey begins. We provide the tools, AI-driven insights, and continuous support to help your business grow and become more optimized every single day.",
-                image: getPublicAsset("templates/template-joes-dashboard.png"),
+                image: getPublicAsset("dashboard.jpg"),
                 highlight: false
               }
             ].map((card, index) => (
@@ -846,7 +846,7 @@ export default function App() {
                     alt={card.title}
                     className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
                     src={card.image}
-                    onError={(e) => { e.currentTarget.src = '/alex-profile.png'; }}
+                    onError={(e) => { e.currentTarget.src = getPublicAsset('ai-receptionist.jpg'); }}
                   />
                   <div className={`absolute inset-0 bg-gradient-to-t ${card.highlight ? 'from-primary/20' : 'from-brand-dark/10'} to-transparent`} />
                   <div className="absolute top-6 left-6 w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-transform duration-500">
