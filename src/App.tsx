@@ -62,11 +62,18 @@ const getPublicAsset = (path: string) => {
 
 const HERO_VARIANTS = [
   {
+    trade: "HVAC",
+    tagline: "Built for HVAC Services",
+    headline: "Get more HVAC leads with a website built for comfort.",
+    subheadline: "Your smart website works for you 24/7. It automatically optimizes your content, improves your rank, and finds new leads while you're fixing an AC.",
+    image: getPublicAsset("ai-receptionist.jpg")
+  },
+  {
     trade: "Electrical",
     tagline: "Built for Electrical Services",
     headline: "Power up your business with more electrical leads.",
     subheadline: "While you’re wiring a panel, AdHello is working on autopilot—optimizing your site, boosting your search rank, and finding new lead opportunities automatically.",
-    image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=1200&q=80"
+    image: getPublicAsset("electrician.png")
   },
   {
     trade: "Flooring",
@@ -80,7 +87,7 @@ const HERO_VARIANTS = [
     tagline: "Built for HVAC Professionals",
     headline: "Capture emergency calls 24/7 on autopilot.",
     subheadline: "When a furnace breaks at midnight, your AI receptionist is there to book the job. No more missed calls, no more lost revenue. Just a booked schedule.",
-    image: getPublicAsset("templates/template-joes-home.png")
+    image: getPublicAsset("ai-receptionist.jpg")
   },
   {
     trade: "Plumbing",
@@ -94,7 +101,7 @@ const HERO_VARIANTS = [
     tagline: "Built for Roofing Contractors",
     headline: "Turn storm chasers into long-term growth.",
     subheadline: "Don't just wait for the next storm. Build a dominant local brand that generates roofing leads year-round with AdHello's AI-driven growth engine.",
-    image: getPublicAsset("templates/template-roofing-light.png")
+    image: getPublicAsset("dashboard.jpg")
   }
 ];
 
@@ -478,6 +485,7 @@ export default function App() {
                         src={HERO_VARIANTS[heroIndex].image}
                         referrerPolicy="no-referrer"
                         loading="eager"
+                        onError={(e) => { e.currentTarget.src = '/ai-receptionist.jpg'; }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent flex flex-col justify-end p-10 pb-14">
                         <div className="inline-block bg-primary text-brand-dark text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full mb-3 w-fit">
@@ -803,7 +811,7 @@ export default function App() {
                 step: 1,
                 title: "The Professional Foundation",
                 desc: "We build your high-converting, AI-ready website in just 7 days. No tech headaches or complex builders—just a professional, foundational asset that belongs in the modern era.",
-                image: getPublicAsset("templates/template-joes-home.png"),
+                image: getPublicAsset("alex-profile.png"),
                 highlight: false
               },
               {
@@ -838,6 +846,7 @@ export default function App() {
                     alt={card.title}
                     className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
                     src={card.image}
+                    onError={(e) => { e.currentTarget.src = '/alex-profile.png'; }}
                   />
                   <div className={`absolute inset-0 bg-gradient-to-t ${card.highlight ? 'from-primary/20' : 'from-brand-dark/10'} to-transparent`} />
                   <div className="absolute top-6 left-6 w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-transform duration-500">
