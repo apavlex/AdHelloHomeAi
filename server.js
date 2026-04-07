@@ -1015,7 +1015,31 @@ app.post('/api/ad-brief/analyze', async (req, res) => {
   }
 });
 
+// --- STATIC ASSETS ---
+// 1. Specific handler for images/assets to prevent falling back to index.html (tiny thumbnail bug)
+app.get(/\.(png|jpg|jpeg|gif|svg|webp|ico|json|css|js)$/, (req, res, next) => {
+  // If we reach here, it means express.static below didn't find the file
+  // but we want to check if it exists in dist or public before giving up
+  next();
+});
+
+// 2. Serve from dist (compiled)
 app.use(express.static(DIST_DIR));
+
+// 3. Fallback to public (source) just in case
+app.use(express.static(path.join(__dirname, 'public')));
+
+// 4. Image 404 - If an image was requested but not found in dist or public, 
+// return a real 404 instead of index.html
+app.get(/\.(png|jpg|jpeg|gif|svg|webp)$/, (req, res) => {
+  res.status(404).send('Not Found');
+});
+
+// 5. SPA Fallback
 app.get('*', (req, res) => res.sendFile(path.join(DIST_DIR, 'index.html')));
 
-app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`[V2.6] AdHello Server running on port ${PORT}`);
+  console.log(`[V2.6] Static DIR: ${DIST_DIR}`);
+});
+
