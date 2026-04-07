@@ -53,8 +53,7 @@ import { EventBanner } from './components/EventBanner';
 
 // Helper to resolve public assets correctly in all environments (root or sub-paths)
 const getPublicAsset = (path: string) => {
-  const base = import.meta.env.BASE_URL;
-  // Ensure we don't have double slashes
+  const base = import.meta.env.BASE_URL || '/';
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   const cleanBase = base.endsWith('/') ? base : `${base}/`;
   return `${cleanBase}${cleanPath}`;
@@ -66,14 +65,14 @@ const HERO_VARIANTS = [
     tagline: "Built for Electrical Services",
     headline: "Power up your business with more electrical leads.",
     subheadline: "While you’re wiring a panel, AdHello is working on autopilot—optimizing your site, boosting your search rank, and finding new lead opportunities automatically.",
-    image: "https://images.unsplash.com/photo-1558444479-c8f010b487c2?auto=format&fit=crop&w=1200&q=80"
+    image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=1200&q=80"
   },
   {
     trade: "Flooring",
     tagline: "Built for Flooring Specialists",
     headline: "Showcase your craftsmanship, capture more leads.",
     subheadline: "Your work speaks for itself—your website should too. AdHello builds a stunning, lead-focused site that turns gallery visits into installation jobs.",
-    image: "https://images.unsplash.com/photo-1581850518616-bcb8077fa2aa?auto=format&fit=crop&w=1200&q=80"
+    image: getPublicAsset("flooring-workers.jpg")
   },
   {
     trade: "HVAC",
@@ -1319,7 +1318,7 @@ export default function App() {
                 <Logo variant="dark" className="h-12 w-auto" />
               </div>
               <SatisfactionGuarantee variant="footer" className="!mt-2 !pt-6 mb-8" />
-              <div className="text-[10px] font-bold opacity-30 mt-2">DEPLOY_VERSION_2.4_VERIFIED</div>
+              <div className="text-[10px] font-bold opacity-30 mt-2">DEPLOY_VERSION_2.5_VERIFIED</div>
               
               <div className="flex gap-4">
                 <a
