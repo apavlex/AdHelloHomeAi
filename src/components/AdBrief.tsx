@@ -210,7 +210,7 @@ CRITICAL RULES:
 - Aspect ratio: square (1:1) for ${ad.platform === 'Instagram' ? 'Instagram feed' : ad.platform === 'Facebook' ? 'Facebook feed' : 'Google display'}
 - Quality: photorealistic, high-resolution, professionally lit`;
 
-      const res = await fetch('/api/generate-ad-image', {
+      const res = await fetch('/api/ad-brief/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, imageBase64: base64, imageMimeType: mime })

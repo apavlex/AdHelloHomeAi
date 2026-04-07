@@ -145,7 +145,7 @@ export default function AdStudio() { useAnalytics(); useAnalytics();
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ base64Data })
+        body: JSON.stringify({ image: base64Data })
       });
 
       if (!response.ok) throw new Error("Analysis failed");
