@@ -74,7 +74,7 @@ const HERO_VARIANTS = [
     tagline: "Built for Electrical Services",
     headline: "Power up your business with more electrical leads.",
     subheadline: "While you’re wiring a panel, AdHello is working on autopilot—optimizing your site, boosting your search rank, and finding new lead opportunities automatically.",
-    image: getPublicAsset("electrician.png")
+    image: getPublicAsset("electrician.jpg")
   },
   {
     trade: "Flooring",
