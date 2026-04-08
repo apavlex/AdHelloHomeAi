@@ -1011,8 +1011,9 @@ function cleanAIResponse(text) {
 app.post('/api/stitch-design', (req, res) => res.json({ success: true }));
 
 app.post('/api/ad-brief/analyze', async (req, res) => {
-  const { image } = req.body;
-  if (!image) return res.status(400).json({ error: 'Image is required.' });
+  const { image, imageBase64 } = req.body;
+  const imageData = image || imageBase64;
+  if (!imageData) return res.status(400).json({ error: 'Image is required.' });
 
   const prompt = `CRITICAL: Analyze the attached product image. 
   1. Identify the EXACT product (name and type). DO NOT invent a new product or use placeholders like "Croissants" unless they are in the image.
@@ -1035,7 +1036,7 @@ app.post('/api/ad-brief/analyze', async (req, res) => {
 
 
   try {
-    const aiResponse = await callGemini(prompt, 'gemini-2.0-flash', image, true);
+    const aiResponse = await callGemini(prompt, 'gemini-2.0-flash', imageData, true);
     if (!aiResponse) throw new Error("AI analysis failed.");
     
     // Attempt to parse AI response
