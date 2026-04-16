@@ -1044,6 +1044,21 @@ app.post('/api/leads', async (req, res) => {
   }
 });
 
+// Ad Brief Download - email gate + CRM sync
+app.post('/api/ad-brief/download', async (req, res) => {
+  const { email, source, adPlatform } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  
+  try {
+    await syncLeadToAttio({ email, source: source || 'ad_brief_download', bizName: adPlatform || 'Ad Brief' });
+    console.log('[AD-BRIEF] Download lead synced:', email);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[AD-BRIEF] Download sync failed:', err);
+    res.json({ success: true }); // Still allow download even if CRM sync fails
+  }
+});
+
 app.post('/api/ad-brief/generate-image', async (req, res) => {
   const { headline, body, platform, originalImage } = req.body;
   if (!originalImage) return res.status(400).json({ error: 'Image required' });

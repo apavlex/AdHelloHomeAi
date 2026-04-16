@@ -80,6 +80,41 @@ export function AdBrief() {
   const [approvedAdIndex, setApprovedAdIndex] = useState<number | null>(null);
   const [generatedAds, setGeneratedAds] = useState<Record<number, string>>({});
   const [generatingAd, setGeneratingAd] = useState<number | null>(null);
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false);
+  const [downloadAdIndex, setDownloadAdIndex] = useState<number | null>(null);
+  const [downloadEmail, setDownloadEmail] = useState('');
+  const [downloadSubmitting, setDownloadSubmitting] = useState(false);
+
+  const handleDownloadWithEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!downloadEmail || downloadAdIndex === null) return;
+    setDownloadSubmitting(true);
+    try {
+      // Sync lead to CRM
+      await fetch('/api/ad-brief/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: downloadEmail, 
+          source: 'ad_brief_download',
+          adPlatform: briefData?.adConcepts[downloadAdIndex]?.platform || 'unknown'
+        })
+      });
+      // Trigger download
+      const imgSrc = generatedAds[downloadAdIndex];
+      if (imgSrc) {
+        const a = document.createElement('a');
+        a.href = imgSrc;
+        a.download = `ad-${briefData?.adConcepts[downloadAdIndex]?.platform?.toLowerCase() || 'creative'}.png`;
+        a.click();
+      }
+      setDownloadModalOpen(false);
+      setDownloadEmail('');
+    } catch (err) {
+      console.error('Download failed:', err);
+    }
+    setDownloadSubmitting(false);
+  };
 
   const handleShare = async () => {
     const shareData = {
@@ -732,29 +767,15 @@ CRITICAL RULES:
                           {generatedAds[i] ? (
                             <button
                               onClick={() => {
-                                const a = document.createElement('a');
-                                a.href = generatedAds[i];
-                                a.download = `ad-${ad.platform.toLowerCase()}-${ad.headline.replace(/\s+/g, '-').toLowerCase()}.png`;
-                                a.click();
+                                setDownloadAdIndex(i);
+                                setDownloadModalOpen(true);
                               }}
                               className="w-full py-2 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 border bg-brand-dark text-white border-brand-dark hover:bg-black"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                               Download Ad
                             </button>
-                          ) : (
-                            <button
-                              onClick={() => setApprovedAdIndex(approvedAdIndex === i ? null : i)}
-                              className={`w-full py-2 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 border ${
-                                approvedAdIndex === i
-                                  ? 'bg-green-500 text-white border-green-500'
-                                  : 'bg-white text-brand-dark/60 border-gray-100 hover:border-green-500/30 hover:text-green-600'
-                              }`}
-                            >
-                              {approvedAdIndex === i ? <CheckCircle2 className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-                              {approvedAdIndex === i ? 'Approved' : 'Approve Concept'}
-                            </button>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </div>
@@ -886,6 +907,62 @@ CRITICAL RULES:
         </div>
       </div>
     )}
+      {/* Download Email Gate Modal */}
+      <AnimatePresence>
+        {downloadModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setDownloadModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative"
+            >
+              <button
+                onClick={() => setDownloadModalOpen(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Download className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="text-2xl font-black text-brand-dark mb-2">Download Your Ad</h3>
+                <p className="text-brand-dark/60 text-sm">Enter your email to download this AI-generated ad creative.</p>
+              </div>
+              <form onSubmit={handleDownloadWithEmail} className="space-y-4">
+                <input
+                  type="email"
+                  value={downloadEmail}
+                  onChange={e => setDownloadEmail(e.target.value)}
+                  placeholder="you@company.com"
+                  required
+                  className="w-full rounded-xl py-3 px-4 border border-gray-200 bg-gray-50 text-brand-dark placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                />
+                <button
+                  type="submit"
+                  disabled={downloadSubmitting}
+                  className="w-full bg-primary hover:bg-primary-hover text-brand-dark font-black py-3 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+                >
+                  {downloadSubmitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Download className="w-5 h-5" />
+                  )}
+                  {downloadSubmitting ? 'Downloading...' : 'Download Now'}
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
