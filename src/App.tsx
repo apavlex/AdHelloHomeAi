@@ -720,17 +720,17 @@ export default function App() {
               transition={{ duration: 0.8 }}
             >
               <h2 className="text-4xl md:text-6xl font-extrabold mb-8 leading-tight">
-                Your Growth <br />
-                <span className="text-primary">on Autopilot</span>
+                Quote Response <br />
+                <span className="text-primary">Engine</span>
               </h2>
               <p className="text-white/70 text-xl md:text-2xl mb-10 leading-relaxed">
-                Stop worrying about the technical stuff. AdHello automates the hard parts of growing your business online, so you can focus on your customers.
+                Every quote request flows through one intelligent system. No more missed leads, forgotten follow-ups, or inbox chaos.
               </p>
               <div className="space-y-6">
                 {[
-                  { title: "Automated Optimization", desc: "AdHello works 24/7 to improve your site's performance and conversion rates automatically." },
-                  { title: "Search Domination", desc: "We automatically optimize your brand to be the #1 answer on Google and AI search engines." },
-                  { title: "Proactive Lead Strategies", desc: "The system doesn't wait for you. It proactively finds and suggests new ways to capture more local leads." }
+                  { title: "Capture & Qualify", desc: "Captures inbound quote requests, qualifies and tags them automatically, routes urgent leads instantly." },
+                  { title: "Draft & Follow Up", desc: "Drafts the next best action and runs timed follow-up sequences until they reply or book." },
+                  { title: "Clean Exception Queue", desc: "Instead of chaos, you get a clean queue of leads that need your personal attention." }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4">
                     <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0">
@@ -757,19 +757,19 @@ export default function App() {
                     <Zap className="w-6 h-6 text-brand-dark" />
                   </div>
                   <div>
-                    <h4 className="font-bold">Growth Autopilot</h4>
-                    <p className="text-xs text-white/50">Status: Automating Your Growth</p>
+                    <h4 className="font-bold">Quote Response Engine</h4>
+                    <p className="text-xs text-white/50">Status: Processing Leads</p>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <p className="text-sm text-white/70 italic">"I've analyzed your local area. I'm automatically updating your site to target 'emergency repair' which is trending right now."</p>
+                    <p className="text-sm text-white/70 italic">"New quote from Sarah M. — Kitchen cabinet painting. Tagged: High-intent, Residential. Auto-qualified and added to your pipeline."</p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <p className="text-sm text-white/70 italic">"Your search rank has improved by 14%. You are now the top-cited business for local service queries."</p>
+                    <p className="text-sm text-white/70 italic">"Follow-up #2 sent to Mike R. — No response yet. Scheduling final follow-up for Thursday 9am."</p>
                   </div>
                   <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20">
-                    <p className="text-sm text-primary font-bold">New Suggestion: "I've drafted a new promotion to get you more leads this weekend. Click to approve."</p>
+                    <p className="text-sm text-primary font-bold">Exception: John D. asked about commercial work — needs your review. Click to respond.</p>
                   </div>
                 </div>
               </div>
