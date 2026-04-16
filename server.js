@@ -203,7 +203,11 @@ async function callGemini(prompt, modelName = 'gemini-2.0-flash', base64Image = 
     if (data.error) {
       return null;
     }
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    // Handle both text and image responses
+    const part = data.candidates?.[0]?.content?.parts?.[0];
+    if (part?.text) return part.text;
+    if (part?.inline_data?.data) return 'data:' + (part.inline_data.mime_type || 'image/png') + ';base64,' + part.inline_data.data;
+    return null;
   } catch (err) {
     console.error('[GEMINI] Fetch Exception:', err.message);
     return null;
