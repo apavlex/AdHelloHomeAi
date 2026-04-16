@@ -896,6 +896,40 @@ async function syncLeadToAgencyOS(leadData) {
   }
 }
 
+// --- ATTIO CRM SYNC ---
+const ATTIO_API_KEY = process.env.ATTIO_API_KEY;
+if (ATTIO_API_KEY) console.log('[ATTIO] API key configured');
+
+async function syncLeadToAttio(leadData) {
+  if (!process.env.ATTIO_API_KEY) return null;
+  try {
+    const res = await fetch('https://api.attio.com/v2/objects/people/records', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + process.env.ATTIO_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        data: {
+          values: {
+            name: [{ value: leadData.name || leadData.bizName || 'Unknown' }],
+            email_addresses: leadData.email ? [{ email_address: leadData.email }] : [],
+            phone_numbers: leadData.phone ? [{ phone_number: leadData.phone }] : []
+          }
+        }
+      })
+    });
+    const data = await res.json();
+    console.log('[ATTIO] Synced:', leadData.email);
+    return data;
+  } catch (err) {
+    console.error('[ATTIO] Failed:', err.message);
+    return null;
+  }
+}
+
+
+
 // Singular route for SiteAudit.tsx compatibility
 app.post('/api/lead', async (req, res) => {
   const { name, email, phone, siteUrl, auditData, source } = req.body;
@@ -909,6 +943,7 @@ app.post('/api/lead', async (req, res) => {
 
     // Push to Agency OS
     await syncLeadToAgencyOS({ ...req.body, bizName: auditData?.companyName });
+    await syncLeadToAttio({ ...req.body, bizName: auditData?.companyName });
 
     res.json({ id, success: true });
   } catch (error) {
@@ -954,6 +989,7 @@ app.post('/api/leads', async (req, res) => {
 
     // Push to Agency OS
     await syncLeadToAgencyOS({ ...req.body, id, source: 'adhello_strategy' });
+    await syncLeadToAttio({ ...req.body, id, source: 'adhello_strategy' });
 
     res.json({ id, success: true });
   } catch (error) {
