@@ -295,7 +295,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <header className="flex items-center justify-between h-16 sm:h-20">
             <div className="flex items-center gap-2">
-              <a href="/" aria-label="AdHello.ai home" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}><Logo variant="dark" className="scale-[0.9975]" /></a>
+              <a href="/" aria-label="AdHello.ai home" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}><Logo variant="dark" className="scale-[0.75]" /></a>
             </div>
             <div className="hidden md:flex items-center gap-10">
               <nav className="flex gap-10">
