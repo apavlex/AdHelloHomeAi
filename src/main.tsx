@@ -11,6 +11,7 @@ import AdStudio from './AdStudio.tsx';
 import BlueprintSalesPage from './components/BlueprintSalesPage.tsx';
 import FulfillmentPage from './components/FulfillmentPage.tsx';
 import StrategyResultsPage from './components/StrategyResultsPage.tsx';
+import VipPage from './VipPage.tsx';
 import { AnalyticsWrapper } from './components/AnalyticsWrapper';
 import './index.css';
 
@@ -41,6 +42,10 @@ const router = createBrowserRouter([
       {
         path: "/strategy",
         element: <StrategyResultsPage />,
+      },
+      {
+        path: "/vip",
+        element: <VipPage />,
       },
       {
         path: "/studio",

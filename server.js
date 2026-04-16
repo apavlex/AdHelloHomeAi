@@ -716,15 +716,33 @@ app.post('/api/chatbot', async (req, res) => {
 
   let replyText = '';
   try {
-    const systemPrompt = `You are the "AdHello Growth Assistant" — the friendly, expert concierge for home service pros (painters, electricians, plumbers, etc.). 
-Your vibe: You're an elite growth expert, but you talk like a human, not a corporate brochure. 
-Rules:
-1. Be conversational. Use shorter sentences. Ask engaging follow-up questions.
-2. Sound like you're talking to a friend over coffee, not lecturing a student. 
-3. Avoid generic AI phrases. Be punchy and energetic.
-4. If you have to explain something complex, use a simple analogy or bullet points.
-5. Keep responses under 2-3 short paragraphs.
-Role: Help them understand how AdHello builds smart sites, handles SEO/GEO, and captures leads 24/7.`;
+    const systemPrompt = `You are the AdHello Sales Assistant — a friendly, knowledgeable guide who educates home service business owners (painters, electricians, plumbers, HVAC, roofers, flooring, movers) about modern AI-powered marketing.
+
+YOUR GOAL: Book a VIP demo call with Alex, the founder of AdHello.ai. Every conversation should naturally move toward scheduling that call.
+
+PERSONALITY:
+- Warm, confident, genuinely curious about their business
+- Talk like a smart friend, not a salesperson or corporate bot
+- Short punchy sentences. Ask questions. Keep it conversational.
+- Use analogies to explain complex concepts simply
+
+EDUCATION TOPICS (weave these in naturally):
+- Why traditional websites fail contractors (brochure sites vs conversion-focused smart sites)
+- GEO (Generative Engine Optimization) — how AI search engines like ChatGPT, Perplexity, and Google AI Overviews choose which businesses to recommend
+- The Quote Response Engine — automated lead capture, qualification, and follow-up
+- Why most contractors lose 60%+ of leads to slow response times
+- How AdHello handles everything so they can focus on jobs, not marketing
+
+BOOKING THE CALL:
+- After 2-3 exchanges, suggest booking a quick call with Alex
+- Frame it as: "Want me to set up a quick 15-min call with Alex? He'll show you exactly how this would work for [their trade] in [their city]. No pitch, just a game plan."
+- If they're interested, tell them to click the "Book Demo Meeting" button or go to: https://cal.com/adhello/demo
+
+RULES:
+- Never be pushy. Educate first, invite second.
+- Keep responses under 3 short paragraphs
+- Ask ONE question at a time to keep them engaged
+- If they mention a pain point (leads, reviews, website, competitors), acknowledge it and connect it to how AdHello solves it`;
     
     replyText = await callAI(userMessage, systemPrompt, messages);
   } catch (err) {
@@ -732,7 +750,7 @@ Role: Help them understand how AdHello builds smart sites, handles SEO/GEO, and 
   }
 
   if (!replyText) {
-    replyText = "AdHello.ai is an AI growth platform for home service pros. We build your website, handle your SEO/GEO, and capture leads 24/7 so you can focus on the job. Would you like to see how it works for your specific trade?";
+    replyText = "Hey! I help home service pros like painters, electricians, and plumbers understand how AI is changing local marketing. What kind of work do you do? I'd love to show you how businesses like yours are getting found on Google and AI search engines.";
   }
 
   res.json({ text: cleanAIResponse(replyText) });
@@ -902,26 +920,54 @@ if (ATTIO_API_KEY) console.log('[ATTIO] API key configured');
 
 async function syncLeadToAttio(leadData) {
   if (!process.env.ATTIO_API_KEY) return null;
+  const headers = {
+    'Authorization': 'Bearer ' + process.env.ATTIO_API_KEY,
+    'Content-Type': 'application/json'
+  };
+  
   try {
-    const res = await fetch('https://api.attio.com/v2/objects/people/records', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + process.env.ATTIO_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        data: {
-          values: {
-            name: [{ value: leadData.name || leadData.bizName || 'Unknown' }],
-            email_addresses: leadData.email ? [{ email_address: leadData.email }] : [],
-            phone_numbers: leadData.phone ? [{ phone_number: leadData.phone }] : []
+    let companyId = null;
+    
+    // 1. Create or update Company
+    if (leadData.bizName) {
+      const companyRes = await fetch('https://api.attio.com/v2/objects/companies/records', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          data: {
+            values: {
+              name: [{ value: leadData.bizName }],
+              description: [{ value: 'Industry: ' + (leadData.industry || 'Home Services') + ' | City: ' + (leadData.city || '') + ' | Goal: ' + (leadData.goal || '') }]
+            }
           }
+        })
+      });
+      const companyData = await companyRes.json();
+      companyId = companyData.data?.id?.record_id;
+      console.log('[ATTIO] Company synced:', leadData.bizName, companyId || 'no-id');
+    }
+    
+    // 2. Create Person and link to Company
+    const personPayload = {
+      data: {
+        values: {
+          name: [{ value: leadData.name || 'Unknown' }],
+          email_addresses: leadData.email ? [{ email_address: leadData.email }] : [],
+          phone_numbers: leadData.phone ? [{ phone_number: leadData.phone }] : [],
+          description: [{ value: 'Source: ' + (leadData.source || 'adhello.ai') + ' | ' + (leadData.goal || '') }]
         }
-      })
+      }
+    };
+    
+    const personRes = await fetch('https://api.attio.com/v2/objects/people/records', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(personPayload)
     });
-    const data = await res.json();
-    console.log('[ATTIO] Synced:', leadData.email);
-    return data;
+    const personData = await personRes.json();
+    console.log('[ATTIO] Person synced:', leadData.email, personData.data?.id?.record_id || 'no-id');
+    
+    return { company: companyId, person: personData.data?.id?.record_id };
   } catch (err) {
     console.error('[ATTIO] Failed:', err.message);
     return null;

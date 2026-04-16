@@ -952,23 +952,23 @@ export default function App() {
                 </div>
                 <div className="text-center sm:text-left">
                   <h2 className="text-2xl md:text-3xl font-black mb-2 leading-tight text-brand-dark">
-                    Get a <span className="italic underline underline-offset-4 decoration-primary">free</span> site analysis from Alex — founder of AdHello.ai
+                    Get your website + AI automations built <span className="text-primary">live with Alex</span>
                   </h2>
                   <p className="text-sm md:text-base text-brand-dark/60 font-medium max-w-2xl mx-auto sm:mx-0">
-                    Submit your website and Alex will personally review it and send you feedback.
+                    One focused session. Same-day launch. Walk away with a working system.
                   </p>
                 </div>
               </div>
               <div className="shrink-0">
-                <button
-                  onClick={() => setSiteAnalysisOpen(true)}
-                  className="bg-primary hover:bg-primary-hover text-brand-dark px-6 py-3 rounded-full font-black text-base transition-all hover:scale-105 flex items-center gap-3 shadow-[0_10px_30px_rgba(250,218,91,0.15)]"
+                <Link
+                  to="/vip"
+                  className="bg-primary hover:bg-primary-hover text-brand-dark px-8 py-4 rounded-full font-black text-lg transition-all hover:scale-105 flex items-center gap-3 shadow-[0_20px_50px_rgba(250,218,91,0.35)] animate-pulse hover:animate-none"
                 >
-                  <span className="inline-flex w-6 h-6 rounded-full bg-brand-dark text-primary items-center justify-center">
-                    <ArrowRight className="w-3 h-3" />
+                  <span className="inline-flex w-7 h-7 rounded-full bg-brand-dark text-primary items-center justify-center">
+                    <ArrowRight className="w-4 h-4" />
                   </span>
-                  REQUEST SITE ANALYSIS
-                </button>
+                  BOOK VIP SESSION — $1,997
+                </Link>
               </div>
             </div>
           </div>
