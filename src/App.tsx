@@ -448,7 +448,7 @@ export default function App() {
                   We Book the Appointments. <span className="hand-underline">You Close the Jobs.</span>
                 </h1>
                 <p className="text-xl md:text-2xl text-brand-dark/70 mb-10 leading-relaxed max-w-xl">
-                  Stop paying for 'leads' that don't answer. We deploy a custom AI Sales Agent on a high-converting storefront built specifically for your business. You only pay for results.
+                  Stop paying for 'leads' that don't answer. We deploy a custom AI Sales Agent on a high-converting smart website built specifically for your business. You only pay for results.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                   <button
