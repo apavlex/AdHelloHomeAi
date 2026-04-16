@@ -698,12 +698,12 @@ export default function App() {
               <div className="text-yellow-500 mb-6 bg-yellow-50 w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <Brain className="w-8 h-8" />
               </div>
-              <h3 className="text-2xl font-black text-brand-dark mb-4">Self-Guided AI Growth Coach</h3>
+              <h3 className="text-2xl font-black text-brand-dark mb-4">Quote Response & Reactivation Engine</h3>
               <p className="text-brand-dark/70 text-lg leading-relaxed mb-4">
-                The technical and difficult parts of growing a website are gone. Your AI Growth Coach analyzes your market and competitors, then suggests specific, actionable ways to get more leads. It's a self-guided system that handles the heavy lifting so you don't have to.
+                Every inbound lead and past customer flows through one intelligent system. New quotes get qualified and followed up automatically. Cold leads get reactivated with timely outreach. You just handle the exceptions.
               </p>
               <p className="text-brand-dark/70 text-lg leading-relaxed italic">
-                "How do I get more reviews?" "What's my GEO score?" "Suggest a new lead strategy." — It's always ready.
+                "Draft a follow-up for the Johnson quote." "Reactivate leads from last spring." "Who needs attention today?" — Always working.
               </p>
             </div>
           </div>
