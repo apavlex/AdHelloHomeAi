@@ -84,10 +84,15 @@ export default function AdStudio() { useAnalytics(); useAnalytics();
   const reportRef = useRef<HTMLDivElement>(null);
 
   const generateAdImage = async (index: number, ad: any) => {
-    if (generatingIndices.has(index) || !briefData) return;
+    if (generatingIndices.has(index) || !briefData || !selectedImage) return;
     
     setGeneratingIndices(prev => new Set(prev).add(index));
     try {
+      const parts = selectedImage.split(',');
+      const base64 = parts[1];
+      const mimeMatch = parts[0].match(/:(.*?);/);
+      const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+
       const response = await fetch('/api/ad-brief/generate-image', {
         method: 'POST',
         headers: {
@@ -98,14 +103,20 @@ export default function AdStudio() { useAnalytics(); useAnalytics();
           body: ad.body,
           visualStyle: briefData.visualPrompt,
           platform: ad.platform,
-          originalImage: selectedImage
+          originalImage: selectedImage,
+          imageBase64: base64,
+          imageMimeType: mime,
         })
       });
 
       if (!response.ok) throw new Error("Image generation failed");
       const data = await response.json();
-      
-      setGeneratedImages(prev => ({ ...prev, [index]: data.imageUrl }));
+
+      const url =
+        data.imageUrl ||
+        (data.imageBase64 && data.mimeType ? `data:${data.mimeType};base64,${data.imageBase64}` : null);
+      if (!url) throw new Error("No image in response");
+      setGeneratedImages(prev => ({ ...prev, [index]: url }));
     } catch (error: any) {
       console.error("Error generating image:", error);
       alert(`Image generation failed: ${error.message}`);

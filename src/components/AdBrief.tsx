@@ -219,36 +219,51 @@ export function AdBrief() {
       const mimeMatch = parts[0].match(/:(.*?);/);
       const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-      // Pick a random ad style for variety
+      // Layout archetypes (rotate) — emphasize compositing the UPLOADED product into people + scenes like premium feed ads
       const adStyles = [
-        `lifestyle scene with a real person using or holding the product in a natural environment. Use the uploaded product image as the product shown. Add bold headline text "${ad.headline}" at the top in large white font with a dark background strip. Include 3 bullet benefit points on the side. CTA button "${ad.cta}" at the bottom in a contrasting color. Style: scroll-stopping social ad.`,
-        `split composition: product on one side against a clean colored background, lifestyle element on the other side. Overlaid bold stat or claim text. Headline "${ad.headline}" in large modern typography. Small body copy "${ad.body}". CTA "${ad.cta}" as a pill button. Clean, premium DTC brand aesthetic.`,
-        `full bleed lifestyle photo with the product prominently featured. Person in the background or foreground interacting with it. Large oversized headline "${ad.headline}" overlaid with semi-transparent backing. "${ad.body}" as subtext. Bold "${ad.cta}" button. Style similar to Athletic Greens or Lemme ads.`,
-        `flat lay or product-hero shot with styled props and background that matches the product's vibe. Large bold typography "${ad.headline}" taking up top third. Clean stats or benefit callouts with icons. "${ad.cta}" button styled as a modern pill. Feels like a premium Instagram ad.`,
-        `phone-screen style creative optimized for ${ad.platform}. Product shown in use by a person in a relatable everyday moment. Hook text "${ad.headline}" at top in bold. "${ad.body}" as supporting copy mid-frame. Bright "${ad.cta}" CTA button at bottom. High contrast, scroll-stopping design.`
+        `WIREFRAME HERO: Left third = enthusiastic real person (arms raised or welcoming gesture). Right/center-right = THE REFERENCE PRODUCT large and crisp (same packaging as upload). TOP = wide banner/title bubble with headline "${ad.headline}". BOTTOM = horizontal strip with body copy "${ad.body}" and CTA "${ad.cta}". Thin edge strip for subtle disclaimer/fine-print hint. Bright thematic background matching the product category.`,
+        `LIFESTYLE + PERSON: Outdoor or indoor setting that fits the product. One relatable model interacting with THE EXACT PRODUCT from the reference (holding, wearing, placing on counter). Golden-hour or soft natural light. Overlay headline "${ad.headline}" top-left or top-center; feature icons OR star rating row; "${ad.cta}" as pill at bottom.`,
+        `POV UNBOXING / HANDS: Top-down or 45° — real hands presenting THE REFERENCE PRODUCT emerging from packaging or box. Domestic blurred background (plant, counter). Promo price or percent-off blocks if it fits the vertical. Supporting line "${ad.body}". CTA "${ad.cta}". Warm DTC lighting.`,
+        `KITCHEN / HOME STUDIO: Marble or wood counter, soft daylight. THE REFERENCE PRODUCT staged with 1–2 lifestyle props (no fake duplicate product). Pull quote + 5-star row + attribution line. Headline "${ad.headline}". Footer "${ad.cta}".`,
+        `SPLIT PREMIUM CARD: Dark or gradient panel with THE REFERENCE PRODUCT on one side; vertical benefit list with simple icons on the other. Headline "${ad.headline}", sub "${ad.body}", button "${ad.cta}". Editorial health/beauty tech vibe.`,
+        `US VS THEM (optional generic competitor silhouette on right): Left panel warm and premium featuring THE REFERENCE PRODUCT; right panel cooler/plain with a bland placeholder — comparison row with checkmarks vs X. Title "${ad.headline}".`,
+        `FLAT-LAY CALLOUTS: Brown box or surface; THE REFERENCE PRODUCT plus 2–3 related props. Three curved-arrow callout bubbles with punchy stats or offers. Headline "${ad.headline}". Fine print footer strip.`,
+        `MINIMAL STUDIO + BADGE: Clean gradient or solid backdrop; THE REFERENCE PRODUCT on pedestal or floating with soft shadow. Circular promo badge; testimonial quote block. "${ad.headline}" / "${ad.body}" / "${ad.cta}".`,
       ];
-      const chosenStyle = adStyles[Math.floor(Math.random() * adStyles.length)];
+      const chosenStyle = adStyles[adIndex % adStyles.length];
 
-      const prompt = `You are a world-class ad creative designer. Create a high-quality ${ad.platform} advertisement image using the uploaded product photo as the featured product.
+      const prompt = `You are a senior Meta Ads / DTC creative director. Generate ONE square (1:1) feed advertisement image for ${ad.platform}.
 
-STYLE DIRECTION: ${chosenStyle}
+COMPOSITE THE ATTACHED PRODUCT IMAGE as real product placement — it must be the same item (colors, logo, shape), integrated into a finished scene with people and environment where appropriate.
 
-CRITICAL RULES:
-- The uploaded product must appear clearly and prominently in the final image — do not replace or obscure it
-- Use the product's actual appearance, colors, and branding from the uploaded image
-- PROPORTION IS CRITICAL: maintain 100% accurate real-world scale — a 12oz cup must look like a 12oz cup when held by a human hand, a bottle must fit naturally in a palm, packaging must be its true physical size relative to hands, tables, and people. Never make products oversized or disproportionate
-- If a person holds the product, their hand size must be anatomically correct relative to the product size
-- Generate a realistic lifestyle scene or styled composition AROUND the product
-- Include real people if the style calls for it (diverse, relatable, not stock-photo looking)
-- Typography must be bold, large, and legible — not thin or small
-- The overall image must look like a real paid ad from a top DTC brand, not a mockup
-- Aspect ratio: square (1:1) for ${ad.platform === 'Instagram' ? 'Instagram feed' : ad.platform === 'Facebook' ? 'Facebook feed' : 'Google display'}
-- Quality: photorealistic, high-resolution, professionally lit`;
+LAYOUT / STYLE VARIANT:
+${chosenStyle}
+
+COPY TO RENDER AS REAL TYPOGRAPHY (legible, high contrast):
+- Headline: ${ad.headline}
+- Supporting: ${ad.body}
+- CTA: ${ad.cta}
+
+PRODUCT PLACEMENT RULES:
+- The uploaded reference product is the hero; never swap it for a generic stand-in.
+- Correct real-world scale next to hands, torso, furniture, and counters.
+- Diverse, natural-looking people when the layout includes a model; believable wardrobe for the setting.
+- Professional lighting, depth, subtle shadows — not a cheap collage.
+- If the reference is apparel/wearable, show it ON a person when the layout calls for a model.
+- Reserve a clear zone for headline/footer so text does not cover the product face.`;
 
       const res = await fetch('/api/ad-brief/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, imageBase64: base64, imageMimeType: mime })
+        body: JSON.stringify({
+          prompt,
+          imageBase64: base64,
+          imageMimeType: mime,
+          visualStyle: briefData?.visualPrompt || '',
+          headline: ad.headline,
+          body: ad.body,
+          platform: ad.platform,
+        }),
       });
       const data = await res.json();
       if (data.error === 'rate_limit') {

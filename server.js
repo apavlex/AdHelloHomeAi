@@ -507,17 +507,38 @@ if (!resend) console.warn('[MAIL] RESEND_API_KEY missing. Email notifications di
 // SITE AUDIT
 // =====================================================
 async function getPageSpeedInsights(targetUrl) {
+  const psiApiKey = process.env.GOOGLE_PSI_API_KEY || '';
+  const keyConfigured = !!psiApiKey;
   try {
-    const psiApiKey = process.env.GOOGLE_PSI_API_KEY || ''; // Optional but recommended
     const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(targetUrl)}&strategy=mobile${psiApiKey ? `&key=${psiApiKey}` : ''}`;
-    
-    console.log(`[PSI] Analyzing: ${targetUrl}`);
+
+    console.log(`[PSI] Analyzing: ${targetUrl}${keyConfigured ? '' : ' (no GOOGLE_PSI_API_KEY — shared quota)'}`);
     const res = await fetch(apiUrl);
-    const data = await res.json();
-    
-    if (data.error) throw new Error(data.error.message);
-    
+    const raw = await res.text();
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (parseErr) {
+      console.error('[PSI] Non-JSON response:', raw.slice(0, 400));
+      return { psiData: null, psiError: 'Invalid response from PageSpeed API.', keyConfigured };
+    }
+
+    if (!res.ok) {
+      const msg = data?.error?.message || `HTTP ${res.status}`;
+      console.error('[PSI] Request failed:', res.status, msg);
+      return { psiData: null, psiError: msg, keyConfigured };
+    }
+
+    if (data.error) {
+      console.error('[PSI] API error:', data.error.message || data.error);
+      return { psiData: null, psiError: data.error.message || String(data.error), keyConfigured };
+    }
+
     const lh = data.lighthouseResult;
+    if (!lh?.categories || !lh.audits) {
+      console.error('[PSI] Missing lighthouseResult in API response');
+      return { psiData: null, psiError: 'PageSpeed returned no Lighthouse result.', keyConfigured };
+    }
     const screenshot = lh.audits['final-screenshot']?.details?.data || null;
     const perfScore = (lh.categories.performance?.score || 0) * 100;
     const seoScore = (lh.categories.seo?.score ?? 0) * 100;
@@ -527,22 +548,26 @@ async function getPageSpeedInsights(targetUrl) {
     const ssl = lh.audits['is-on-https']?.score === 1;
     
     return {
-      performance: Math.round(perfScore),
-      seo: Math.round(seoScore),
-      accessibility: Math.round(a11yScore),
-      bestPractices: Math.round(bpScore),
-      lcp,
-      isHttps: ssl,
-      screenshot,
-      metrics: {
-        fcp: lh.audits['first-contentful-paint']?.displayValue,
-        tti: lh.audits['interactive']?.displayValue,
-        cls: lh.audits['cumulative-layout-shift']?.displayValue,
-      }
+      psiData: {
+        performance: Math.round(perfScore),
+        seo: Math.round(seoScore),
+        accessibility: Math.round(a11yScore),
+        bestPractices: Math.round(bpScore),
+        lcp,
+        isHttps: ssl,
+        screenshot,
+        metrics: {
+          fcp: lh.audits['first-contentful-paint']?.displayValue,
+          tti: lh.audits['interactive']?.displayValue,
+          cls: lh.audits['cumulative-layout-shift']?.displayValue,
+        },
+      },
+      psiError: null,
+      keyConfigured,
     };
   } catch (err) {
     console.error('[PSI] Fetch Error:', err.message);
-    return null;
+    return { psiData: null, psiError: err.message, keyConfigured };
   }
 }
 
@@ -564,7 +589,10 @@ function hostnameEntropy(hostname) {
  * Site-specific scores from Lighthouse (when PSI works) or hostname entropy (when it doesn't).
  * Numeric scores must never be a single hardcoded mock — that caused identical audits for every URL.
  */
-function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, screenshotBase64) {
+function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, screenshotBase64, psiOpts = {}) {
+  const keyConfigured = !!psiOpts.keyConfigured;
+  const psiError = psiOpts.psiError || null;
+
   let hostname = 'site';
   try {
     hostname = new URL(targetUrl).hostname.replace(/^www\./i, '');
@@ -605,7 +633,15 @@ function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, sc
 
   const summary = psiData
     ? `${actualSsl ? '' : 'CRITICAL: Insecure or missing HTTPS. '}Lighthouse mobile performance is ${psiData.performance}/100; SEO ${psiData.seo}/100. Gaps in structured data and AI-search signals still limit visibility in ChatGPT, Perplexity, and AI Overviews.`
-    : `Google PageSpeed data was not available for ${hostname}, so scores blend HTTPS checks with estimated ranges. Add GOOGLE_PSI_API_KEY for consistent Lighthouse-backed scores.`;
+    : keyConfigured
+      ? `Lighthouse data was unavailable for ${hostname}${psiError ? ` (${psiError})` : ''}. Sub-scores below are estimated from HTTPS checks and domain signals until PageSpeed returns successfully.`
+      : `Google PageSpeed did not return Lighthouse data for ${hostname}. Without GOOGLE_PSI_API_KEY the public PSI quota is very tight — add a PageSpeed Insights API key to your server for reliable measured scores. Current numbers are estimated, not field Lighthouse results.`;
+
+  const brandAnalysisFallback = psiData
+    ? null
+    : keyConfigured
+      ? `We could not complete a Lighthouse scan for ${hostname}${psiError ? `: ${psiError}` : ''}. Narrative sections below may be lighter until PageSpeed succeeds.`
+      : `We could not run a full Lighthouse scan on ${hostname}. Deploy GOOGLE_PSI_API_KEY so audits use Google's mobile Lighthouse scores instead of estimates.`;
 
   return {
     score,
@@ -613,9 +649,14 @@ function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, sc
     leadsEstimatesScore,
     googleAiReadyScore,
     summary,
+    psiMeta: {
+      lighthouseAvailable: !!psiData,
+      googlePsiApiKeyConfigured: keyConfigured,
+      lastError: psiData ? null : psiError,
+    },
     brandAnalysis: psiData
       ? 'Signals from Google mobile crawl suggest room to sharpen positioning and trust cues for AI-powered discovery.'
-      : `We could not run a full Lighthouse scan on ${hostname}. Narrative sections below may be limited until PageSpeed responds.`,
+      : brandAnalysisFallback,
     brandColors: { primary: '#1a1a2e', accent: '#F3DD6D', background: '#F5F0E8', text: '#1a1a2e' },
     technicalAudit: {
       mobileSpeed: {
@@ -634,7 +675,11 @@ function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, sc
         label: 'SSL Certificate',
         status: actualSsl ? 'pass' : 'fail',
         value: actualSsl ? 'Secure' : 'Insecure',
-        reason: actualSsl ? 'HTTPS reported by Lighthouse.' : 'HTTPS missing or broken — critical for trust and rankings.',
+        reason: actualSsl
+          ? psiData
+            ? 'HTTPS reported by Lighthouse.'
+            : 'HTTPS inferred from the audited URL.'
+          : 'HTTPS missing or broken — critical for trust and rankings.',
       },
       metaDescription: {
         label: 'Meta Description',
@@ -769,15 +814,18 @@ app.post('/api/analyze', async (req, res) => {
   }
 
   // --- 1. Get Official Google Truth ---
-  const psiData = await getPageSpeedInsights(targetUrl);
-  
+  const { psiData, psiError, keyConfigured } = await getPageSpeedInsights(targetUrl);
+
   // --- 2. Fallback / Enrichment signals ---
   const initialProtocolCheck = targetUrl.startsWith('https');
   const actualSsl = psiData ? psiData.isHttps : initialProtocolCheck;
   const actualSpeed = psiData ? psiData.lcp : '3.1s';
   const screenshotBase64 = psiData ? psiData.screenshot : null;
 
-  const baselineReport = buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, screenshotBase64);
+  const baselineReport = buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, screenshotBase64, {
+    psiError,
+    keyConfigured,
+  });
 
   try {
     if (KIE_API_KEY || GEMINI_API_KEY) {
@@ -810,6 +858,7 @@ IMPORTANT: Respect SSL status ${actualSsl}. If FALSE, call out the security risk
         mobileFirstScore: baselineReport.mobileFirstScore,
         leadsEstimatesScore: baselineReport.leadsEstimatesScore,
         googleAiReadyScore: baselineReport.googleAiReadyScore,
+        psiMeta: baselineReport.psiMeta,
         summary: parsed.summary || baselineReport.summary,
         brandAnalysis: parsed.brandAnalysis || baselineReport.brandAnalysis,
         brandColors: parsed.brandColors || baselineReport.brandColors,
@@ -1508,6 +1557,27 @@ app.post('/api/ad-brief/download', async (req, res) => {
   }
 });
 
+/** Prepended to every ad image request so models composite the upload as real product placement (people + scenes). */
+const AD_BRIEF_PLACEMENT_DIRECTIVE = `PRODUCT PLACEMENT — READ FIRST:
+You are given a REFERENCE PRODUCT IMAGE (attached). Build a finished paid-social advertisement around THAT EXACT PRODUCT.
+- Composite the real product from the reference into the scene (correct colors, logo, packaging). Do NOT invent a different product or substitute a generic item.
+- Show it in-context: lifestyle setting, believable lighting, hands/model/environment that fit the category.
+- Preserve realistic scale when held or placed next to people (hands, countertops, bodies).
+- Include marketing overlays: bold headline text, secondary copy, CTA or footer strip where appropriate — readable sans-serif typography.
+- Aim for premium DTC / Meta Ads quality: cohesive palette, depth, subtle shadows, not a flat collage.
+Square 1:1 unless the creative brief says otherwise.`;
+
+function buildDefaultAdImagePrompt({ headline, bodyText, platform, visualStyle }) {
+  const lines = [
+    visualStyle ? `Scene & brand vibe (from Ad Brief): ${visualStyle}` : null,
+    `Platform: ${platform || 'social feed'}`,
+    headline ? `Headline to show as large display type: "${headline}"` : null,
+    bodyText ? `Body / subhead / footer copy to include legibly: "${bodyText}"` : null,
+    'Layout: integrate the attached product as the hero; add a relatable person and/or setting; include trust or offer elements if it fits (e.g. star rating strip, promo pill, testimonial quote, feature icons).',
+  ].filter(Boolean);
+  return lines.join('\n');
+}
+
 app.post('/api/ad-brief/generate-image', async (req, res) => {
   const {
     prompt: clientPrompt,
@@ -1517,6 +1587,7 @@ app.post('/api/ad-brief/generate-image', async (req, res) => {
     body: bodyText,
     platform,
     originalImage,
+    visualStyle,
   } = req.body;
 
   const rawB64 =
@@ -1534,9 +1605,16 @@ app.post('/api/ad-brief/generate-image', async (req, res) => {
   }
   mime = mime || 'image/jpeg';
 
-  const textPrompt =
+  const userDirection =
     clientPrompt ||
-    `Create a scroll-stopping ${platform || 'social'} feed ad. Headline: ${headline || ''}. Body: ${bodyText || ''}. Use the uploaded image as the hero product — keep branding accurate.`;
+    buildDefaultAdImagePrompt({
+      headline,
+      bodyText,
+      platform,
+      visualStyle,
+    }) ||
+    `Create a scroll-stopping ${platform || 'social'} feed ad using the attached product image as the hero.`;
+  const textPrompt = `${AD_BRIEF_PLACEMENT_DIRECTIVE}\n\n--- CREATIVE DIRECTION ---\n${userDirection}`;
 
   try {
     let img = null;

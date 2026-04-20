@@ -659,6 +659,29 @@ export function SiteAudit({
               </div>
             </div>
 
+            {report.psiMeta && !report.psiMeta.lighthouseAvailable && (
+              <div
+                className={`rounded-2xl border px-5 py-4 print:hidden ${
+                  isStudio ? 'border-amber-500/40 bg-amber-500/10 text-amber-100' : 'border-amber-200 bg-amber-50 text-brand-dark'
+                }`}
+              >
+                <p className={`text-xs font-black uppercase tracking-wider mb-1 ${isStudio ? 'text-amber-200' : 'text-amber-800'}`}>
+                  Estimated scores — Lighthouse unavailable
+                </p>
+                <p className={`text-sm font-medium leading-snug ${isStudio ? 'text-white/85' : 'text-brand-dark/80'}`}>
+                  {!report.psiMeta.googlePsiApiKeyConfigured ? (
+                    <>
+                      Set <span className="font-mono text-[11px]">GOOGLE_PSI_API_KEY</span> on the server for measured PageSpeed / Lighthouse results. Until then, sub-scores are heuristic (HTTPS + domain signals), not a live crawl.
+                    </>
+                  ) : report.psiMeta.lastError ? (
+                    <>Google PageSpeed returned an error: {report.psiMeta.lastError}. Retry later or verify the URL is reachable.</>
+                  ) : (
+                    <>PageSpeed did not return Lighthouse metrics for this request. Sub-scores are estimated.</>
+                  )}
+                </p>
+              </div>
+            )}
+
             {/* ── Main Report Card ── */}
             <div className={`${isStudio ? 'bg-[#1C1F26] border-white/5' : 'bg-white border-gray-100 shadow-xl'} rounded-[2.5rem] p-8 border print:shadow-none print:border-none`}>
               <div className={`flex flex-col md:flex-row items-center gap-8 mb-8 pb-8 border-b ${isStudio ? 'border-white/5' : 'border-gray-100'}`}>
