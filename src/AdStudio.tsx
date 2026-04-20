@@ -217,47 +217,21 @@ export default function AdStudio() { useAnalytics(); useAnalytics();
     setIsTestingKie(true);
     setKieTestResult(null);
     try {
-      const kieApiKey = process.env.KIE_API_KEY;
-      if (!kieApiKey) {
-        throw new Error("KIE_API_KEY is missing in environment variables");
+      const response = await fetch('/api/ping-kie', { method: 'POST' });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || data.message || `Server returned ${response.status}`);
       }
 
-      const response = await fetch('https://api.kie.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${kieApiKey}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            { role: 'user', content: 'Say "Kie.ai connection successful!"' }
-          ],
-          max_tokens: 20
-        })
-      });
-
-      if (!response.ok) {
-        let errorMessage = `Status ${response.status}`;
-        try {
-          const errorData = await response.json();
-          errorMessage += `: ${errorData.error?.message || errorData.message || JSON.stringify(errorData)}`;
-        } catch (e) {
-          const text = await response.text().catch(() => '');
-          if (text) errorMessage += `: ${text.substring(0, 200)}`;
-        }
-        throw new Error(`Kie.ai API failed: ${errorMessage}`);
-      }
-
-      const data = await response.json();
       setKieTestResult({
         status: 'success',
-        message: data.choices[0].message.content
+        message: data.message || 'Kie.ai reachable via server',
       });
     } catch (error: any) {
       setKieTestResult({
         status: 'error',
-        message: error.message
+        message: error.message,
       });
     } finally {
       setIsTestingKie(false);

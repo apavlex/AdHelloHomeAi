@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8081;
 const DIST_DIR = path.join(__dirname, 'dist');
 const dbPath = path.join(__dirname, 'database.db');
 
@@ -110,45 +110,75 @@ process.on('unhandledRejection', (reason) => console.error('[CRITICAL] Unhandled
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const KIE_API_KEY = process.env.KIE_API_KEY;
+const KIE_CHAT_MODEL = process.env.KIE_CHAT_MODEL || 'gpt-4o';
+const KIE_UPLOAD_BASE = process.env.KIE_UPLOAD_BASE || 'https://kieai.redpandaai.co';
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 /**
  * Helper to call Kie.ai AI (OpenAI-compatible) via REST API.
+ * options.jsonMode — request JSON object output (site audit, ad brief parse).
+ * options.imageBase64 + options.mimeType — GPT-4o vision for image analysis.
  */
-async function callKie(prompt, systemPrompt = '', history = []) {
+async function callKie(prompt, systemPrompt = '', history = [], options = {}) {
   if (!KIE_API_KEY) return null;
-  
+
+  const jsonMode = options.jsonMode === true || options.forceJson === true;
+  const imageBase64 = options.imageBase64;
+  const mimeType = options.mimeType || 'image/jpeg';
+
   const messages = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
-  
-  // Format history: Kie/OpenAI expects {role, content}
-  (history || []).forEach(m => {
-    messages.push({ 
-      role: m.role || 'user', 
-      content: m.content || m.text || '' 
+
+  (history || []).forEach((m) => {
+    let role = m.role || 'user';
+    if (role === 'model') role = 'assistant'; // SQLite / UI use "model"; OpenAI expects "assistant"
+    messages.push({
+      role,
+      content: m.content || m.text || '',
     });
   });
-  
-  messages.push({ role: 'user', content: prompt });
+
+  if (imageBase64) {
+    const raw = imageBase64.includes('base64,') ? imageBase64.split('base64,')[1] : imageBase64;
+    const dataUrl = `data:${mimeType};base64,${raw}`;
+    messages.push({
+      role: 'user',
+      content: [
+        { type: 'text', text: prompt },
+        { type: 'image_url', image_url: { url: dataUrl } },
+      ],
+    });
+  } else {
+    messages.push({ role: 'user', content: prompt });
+  }
 
   try {
+    const body = {
+      model: KIE_CHAT_MODEL,
+      messages,
+      temperature: 0.7,
+      ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
+    };
+
     const res = await fetch('https://api.kie.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${KIE_API_KEY}`
+        Authorization: `Bearer ${KIE_API_KEY}`,
       },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: messages,
-        temperature: 0.7
-      })
+      body: JSON.stringify(body),
     });
-    
+
     const data = await res.json();
-    if (data.error) {
+    if (!res.ok || data.error) {
+      console.warn('[KIE] Chat error:', data.error?.message || data.msg || data.error || res.status);
       return null;
     }
-    return data.choices?.[0]?.message?.content || null;
+    const text = data.choices?.[0]?.message?.content;
+    return text || null;
   } catch (err) {
     console.error('[KIE] Fetch Exception:', err.message);
     return null;
@@ -158,7 +188,7 @@ async function callKie(prompt, systemPrompt = '', history = []) {
 /**
  * Helper to call Gemini AI via native fetch REST API.
  */
-async function callGemini(prompt, modelName = 'gemini-2.0-flash', base64Image = null, forceJson = false) {
+async function callGemini(prompt, modelName = 'gemini-2.0-flash', base64Image = null, forceJson = false, imageMimeType = 'image/jpeg') {
   if (!GEMINI_API_KEY) {
     console.warn('[GEMINI] API Key missing. Returning null.');
     return null;
@@ -176,9 +206,13 @@ async function callGemini(prompt, modelName = 'gemini-2.0-flash', base64Image = 
       ? base64Image.split('base64,')[1] 
       : base64Image;
 
+    const mime = typeof imageMimeType === 'string' && imageMimeType.includes('/')
+      ? imageMimeType
+      : 'image/jpeg';
+
     contents[0].parts.push({
       inline_data: {
-        mime_type: 'image/jpeg', // Defaulting to jpeg; could be refined
+        mime_type: mime,
         data: base64Data
       }
     });
@@ -201,6 +235,7 @@ async function callGemini(prompt, modelName = 'gemini-2.0-flash', base64Image = 
     });
     const data = await res.json();
     if (data.error) {
+      console.warn('[GEMINI] API error:', data.error?.message || data.error);
       return null;
     }
     // Handle both text and image responses
@@ -214,20 +249,230 @@ async function callGemini(prompt, modelName = 'gemini-2.0-flash', base64Image = 
   }
 }
 
+const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image';
+
 /**
- * Unified AI orchestrator: Tries Kie.ai first, falls back to Gemini.
+ * Generate or edit ad imagery (image output). Uses responseModalities per Gemini image API.
  */
-async function callAI(prompt, systemPrompt = '', history = [], forceJson = false) {
-  // 1. Try Kie.ai
-  const kieResult = await callKie(prompt, systemPrompt, history);
+async function callGeminiImageOutput(prompt, base64Image = null, imageMimeType = 'image/jpeg') {
+  if (!GEMINI_API_KEY) {
+    console.warn('[GEMINI] API Key missing. Returning null.');
+    return null;
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+
+  const parts = [{ text: prompt }];
+  if (base64Image) {
+    const base64Data = base64Image.includes('base64,')
+      ? base64Image.split('base64,')[1]
+      : base64Image;
+    const mime = typeof imageMimeType === 'string' && imageMimeType.includes('/')
+      ? imageMimeType
+      : 'image/jpeg';
+    parts.push({
+      inline_data: {
+        mime_type: mime,
+        data: base64Data
+      }
+    });
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts }],
+        generationConfig: {
+          temperature: 0.85,
+          topP: 0.95,
+          maxOutputTokens: 8192,
+          responseModalities: ['TEXT', 'IMAGE']
+        }
+      })
+    });
+    const data = await res.json();
+    if (data.error) {
+      console.warn('[GEMINI-IMAGE] API error:', data.error?.message || JSON.stringify(data.error));
+      return null;
+    }
+    const respParts = data.candidates?.[0]?.content?.parts || [];
+    for (const part of respParts) {
+      if (part.inline_data?.data) {
+        const mime = part.inline_data.mime_type || 'image/png';
+        return 'data:' + mime + ';base64,' + part.inline_data.data;
+      }
+    }
+    console.warn('[GEMINI-IMAGE] No image in response parts:', JSON.stringify(respParts).slice(0, 300));
+    return null;
+  } catch (err) {
+    console.error('[GEMINI-IMAGE] Fetch Exception:', err.message);
+    return null;
+  }
+}
+
+/** Upload base64 image to Kie temporary storage; returns HTTPS URL for 4o Image `filesUrl`. */
+async function kieUploadBase64Image(rawBase64, mimeType = 'image/jpeg') {
+  if (!KIE_API_KEY) return null;
+  const ext = mimeType.includes('png')
+    ? 'png'
+    : mimeType.includes('webp')
+      ? 'webp'
+      : mimeType.includes('gif')
+        ? 'gif'
+        : 'jpg';
+  const dataUrl = rawBase64.includes('base64,')
+    ? rawBase64
+    : `data:${mimeType};base64,${rawBase64}`;
+  try {
+    const res = await fetch(`${KIE_UPLOAD_BASE}/api/file-base64-upload`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${KIE_API_KEY}`,
+      },
+      body: JSON.stringify({
+        base64Data: dataUrl,
+        uploadPath: 'adhello/ad-brief',
+        fileName: `upload-${Date.now()}.${ext}`,
+      }),
+    });
+    const data = await res.json();
+    const url = data.data?.fileUrl || data.data?.downloadUrl;
+    if (!res.ok || !url) {
+      console.warn('[KIE-UPLOAD]', data.msg || data.error || res.status);
+      return null;
+    }
+    return url;
+  } catch (e) {
+    console.error('[KIE-UPLOAD]', e.message);
+    return null;
+  }
+}
+
+async function kie4oSubmitImageTask(payload) {
+  if (!KIE_API_KEY) return null;
+  try {
+    const res = await fetch('https://api.kie.ai/api/v1/gpt4o-image/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${KIE_API_KEY}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.code !== 200 || !data.data?.taskId) {
+      console.warn('[KIE-4O] Submit failed:', data.msg || JSON.stringify(data));
+      return null;
+    }
+    return data.data.taskId;
+  } catch (e) {
+    console.error('[KIE-4O] Submit Exception:', e.message);
+    return null;
+  }
+}
+
+async function kie4oPollImageResult(taskId, maxMs = 120000) {
+  const start = Date.now();
+  while (Date.now() - start < maxMs) {
+    try {
+      const res = await fetch(
+        `https://api.kie.ai/api/v1/gpt4o-image/record-info?taskId=${encodeURIComponent(taskId)}`,
+        { headers: { Authorization: `Bearer ${KIE_API_KEY}` } }
+      );
+      const data = await res.json();
+      if (data.code !== 200 || !data.data) {
+        await sleep(2500);
+        continue;
+      }
+      const td = data.data;
+      if (td.successFlag === 1) {
+        const urls = td.response?.result_urls || [];
+        return urls[0] || null;
+      }
+      if (td.successFlag === 2) {
+        console.warn('[KIE-4O] Generation failed:', td.errorMessage || td.errorCode);
+        return null;
+      }
+    } catch (e) {
+      console.warn('[KIE-4O] Poll error:', e.message);
+    }
+    await sleep(2500);
+  }
+  console.warn('[KIE-4O] Poll timeout');
+  return null;
+}
+
+async function remoteImageUrlToDataUrl(imageUrl) {
+  const res = await fetch(imageUrl);
+  if (!res.ok) return null;
+  const buf = Buffer.from(await res.arrayBuffer());
+  const ct = res.headers.get('content-type') || 'image/png';
+  return `data:${ct};base64,${buf.toString('base64')}`;
+}
+
+/** Kie 4o Image API (upload reference → async task → poll). Uses KIE_API_KEY. */
+async function callKie4oImageOutput(prompt, rawBase64, mimeType) {
+  if (!KIE_API_KEY) return null;
+
+  let filesUrl = null;
+  if (rawBase64) {
+    filesUrl = await kieUploadBase64Image(rawBase64, mimeType || 'image/jpeg');
+    if (!filesUrl) {
+      console.warn('[KIE-4O] Reference upload failed; trying text-only image generation.');
+    }
+  }
+
+  const payload = {
+    prompt,
+    size: '1:1',
+    nVariants: 1,
+    ...(filesUrl ? { filesUrl: [filesUrl] } : {}),
+  };
+
+  const taskId = await kie4oSubmitImageTask(payload);
+  if (!taskId) return null;
+
+  const resultUrl = await kie4oPollImageResult(taskId);
+  if (!resultUrl) return null;
+
+  try {
+    return await remoteImageUrlToDataUrl(resultUrl);
+  } catch (e) {
+    console.error('[KIE-4O] Download result failed:', e.message);
+    return null;
+  }
+}
+
+/**
+ * Unified AI orchestrator: Kie.ai first (same API key as KIE_CHAT_MODEL), then Gemini.
+ * visionOpts: { imageBase64, mimeType } — uses Kie GPT-4o vision, then Gemini vision.
+ */
+async function callAI(prompt, systemPrompt = '', history = [], forceJson = false, visionOpts = null) {
+  const img = visionOpts?.imageBase64 || visionOpts?.imageData;
+  const mime = visionOpts?.mimeType || 'image/jpeg';
+
+  if (img) {
+    const kieVision = await callKie(prompt, systemPrompt, history, {
+      jsonMode: forceJson,
+      imageBase64: img,
+      mimeType: mime,
+    });
+    if (kieVision) return kieVision;
+    console.log('[AI] Kie vision failed or unavailable; falling back to Gemini.');
+    return await callGemini(prompt, 'gemini-2.0-flash', img, forceJson, mime);
+  }
+
+  const kieResult = await callKie(prompt, systemPrompt, history, { jsonMode: forceJson });
   if (kieResult) return kieResult;
-  
-  // 2. Fallback to Gemini
+
   console.log(`[AI] Falling back to Gemini (JSON: ${forceJson})...`);
   const historyText = (history || []).map(m => 
     `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content || m.text || ''}`
   ).join('\n\n');
-  
+
   const fullPrompt = [
     systemPrompt,
     historyText ? 'Conversation History:\n' + historyText : '',
@@ -237,6 +482,23 @@ async function callAI(prompt, systemPrompt = '', history = [], forceJson = false
 
   return await callGemini(fullPrompt, 'gemini-2.0-flash', null, forceJson);
 }
+
+/** Which AI backends are configured (no secrets exposed). */
+app.get('/api/ai-health', (req, res) => {
+  res.json({
+    kie: !!KIE_API_KEY,
+    gemini: !!GEMINI_API_KEY,
+  });
+});
+
+/** Smoke-test Kie chat from the server (keys stay server-side). */
+app.post('/api/ping-kie', async (req, res) => {
+  if (!KIE_API_KEY) {
+    return res.status(503).json({ ok: false, error: 'KIE_API_KEY not configured on server' });
+  }
+  const reply = await callKie('Reply with exactly one short sentence confirming Kie.ai is reachable.', '', [], {});
+  res.json({ ok: !!reply, message: reply || null });
+});
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 if (!resend) console.warn('[MAIL] RESEND_API_KEY missing. Email notifications disabled.');
@@ -257,12 +519,18 @@ async function getPageSpeedInsights(targetUrl) {
     
     const lh = data.lighthouseResult;
     const screenshot = lh.audits['final-screenshot']?.details?.data || null;
-    const perfScore = (lh.categories.performance.score || 0) * 100;
+    const perfScore = (lh.categories.performance?.score || 0) * 100;
+    const seoScore = (lh.categories.seo?.score ?? 0) * 100;
+    const a11yScore = (lh.categories.accessibility?.score ?? 0) * 100;
+    const bpScore = (lh.categories['best-practices']?.score ?? 0) * 100;
     const lcp = lh.audits['largest-contentful-paint']?.displayValue || 'N/A';
     const ssl = lh.audits['is-on-https']?.score === 1;
     
     return {
       performance: Math.round(perfScore),
+      seo: Math.round(seoScore),
+      accessibility: Math.round(a11yScore),
+      bestPractices: Math.round(bpScore),
       lcp,
       isHttps: ssl,
       screenshot,
@@ -276,6 +544,194 @@ async function getPageSpeedInsights(targetUrl) {
     console.error('[PSI] Fetch Error:', err.message);
     return null;
   }
+}
+
+function clampScore(n) {
+  return Math.max(0, Math.min(100, Math.round(Number(n))));
+}
+
+/** Deterministic variation when PSI is unavailable so different domains don't all share one score */
+function hostnameEntropy(hostname) {
+  let h = 2166136261;
+  for (let i = 0; i < hostname.length; i++) {
+    h ^= hostname.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return Math.abs(h);
+}
+
+/**
+ * Site-specific scores from Lighthouse (when PSI works) or hostname entropy (when it doesn't).
+ * Numeric scores must never be a single hardcoded mock — that caused identical audits for every URL.
+ */
+function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, screenshotBase64) {
+  let hostname = 'site';
+  try {
+    hostname = new URL(targetUrl).hostname.replace(/^www\./i, '');
+  } catch (_) {}
+
+  let mobileFirstScore = 52;
+  let googleAiReadyScore = 44;
+  let leadsEstimatesScore = 48;
+
+  if (psiData) {
+    mobileFirstScore = psiData.performance;
+    const seo = psiData.seo ?? 50;
+    const bp = psiData.bestPractices ?? 50;
+    const a11y = psiData.accessibility ?? 50;
+    googleAiReadyScore = clampScore(seo * 0.52 + bp * 0.28 + mobileFirstScore * 0.2);
+    leadsEstimatesScore = clampScore(a11y * 0.42 + seo * 0.38 + (actualSsl ? 20 : 5));
+  } else {
+    const e = hostnameEntropy(hostname);
+    mobileFirstScore = 28 + (e % 45);
+    googleAiReadyScore = 25 + ((e >> 3) % 50);
+    leadsEstimatesScore = 30 + ((e >> 7) % 42);
+  }
+
+  if (!actualSsl) {
+    mobileFirstScore = clampScore(mobileFirstScore - 12);
+    googleAiReadyScore = clampScore(googleAiReadyScore - 18);
+    leadsEstimatesScore = clampScore(leadsEstimatesScore - 10);
+  }
+
+  const score = clampScore(
+    mobileFirstScore * 0.38 + leadsEstimatesScore * 0.32 + googleAiReadyScore * 0.3
+  );
+
+  const mobileStatus =
+    psiData && psiData.performance >= 90 ? 'pass' : psiData && psiData.performance >= 50 ? 'warning' : 'fail';
+  const metaStatus =
+    psiData && psiData.seo >= 85 ? 'pass' : psiData && psiData.seo >= 60 ? 'warning' : 'fail';
+
+  const summary = psiData
+    ? `${actualSsl ? '' : 'CRITICAL: Insecure or missing HTTPS. '}Lighthouse mobile performance is ${psiData.performance}/100; SEO ${psiData.seo}/100. Gaps in structured data and AI-search signals still limit visibility in ChatGPT, Perplexity, and AI Overviews.`
+    : `Google PageSpeed data was not available for ${hostname}, so scores blend HTTPS checks with estimated ranges. Add GOOGLE_PSI_API_KEY for consistent Lighthouse-backed scores.`;
+
+  return {
+    score,
+    mobileFirstScore,
+    leadsEstimatesScore,
+    googleAiReadyScore,
+    summary,
+    brandAnalysis: psiData
+      ? 'Signals from Google mobile crawl suggest room to sharpen positioning and trust cues for AI-powered discovery.'
+      : `We could not run a full Lighthouse scan on ${hostname}. Narrative sections below may be limited until PageSpeed responds.`,
+    brandColors: { primary: '#1a1a2e', accent: '#F3DD6D', background: '#F5F0E8', text: '#1a1a2e' },
+    technicalAudit: {
+      mobileSpeed: {
+        label: 'Mobile Load Speed',
+        status: mobileStatus,
+        value: actualSpeed,
+        reason: psiData ? 'Measured via Google Lighthouse (mobile).' : 'LCP not available — PageSpeed did not return metrics.',
+      },
+      contactForm: {
+        label: 'Lead Capture Form',
+        status: 'warning',
+        value: 'Not verified',
+        reason: 'Form detection requires a deeper crawl than Lighthouse summary.',
+      },
+      sslCertificate: {
+        label: 'SSL Certificate',
+        status: actualSsl ? 'pass' : 'fail',
+        value: actualSsl ? 'Secure' : 'Insecure',
+        reason: actualSsl ? 'HTTPS reported by Lighthouse.' : 'HTTPS missing or broken — critical for trust and rankings.',
+      },
+      metaDescription: {
+        label: 'Meta Description',
+        status: metaStatus,
+        value: psiData ? `SEO category ~${psiData.seo}/100` : 'Unknown',
+        reason: psiData ? 'SEO score reflects meta, crawlability, and mobile basics.' : 'Unable to score without Lighthouse SEO category.',
+      },
+      googleBusinessProfile: {
+        label: 'Google Business Profile',
+        status: 'warning',
+        value: 'Verify manually',
+        reason: 'GBP is not exposed in Lighthouse; confirm your listing separately.',
+      },
+      reviewSentiment: {
+        label: 'Review Sentiment',
+        status: 'warning',
+        value: 'Unknown',
+        reason: 'Review data is not available from this automated scan.',
+      },
+    },
+    strengths: [
+      {
+        indicator: actualSsl ? 'HTTPS' : 'Live domain',
+        description: actualSsl
+          ? 'HTTPS is enabled — a baseline requirement for AI and local search.'
+          : 'Site resolves; enabling HTTPS should be your first priority.',
+      },
+    ],
+    weaknesses: [
+      {
+        indicator: 'AI & structured data',
+        description:
+          'AI engines favor clear entities, schema, and crawl-friendly content. Closing gaps here raises discoverability.',
+      },
+    ],
+    recommendations: [
+      {
+        title: 'Publish machine-readable facts',
+        description: 'Add accurate LocalBusiness / Service schema and entity-consistent NAP across the site.',
+        action: 'Plan schema rollout',
+      },
+    ],
+    city: 'Local Area',
+    reviewThemes: ['Service quality', 'Local trust'],
+    screenshot: screenshotBase64,
+  };
+}
+
+/** Pull JSON object out of model noise (prose + markdown fences) */
+function extractJsonObject(text) {
+  if (!text || typeof text !== 'string') return '{}';
+  const trimmed = text.trim();
+  try {
+    JSON.parse(trimmed);
+    return trimmed;
+  } catch (_) {}
+  const start = trimmed.indexOf('{');
+  const end = trimmed.lastIndexOf('}');
+  if (start >= 0 && end > start) {
+    const slice = trimmed.slice(start, end + 1);
+    try {
+      JSON.parse(slice);
+      return slice;
+    } catch (_) {}
+  }
+  return trimmed;
+}
+
+function cleanAIResponse(text) {
+  if (!text) return '';
+  try {
+    const parsed = JSON.parse(text.trim());
+    return parsed.response || parsed.text || parsed.content || text;
+  } catch (e) {
+    const match = text.match(/\{[\s\S]*"response"\s*:\s*"([\s\S]*?)"[\s\S]*\}/i);
+    if (match && match[1]) return match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+    return text.replace(/^```json\s*|```$/g, '').trim();
+  }
+}
+
+function normalizeAdBriefPayload(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const ac = Array.isArray(raw.adConcepts) ? raw.adConcepts : [];
+  return {
+    productAnalysis: String(raw.productAnalysis ?? ''),
+    visualPrompt: String(raw.visualPrompt ?? ''),
+    targetAudience: Array.isArray(raw.targetAudience) ? raw.targetAudience : [],
+    marketInsights: Array.isArray(raw.marketInsights) ? raw.marketInsights : [],
+    competitiveAdvantages: Array.isArray(raw.competitiveAdvantages) ? raw.competitiveAdvantages : [],
+    adConcepts: ac.length
+      ? ac
+      : [
+          { platform: 'Instagram', headline: '', body: '', cta: '' },
+          { platform: 'Facebook', headline: '', body: '', cta: '' },
+          { platform: 'TikTok', headline: '', body: '', cta: '' },
+        ],
+  };
 }
 
 // --- ANALYTICS PROXY ---
@@ -321,64 +777,63 @@ app.post('/api/analyze', async (req, res) => {
   const actualSpeed = psiData ? psiData.lcp : '3.1s';
   const screenshotBase64 = psiData ? psiData.screenshot : null;
 
-  const mockReport = {
-    score: 42,
-    mobileFirstScore: 68,
-    leadsEstimatesScore: 45,
-    googleAiReadyScore: 28,
-    summary: "CRITICAL: Your website is functionally invisible to modern AI search engines. Missing GEO signals and structured data.",
-    brandAnalysis: "Established local presence.",
-    brandColors: { primary: "#1a1a2e", accent: "#F3DD6D", background: "#F5F0E8", text: "#1a1a2e" },
-    technicalAudit: {
-      mobileSpeed: { label: "Mobile Load Speed", status: psiData && psiData.performance >= 90 ? "pass" : "warning", value: actualSpeed, reason: "Measured by Google Lighthouse." },
-      contactForm: { label: "Lead Capture Form", status: "pass", value: "Found", reason: "Detected on page." },
-      sslCertificate: { label: "SSL Certificate", status: actualSsl ? "pass" : "fail", value: actualSsl ? "Secure" : "Insecure", reason: actualSsl ? "Valid HTTPS found." : "No valid SSL certificate — major trust issue." },
-      metaDescription: { label: "Meta Description", status: "fail", value: "Missing", reason: "Critical for AI search visibility." },
-      googleBusinessProfile: { label: "Google Business Profile", status: "warning", value: "Unclaimed", reason: "Optimizations required." },
-      reviewSentiment: { label: "Review Sentiment", status: "pass", value: "4.7/5", reason: "Positive sentiment." }
-    },
-    strengths: [
-      { indicator: actualSsl ? "SSL Security" : "Domain Established", description: actualSsl ? "Site is secured with HTTPS." : "Domain history is a plus." }
-    ],
-    weaknesses: [
-      { indicator: "GEO Readiness", description: "Your core score is low because you lack structured data for AI search." }
-    ],
-    recommendations: [
-      { title: "Switch to Managed CMS", description: "Our platform ensures 100% SSL security and 95+ performance scores.", action: "Fix Now" }
-    ],
-    city: "Local Area",
-    reviewThemes: ["Quality Service"],
-    screenshot: screenshotBase64 // PASS ACTUAL SCREENSHOT TO UI
-  };
+  const baselineReport = buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, screenshotBase64);
 
   try {
     if (KIE_API_KEY || GEMINI_API_KEY) {
       const prompt = `Analyze the website ${targetUrl} based on these OFFICIAL GOOGLE METRICS:
-Performance: ${psiData ? psiData.performance : 'low'}
+Performance (Lighthouse mobile): ${psiData ? psiData.performance : 'unknown'}
+SEO category: ${psiData ? psiData.seo : 'unknown'}
+Accessibility: ${psiData ? psiData.accessibility : 'unknown'}
+Best practices: ${psiData ? psiData.bestPractices : 'unknown'}
 SSL Secured: ${actualSsl}
-Load Time: ${actualSpeed}
+Load Time (LCP display): ${actualSpeed}
 
-Return ONLY a raw JSON object (no markdown) with this structure:
-{"score":number,"mobileFirstScore":number,"leadsEstimatesScore":number,"googleAiReadyScore":number,"summary":"string","brandAnalysis":"string","brandColors":{"primary":"#hex","accent":"#hex","background":"#hex","text":"#hex"},"technicalAudit":{"mobileSpeed":{"label":"Mobile Load Speed","status":"pass|fail|warning","value":"${actualSpeed}","reason":"string"},"contactForm":{"label":"Contact Form","status":"pass|fail|warning","value":"string","reason":"string"},"sslCertificate":{"label":"SSL Certificate","status":"${actualSsl ? 'pass' : 'fail'}","value":"${actualSsl ? 'Secure' : 'Insecure'}","reason":"string"},"metaDescription":{"label":"Meta Description","status":"pass|fail|warning","value":"string","reason":"string"},"googleBusinessProfile":{"label":"Google Business Profile","status":"pass|fail|warning","value":"string","reason":"string"},"reviewSentiment":{"label":"Review Sentiment","status":"pass|fail|warning","value":"string","reason":"string"}},"strengths":[{"indicator":"string","description":"string"}],"weaknesses":[{"indicator":"string","description":"string"}],"recommendations":[{"title":"string","description":"string","action":"string"}],"city":"string","reviewThemes":["string","string","string"]}
+Return ONLY a raw JSON object (no markdown, no prose) with this structure:
+{"summary":"string","brandAnalysis":"string","brandColors":{"primary":"#hex","accent":"#hex","background":"#hex","text":"#hex"},"technicalAudit":{"contactForm":{"label":"Contact Form","status":"pass|fail|warning","value":"string","reason":"string"},"metaDescription":{"label":"Meta Description","status":"pass|fail|warning","value":"string","reason":"string"},"googleBusinessProfile":{"label":"Google Business Profile","status":"pass|fail|warning","value":"string","reason":"string"},"reviewSentiment":{"label":"Review Sentiment","status":"pass|fail|warning","value":"string","reason":"string"}},"strengths":[{"indicator":"string","description":"string"}],"weaknesses":[{"indicator":"string","description":"string"}],"recommendations":[{"title":"string","description":"string","action":"string"}],"city":"string","reviewThemes":["string","string","string"]}
 
-For brandColors: Use the actual dominant colors of the business if possible.
-IMPORTANT: You MUST respect the SSL status: ${actualSsl}. If it is FALSE, the audit score MUST reflect a critical failure. Be brutally honest to sell the solution.`;
+Do NOT include score, mobileFirstScore, leadsEstimatesScore, or googleAiReadyScore — the server computes those from Lighthouse.
+For brandColors: infer from the business if possible.
+IMPORTANT: Respect SSL status ${actualSsl}. If FALSE, call out the security risk in summary and weaknesses.`;
 
       const resultText = await callAI(prompt, '', [], true);
       if (!resultText) throw new Error('Empty response from AI providers');
-      
+
       const cleaned = cleanAIResponse(resultText);
-      const parsed = JSON.parse(cleaned);
-      
-      return res.json({
+      const jsonStr = extractJsonObject(cleaned);
+      const parsed = JSON.parse(jsonStr);
+
+      const merged = {
+        ...baselineReport,
         ...parsed,
-        screenshot: screenshotBase64 // PASS ACTUAL SCREENSHOT TO UI
-      });
+        score: baselineReport.score,
+        mobileFirstScore: baselineReport.mobileFirstScore,
+        leadsEstimatesScore: baselineReport.leadsEstimatesScore,
+        googleAiReadyScore: baselineReport.googleAiReadyScore,
+        summary: parsed.summary || baselineReport.summary,
+        brandAnalysis: parsed.brandAnalysis || baselineReport.brandAnalysis,
+        brandColors: parsed.brandColors || baselineReport.brandColors,
+        technicalAudit: {
+          ...baselineReport.technicalAudit,
+          ...(parsed.technicalAudit || {}),
+          mobileSpeed: baselineReport.technicalAudit.mobileSpeed,
+          sslCertificate: baselineReport.technicalAudit.sslCertificate,
+          metaDescription: parsed.technicalAudit?.metaDescription || baselineReport.technicalAudit.metaDescription,
+        },
+        strengths: Array.isArray(parsed.strengths) && parsed.strengths.length ? parsed.strengths : baselineReport.strengths,
+        weaknesses: Array.isArray(parsed.weaknesses) && parsed.weaknesses.length ? parsed.weaknesses : baselineReport.weaknesses,
+        recommendations: Array.isArray(parsed.recommendations) && parsed.recommendations.length ? parsed.recommendations : baselineReport.recommendations,
+        city: parsed.city || baselineReport.city,
+        reviewThemes: Array.isArray(parsed.reviewThemes) && parsed.reviewThemes.length ? parsed.reviewThemes : baselineReport.reviewThemes,
+        screenshot: screenshotBase64,
+      };
+
+      return res.json(merged);
     }
-    res.json(mockReport);
+    return res.json(baselineReport);
   } catch (err) {
-    console.error('[ANALYSIS] Gemini Error:', err);
-    res.json(mockReport);
+    console.error('[ANALYSIS] AI error:', err);
+    return res.json(baselineReport);
   }
 });
 
@@ -746,7 +1201,7 @@ RULES:
     
     replyText = await callAI(userMessage, systemPrompt, messages);
   } catch (err) {
-    console.error('[SITE-CHAT] Gemini error:', err);
+    console.error('[SITE-CHAT] AI error:', err);
   }
 
   if (!replyText) {
@@ -807,7 +1262,7 @@ RECOMMENDATIONS: ${recommendations || 'none'}
 
     let replyText = '';
 
-    if (GEMINI_API_KEY) {
+    if (KIE_API_KEY || GEMINI_API_KEY) {
       try {
         const systemPrompt = `You are the "GEO Ranking Coach" for AdHello.ai — an elite local SEO expert who talks like a teammate, not a consultant.
 You are coaching ${bizName} in ${city} (AEO score: ${score}/100).
@@ -820,15 +1275,9 @@ Rules:
 4. Encourage them, but don't be afraid to be brutally honest about what's holding them back.
 5. Use bullet points for steps.`;
 
-        const historyText = history.slice(0, -1).map(m =>
-          `${m.role === 'user' ? 'User' : 'Coach'}: ${m.content}`
-        ).join('\n\n');
-
-        const fullPrompt = `${systemPrompt}\n\n${historyText ? 'Conversation:\n' + historyText + '\n\n' : ''}User: ${message}\n\nCoach:`;
-
         replyText = await callAI(message, systemPrompt, history);
-      } catch (geminiErr) {
-        console.error('[CHAT] Gemini failed:', geminiErr);
+      } catch (aiErr) {
+        console.error('[CHAT] AI failed:', aiErr);
       }
     }
 
@@ -1060,45 +1509,95 @@ app.post('/api/ad-brief/download', async (req, res) => {
 });
 
 app.post('/api/ad-brief/generate-image', async (req, res) => {
-  const { headline, body, platform, originalImage } = req.body;
-  if (!originalImage) return res.status(400).json({ error: 'Image required' });
+  const {
+    prompt: clientPrompt,
+    imageBase64,
+    imageMimeType,
+    headline,
+    body: bodyText,
+    platform,
+    originalImage,
+  } = req.body;
+
+  const rawB64 =
+    imageBase64 ||
+    (typeof originalImage === 'string' && originalImage.includes('base64,')
+      ? originalImage.split('base64,')[1]
+      : originalImage);
+  if (!rawB64 || typeof rawB64 !== 'string') {
+    return res.status(400).json({ error: 'Image required (imageBase64 or originalImage)' });
+  }
+
+  let mime = imageMimeType;
+  if (!mime && typeof originalImage === 'string' && originalImage.startsWith('data:')) {
+    mime = originalImage.match(/^data:([^;]+);/)?.[1];
+  }
+  mime = mime || 'image/jpeg';
+
+  const textPrompt =
+    clientPrompt ||
+    `Create a scroll-stopping ${platform || 'social'} feed ad. Headline: ${headline || ''}. Body: ${bodyText || ''}. Use the uploaded image as the hero product — keep branding accurate.`;
+
   try {
-    const prompt = 'Create a ' + platform + ' ad mockup for: ' + headline;
-    const img = await callGemini(prompt, 'gemini-2.0-flash-exp-image-generation', originalImage, false);
-    if (!img) throw new Error('Failed');
-    res.json({ imageUrl: img, success: true, source: 'generated' });
+    let img = null;
+    if (KIE_API_KEY) {
+      img = await callKie4oImageOutput(textPrompt, rawB64, mime);
+    }
+    if (!img && GEMINI_API_KEY) {
+      img = await callGeminiImageOutput(textPrompt, rawB64, mime);
+    }
+    if (!img && GEMINI_API_KEY) {
+      console.warn('[GEN-IMAGE] Retrying Gemini without reference image.');
+      img = await callGeminiImageOutput(textPrompt, null, mime);
+    }
+    if (!img && KIE_API_KEY && !GEMINI_API_KEY) {
+      console.warn('[GEN-IMAGE] Kie text-only fallback (no reference image).');
+      img = await callKie4oImageOutput(textPrompt, null, mime);
+    }
+    if (!img) {
+      return res.status(500).json({
+        error: 'Generation failed',
+        detail: 'No image returned. Set KIE_API_KEY (Kie 4o Image) or GEMINI_API_KEY.',
+      });
+    }
+
+    let imageBase64Out = null;
+    let mimeTypeOut = 'image/png';
+    const m = img.match(/^data:([^;]+);base64,(.+)$/);
+    if (m) {
+      mimeTypeOut = m[1];
+      imageBase64Out = m[2];
+    }
+
+    res.json({
+      success: true,
+      source: 'generated',
+      imageUrl: img,
+      imageBase64: imageBase64Out,
+      mimeType: mimeTypeOut,
+    });
   } catch (e) {
     console.error('[GEN-IMAGE]', e);
-    res.status(500).json({ error: 'Generation failed' });
+    res.status(500).json({ error: 'Generation failed', detail: e.message });
   }
 });
-
-function cleanAIResponse(text) {
-  if (!text) return '';
-  try {
-    // If the entire text is a JSON object like { "response": "..." } or { "text": "..." }
-    const parsed = JSON.parse(text.trim());
-    return parsed.response || parsed.text || parsed.content || text;
-  } catch (e) {
-    // Not valid JSON, but might contain a JSON block
-    const match = text.match(/\{[\s\S]*"response"\s*:\s*"([\s\S]*?)"[\s\S]*\}/i);
-    if (match && match[1]) return match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
-    
-    // Final fallback: just return the text as is but strip markdown code blocks if they wrap everything
-    return text.replace(/^```json\s*|```$/g, '').trim();
-  }
-}
-
 
 app.post('/api/stitch-design', (req, res) => res.json({ success: true }));
 
 app.post('/api/ad-brief/analyze', async (req, res) => {
-  const { image, imageBase64 } = req.body;
+  const { image, imageBase64, mimeType, service } = req.body;
   const imageData = image || imageBase64;
   if (!imageData) return res.status(400).json({ error: 'Image is required.' });
 
-  const prompt = `CRITICAL: Analyze the attached product image. 
-  1. Identify the EXACT product (name and type). DO NOT invent a new product or use placeholders like "Croissants" unless they are in the image.
+  const mime = typeof mimeType === 'string' && mimeType.includes('/') ? mimeType : 'image/jpeg';
+
+  const serviceHint =
+    typeof service === 'string' && service.trim()
+      ? `\n\nAdvertiser context (trade/service): ${service.trim()}. Tailor audiences, hooks, and copy angles for this category.`
+      : '';
+
+  const prompt = `CRITICAL: Analyze the attached product image.${serviceHint}
+  1. Identify the EXACT product (name and type). DO NOT invent a new product or use placeholders unless they appear in the image.
   2. Generate a comprehensive Ad Brief for this EXACT product.
   
   Output your response as PURE JSON matching this exactly:
@@ -1116,25 +1615,28 @@ app.post('/api/ad-brief/analyze', async (req, res) => {
   }
   Be specific, professional, and stay strictly relevant to the uploaded image.`;
 
-
   try {
-    const aiResponse = await callGemini(prompt, 'gemini-2.0-flash', imageData, true);
-    if (!aiResponse) throw new Error("AI analysis failed.");
-    
-    // Attempt to parse AI response
+    const aiResponse = await callAI(prompt, '', [], true, { imageBase64: imageData, mimeType: mime });
+    if (!aiResponse) {
+      throw new Error('AI analysis failed (empty response). Set KIE_API_KEY (Kie GPT-4o vision) or GEMINI_API_KEY.');
+    }
+
     let briefData;
     try {
-      briefData = JSON.parse(aiResponse);
+      const cleaned = cleanAIResponse(aiResponse);
+      const jsonStr = extractJsonObject(cleaned);
+      briefData = JSON.parse(jsonStr);
     } catch (e) {
-      console.warn("[AD-BRIEF] AI sent malformed JSON, attempting cleanup.", aiResponse);
-      const cleaned = aiResponse.match(/\{[\s\S]*\}/)?.[0] || aiResponse;
+      console.warn('[AD-BRIEF] AI sent malformed JSON, attempting cleanup.', String(aiResponse).slice(0, 500));
+      const cleaned = String(aiResponse).match(/\{[\s\S]*\}/)?.[0] || aiResponse;
       briefData = JSON.parse(cleaned);
     }
 
-    res.json(briefData);
+    const normalized = normalizeAdBriefPayload(briefData);
+    res.json(normalized);
   } catch (error) {
     console.error('[AD-BRIEF] Analysis Error:', error);
-    res.status(500).json({ detail: error.message });
+    res.status(500).json({ error: error.message, detail: error.message });
   }
 });
 

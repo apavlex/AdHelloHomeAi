@@ -253,8 +253,10 @@ CRITICAL RULES:
       const data = await res.json();
       if (data.error === 'rate_limit') {
         alert(`⚠️ ${data.message}`);
-      } else if (data.imageBase64) {
+      } else if (data.imageBase64 && data.mimeType) {
         setGeneratedAds(prev => ({ ...prev, [adIndex]: `data:${data.mimeType};base64,${data.imageBase64}` }));
+      } else if (data.imageUrl) {
+        setGeneratedAds(prev => ({ ...prev, [adIndex]: data.imageUrl }));
       }
     } catch (err) {
       console.error('Ad generation failed:', err);
@@ -276,7 +278,7 @@ CRITICAL RULES:
 
       setAnalysisProgress(30);
 
-      // Call the server-side endpoint (which has access to GEMINI_API_KEY at runtime)
+      // Server-side analyze: Kie (KIE_API_KEY) first, then Gemini fallback
       const response = await fetch('/api/ad-brief/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
