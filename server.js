@@ -632,6 +632,150 @@ async function getPageSpeedInsights(targetUrl) {
   }
 }
 
+/**
+ * When PageSpeed Insights is unavailable (quota, key restrictions, blocking),
+ * fetch the URL ourselves and derive approximate scores from TTFB + HTML signals.
+ * Not a Lighthouse substitute — transparently labeled in psiMeta.measurementSource.
+ */
+async function fetchHttpAuditSignals(targetUrl) {
+  const out = {
+    ok: false,
+    error: null,
+    ttfbMs: null,
+    finalUrl: targetUrl,
+    isHttps: targetUrl.startsWith('https:'),
+    httpStatus: null,
+    title: '',
+    metaDescription: '',
+    hasViewportMeta: false,
+    jsonLdBlocks: 0,
+    htmlBytesRead: 0,
+  };
+
+  try {
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 28000);
+    const t0 = Date.now();
+
+    const res = await fetch(targetUrl, {
+      redirect: 'follow',
+      signal: controller.signal,
+      headers: {
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'User-Agent':
+          'Mozilla/5.0 (compatible; AdHelloSiteAudit/1.1; +https://adhello.ai) AppleWebKit/537.36 (KHTML, like Gecko)',
+      },
+    });
+
+    clearTimeout(tid);
+    out.ttfbMs = Date.now() - t0;
+    out.httpStatus = res.status;
+    out.finalUrl = res.url || targetUrl;
+
+    try {
+      out.isHttps = new URL(out.finalUrl).protocol === 'https:';
+    } catch (_) {}
+
+    if (!res.ok) {
+      out.error = `HTTP ${res.status}`;
+      console.warn('[HTTP-AUDIT] Non-OK status:', targetUrl, out.error);
+      return out;
+    }
+
+    const reader = res.body?.getReader();
+    if (!reader) {
+      out.error = 'Empty response body';
+      return out;
+    }
+
+    const decoder = new TextDecoder();
+    let html = '';
+    const MAX = 450000;
+    while (html.length < MAX) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      html += decoder.decode(value, { stream: true });
+    }
+
+    out.htmlBytesRead = html.length;
+    out.ok = true;
+
+    const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    out.title = titleMatch ? titleMatch[1].replace(/\s+/g, ' ').trim() : '';
+
+    const metaDescMatch =
+      html.match(/<meta[^>]+name\s*=\s*["']description["'][^>]*content\s*=\s*["']([^"']*)["'][^>]*>/i) ||
+      html.match(/<meta[^>]+content\s*=\s*["']([^"']*)["'][^>]*name\s*=\s*["']description["'][^>]*>/i);
+    out.metaDescription = metaDescMatch ? metaDescMatch[1].trim() : '';
+
+    out.hasViewportMeta = /<meta[^>]+name\s*=\s*["']viewport["'][^>]*>/i.test(html);
+
+    const ldMatches = html.match(/application\/ld\+json/gi);
+    out.jsonLdBlocks = ldMatches ? ldMatches.length : 0;
+
+    console.log(`[HTTP-AUDIT] OK ${targetUrl} → ${out.ttfbMs}ms TTFB, ${out.htmlBytesRead}b HTML`);
+    return out;
+  } catch (err) {
+    out.error = err.name === 'AbortError' ? 'Request timed out (28s)' : err.message;
+    console.warn('[HTTP-AUDIT] Failed:', targetUrl, out.error);
+    return out;
+  }
+}
+
+/** Shape-compatible subset of Lighthouse/PSI psiData for buildFallbackAuditReport */
+function buildPsiLikeFromHttpCrawl(signals) {
+  if (!signals.ok || signals.ttfbMs == null) return null;
+
+  const ttfb = signals.ttfbMs;
+
+  let performance = 52;
+  if (ttfb < 180) performance = 82 + Math.min(18, Math.floor((180 - ttfb) / 15));
+  else if (ttfb < 400) performance = 68 + Math.floor((400 - ttfb) / 25);
+  else if (ttfb < 900) performance = 52 + Math.floor((900 - ttfb) / 70);
+  else if (ttfb < 2200) performance = 34 + Math.floor((2200 - ttfb) / 180);
+  else performance = Math.max(18, 40 - Math.floor((ttfb - 2200) / 350));
+
+  let seo = 42;
+  const metaLen = signals.metaDescription.length;
+  if (metaLen >= 50 && metaLen <= 185) seo += 28;
+  else if (metaLen >= 25) seo += 14;
+  else if (metaLen > 0) seo += 6;
+
+  const titleLen = signals.title.length;
+  if (titleLen >= 15 && titleLen <= 65) seo += 18;
+  else if (titleLen >= 8) seo += 10;
+
+  if (signals.hasViewportMeta) seo += 10;
+  if (signals.jsonLdBlocks > 0) seo += Math.min(12, signals.jsonLdBlocks * 4);
+
+  seo = clampScore(seo);
+
+  let accessibility = signals.hasViewportMeta ? 58 : 46;
+  if (signals.title.length > 3) accessibility += 6;
+  accessibility = clampScore(accessibility);
+
+  let bestPractices = signals.isHttps ? (signals.httpStatus === 200 ? 74 : 62) : 34;
+  if (signals.jsonLdBlocks > 0) bestPractices += 6;
+  bestPractices = clampScore(bestPractices);
+
+  const lcpNote = `${Math.round(ttfb)}ms to first byte (HTTP crawl — not Core Web Vitals)`;
+
+  return {
+    performance: clampScore(performance),
+    seo,
+    accessibility,
+    bestPractices,
+    lcp: lcpNote,
+    isHttps: signals.isHttps,
+    screenshot: null,
+    metrics: {
+      fcp: `~${Math.round(ttfb)}ms TTFB`,
+      tti: 'N/A (server HTML crawl)',
+      cls: 'N/A (server HTML crawl)',
+    },
+  };
+}
+
 function clampScore(n) {
   return Math.max(0, Math.min(100, Math.round(Number(n))));
 }
@@ -653,6 +797,10 @@ function hostnameEntropy(hostname) {
 function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, screenshotBase64, psiOpts = {}) {
   const keyConfigured = !!psiOpts.keyConfigured;
   const psiError = psiOpts.psiError || null;
+  const measurementSource =
+    psiOpts.measurementSource ||
+    (psiData ? 'google_lighthouse' : 'none');
+  const crawl = psiOpts.httpCrawlSignals || null;
   const psiSetupHint = !psiData ? derivePsiSetupHint(psiError) : null;
 
   let hostname = 'site';
@@ -690,11 +838,21 @@ function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, sc
 
   const mobileStatus =
     psiData && psiData.performance >= 90 ? 'pass' : psiData && psiData.performance >= 50 ? 'warning' : 'fail';
-  const metaStatus =
-    psiData && psiData.seo >= 85 ? 'pass' : psiData && psiData.seo >= 60 ? 'warning' : 'fail';
+
+  let metaStatus = 'warning';
+  if (psiData) {
+    if (measurementSource === 'http_crawl' && crawl?.metaDescription !== undefined) {
+      const ml = crawl.metaDescription.length;
+      metaStatus = ml >= 50 && ml <= 185 ? 'pass' : ml >= 25 ? 'warning' : ml > 0 ? 'warning' : 'fail';
+    } else {
+      metaStatus = psiData.seo >= 85 ? 'pass' : psiData.seo >= 60 ? 'warning' : 'fail';
+    }
+  }
 
   const summary = psiData
-    ? `${actualSsl ? '' : 'CRITICAL: Insecure or missing HTTPS. '}Lighthouse mobile performance is ${psiData.performance}/100; SEO ${psiData.seo}/100. Gaps in structured data and AI-search signals still limit visibility in ChatGPT, Perplexity, and AI Overviews.`
+    ? measurementSource === 'http_crawl'
+      ? `${actualSsl ? '' : 'CRITICAL: Insecure or missing HTTPS. '}Approximate scores from AdHello HTTP crawl of ${hostname} (~${crawl?.ttfbMs ?? '?'}ms first byte). Parsed HTML for title, meta description, viewport, JSON-LD — not Google Lighthouse. Set GOOGLE_PSI_API_KEY for Core Web Vitals from Google.`
+      : `${actualSsl ? '' : 'CRITICAL: Insecure or missing HTTPS. '}Lighthouse mobile performance is ${psiData.performance}/100; SEO ${psiData.seo}/100. Gaps in structured data and AI-search signals still limit visibility in ChatGPT, Perplexity, and AI Overviews.`
     : psiSetupHint
       ? `Lighthouse could not run for ${hostname}: Google blocked PageSpeed API calls from this deployment (API/key configuration — not your website). Sub-scores below are estimated until PageSpeed access is fixed.`
       : keyConfigured
@@ -716,21 +874,41 @@ function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, sc
     googleAiReadyScore,
     summary,
     psiMeta: {
-      lighthouseAvailable: !!psiData,
+      lighthouseAvailable: measurementSource === 'google_lighthouse',
+      httpCrawlUsed: measurementSource === 'http_crawl',
+      measurementSource,
       googlePsiApiKeyConfigured: keyConfigured,
       lastError: psiData ? null : psiError,
       setupHint: psiSetupHint,
+      httpCrawlSummary:
+        crawl && crawl.ok
+          ? {
+              ttfbMs: crawl.ttfbMs,
+              htmlBytesRead: crawl.htmlBytesRead,
+              jsonLdBlocks: crawl.jsonLdBlocks,
+              titleLen: crawl.title?.length ?? 0,
+              metaLen: crawl.metaDescription?.length ?? 0,
+            }
+          : null,
     },
-    brandAnalysis: psiData
-      ? 'Signals from Google mobile crawl suggest room to sharpen positioning and trust cues for AI-powered discovery.'
-      : brandAnalysisFallback,
+    brandAnalysis:
+      psiData && measurementSource === 'http_crawl'
+        ? 'We fetched your HTML directly (no PageSpeed) and estimated performance/SEO from response time and on-page tags. For true Core Web Vitals, connect a valid Google PSI key or run Lighthouse manually inside your stack.'
+        : psiData
+          ? 'Signals from Google mobile crawl suggest room to sharpen positioning and trust cues for AI-powered discovery.'
+          : brandAnalysisFallback,
     brandColors: { primary: '#1a1a2e', accent: '#F3DD6D', background: '#F5F0E8', text: '#1a1a2e' },
     technicalAudit: {
       mobileSpeed: {
         label: 'Mobile Load Speed',
         status: mobileStatus,
         value: actualSpeed,
-        reason: psiData ? 'Measured via Google Lighthouse (mobile).' : 'LCP not available — PageSpeed did not return metrics.',
+        reason:
+          measurementSource === 'google_lighthouse'
+            ? 'Measured via Google Lighthouse (mobile).'
+            : measurementSource === 'http_crawl'
+              ? 'Estimated from server response time (TTFB) — not Lighthouse LCP.'
+              : 'LCP not available — PageSpeed did not return metrics.',
       },
       contactForm: {
         label: 'Lead Capture Form',
@@ -743,16 +921,30 @@ function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, sc
         status: actualSsl ? 'pass' : 'fail',
         value: actualSsl ? 'Secure' : 'Insecure',
         reason: actualSsl
-          ? psiData
-            ? 'HTTPS reported by Lighthouse.'
-            : 'HTTPS inferred from the audited URL.'
+          ? measurementSource === 'http_crawl'
+            ? 'HTTPS verified from crawl final URL.'
+            : psiData
+              ? 'HTTPS reported by Lighthouse.'
+              : 'HTTPS inferred from the audited URL.'
           : 'HTTPS missing or broken — critical for trust and rankings.',
       },
       metaDescription: {
         label: 'Meta Description',
         status: metaStatus,
-        value: psiData ? `SEO category ~${psiData.seo}/100` : 'Unknown',
-        reason: psiData ? 'SEO score reflects meta, crawlability, and mobile basics.' : 'Unable to score without Lighthouse SEO category.',
+        value:
+          measurementSource === 'http_crawl' && crawl?.metaDescription
+            ? `${crawl.metaDescription.slice(0, 140)}${crawl.metaDescription.length > 140 ? '…' : ''}`
+            : psiData
+              ? measurementSource === 'http_crawl'
+                ? 'No meta description found in first 450KB of HTML'
+                : `SEO category ~${psiData.seo}/100`
+              : 'Unknown',
+        reason:
+          measurementSource === 'http_crawl'
+            ? 'Parsed from first ~450KB of HTML (meta name=description).'
+            : psiData
+              ? 'SEO score reflects meta, crawlability, and mobile basics.'
+              : 'Unable to score without Lighthouse SEO category.',
       },
       googleBusinessProfile: {
         label: 'Google Business Profile',
@@ -880,10 +1072,23 @@ app.post('/api/analyze', async (req, res) => {
     targetUrl = 'https://' + targetUrl;
   }
 
-  // --- 1. Get Official Google Truth ---
-  const { psiData, psiError, keyConfigured } = await getPageSpeedInsights(targetUrl);
+  // --- 1. Try Google PageSpeed Insights (Lighthouse via Google) ---
+  let { psiData, psiError, keyConfigured } = await getPageSpeedInsights(targetUrl);
+  let measurementSource = psiData ? 'google_lighthouse' : 'none';
+  let httpCrawlSignals = null;
 
-  // --- 2. Fallback / Enrichment signals ---
+  // --- 2. Direct HTTP crawl when PSI fails — real TTFB + HTML parsing (no Google quota) ---
+  if (!psiData) {
+    httpCrawlSignals = await fetchHttpAuditSignals(targetUrl);
+    const synthetic = buildPsiLikeFromHttpCrawl(httpCrawlSignals);
+    if (synthetic) {
+      psiData = synthetic;
+      psiError = null;
+      measurementSource = 'http_crawl';
+      console.log('[ANALYSIS] Using HTTP crawl fallback (PSI unavailable).');
+    }
+  }
+
   const initialProtocolCheck = targetUrl.startsWith('https');
   const actualSsl = psiData ? psiData.isHttps : initialProtocolCheck;
   const actualSpeed = psiData ? psiData.lcp : '3.1s';
@@ -892,24 +1097,34 @@ app.post('/api/analyze', async (req, res) => {
   const baselineReport = buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, screenshotBase64, {
     psiError,
     keyConfigured,
+    measurementSource,
+    httpCrawlSignals,
   });
 
   try {
     if (KIE_API_KEY || GEMINI_API_KEY) {
-      const prompt = `Analyze the website ${targetUrl} based on these OFFICIAL GOOGLE METRICS:
-Performance (Lighthouse mobile): ${psiData ? psiData.performance : 'unknown'}
-SEO category: ${psiData ? psiData.seo : 'unknown'}
+      const metricsLabel =
+        measurementSource === 'http_crawl'
+          ? `These scores are approximate and come from AdHello HTTP crawl (TTFB + HTML parsing), NOT Google Lighthouse — PSI was unavailable for this deployment.`
+          : `Official Google Lighthouse metrics (mobile) from PageSpeed Insights:`;
+      const prompt = `Analyze the website ${targetUrl}.
+
+${metricsLabel}
+
+Performance score: ${psiData ? psiData.performance : 'unknown'}
+SEO score: ${psiData ? psiData.seo : 'unknown'}
 Accessibility: ${psiData ? psiData.accessibility : 'unknown'}
 Best practices: ${psiData ? psiData.bestPractices : 'unknown'}
 SSL Secured: ${actualSsl}
-Load Time (LCP display): ${actualSpeed}
+Primary timing / LCP-style display string: ${actualSpeed}
 
 Return ONLY a raw JSON object (no markdown, no prose) with this structure:
 {"summary":"string","brandAnalysis":"string","brandColors":{"primary":"#hex","accent":"#hex","background":"#hex","text":"#hex"},"technicalAudit":{"contactForm":{"label":"Contact Form","status":"pass|fail|warning","value":"string","reason":"string"},"metaDescription":{"label":"Meta Description","status":"pass|fail|warning","value":"string","reason":"string"},"googleBusinessProfile":{"label":"Google Business Profile","status":"pass|fail|warning","value":"string","reason":"string"},"reviewSentiment":{"label":"Review Sentiment","status":"pass|fail|warning","value":"string","reason":"string"}},"strengths":[{"indicator":"string","description":"string"}],"weaknesses":[{"indicator":"string","description":"string"}],"recommendations":[{"title":"string","description":"string","action":"string"}],"city":"string","reviewThemes":["string","string","string"]}
 
-Do NOT include score, mobileFirstScore, leadsEstimatesScore, or googleAiReadyScore — the server computes those from Lighthouse.
+Do NOT include score, mobileFirstScore, leadsEstimatesScore, or googleAiReadyScore — the server computes those.
 For brandColors: infer from the business if possible.
-IMPORTANT: Respect SSL status ${actualSsl}. If FALSE, call out the security risk in summary and weaknesses.`;
+IMPORTANT: Respect SSL status ${actualSsl}. If FALSE, call out the security risk in summary and weaknesses.
+If metrics are from HTTP crawl (not Lighthouse), say so briefly in summary and avoid claiming "Google measured" Core Web Vitals.`;
 
       const resultText = await callAI(prompt, '', [], true);
       if (!resultText) throw new Error('Empty response from AI providers');
