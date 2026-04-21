@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
+import { downscaleDataUrl } from '../utils/downscaleImage';
 
 declare global {
   interface Window {
@@ -186,8 +187,10 @@ export function AdBrief() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
-        setSelectedImage(event.target?.result as string);
+      reader.onload = async (event) => {
+        const raw = event.target?.result as string;
+        const scaled = await downscaleDataUrl(raw, 1600, 0.82);
+        setSelectedImage(scaled);
       };
       reader.readAsDataURL(file);
     }
@@ -212,6 +215,8 @@ export function AdBrief() {
   const generateAdImage = async (adIndex: number, ad: { platform: string; headline: string; body: string; cta: string }) => {
     if (!selectedImage) return;
     setGeneratingAd(adIndex);
+    const ac = new AbortController();
+    const genTimeout = setTimeout(() => ac.abort(), 270000);
     try {
       // Extract base64 from data URL
       const parts = selectedImage.split(',');
@@ -264,20 +269,35 @@ PRODUCT PLACEMENT RULES:
           body: ad.body,
           platform: ad.platform,
         }),
+        signal: ac.signal,
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(`Ad generation failed: ${data.detail || data.error || `HTTP ${res.status}`}`);
+        return;
+      }
       if (data.error === 'rate_limit') {
         alert(`⚠️ ${data.message}`);
-      } else if (data.imageBase64 && data.mimeType) {
+        return;
+      }
+      if (data.imageBase64 && data.mimeType) {
         setGeneratedAds(prev => ({ ...prev, [adIndex]: `data:${data.mimeType};base64,${data.imageBase64}` }));
       } else if (data.imageUrl) {
         setGeneratedAds(prev => ({ ...prev, [adIndex]: data.imageUrl }));
+      } else {
+        alert(`Ad generation failed: No image returned. ${data.detail || data.error || ''}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ad generation failed:', err);
-      alert('Ad generation failed. Please try again.');
+      const msg =
+        err?.name === 'AbortError'
+          ? 'Generation timed out (~4.5 min). Try again or check API keys on the server.'
+          : err?.message || 'Unknown error';
+      alert(`Ad generation failed: ${msg}`);
+    } finally {
+      clearTimeout(genTimeout);
+      setGeneratingAd(null);
     }
-    setGeneratingAd(null);
   };
 
   const startAnalysis = async () => {

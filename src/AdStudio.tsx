@@ -34,6 +34,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import html2pdf from 'html2pdf.js';
 import SEO from './components/SEO';
 import { EventBanner } from './components/EventBanner';
+import { downscaleDataUrl } from './utils/downscaleImage';
 
 type Tab = 'brief' | 'audit';
 
@@ -85,8 +86,10 @@ export default function AdStudio() { useAnalytics(); useAnalytics();
 
   const generateAdImage = async (index: number, ad: any) => {
     if (generatingIndices.has(index) || !briefData || !selectedImage) return;
-    
+
     setGeneratingIndices(prev => new Set(prev).add(index));
+    const ac = new AbortController();
+    const genTimeout = setTimeout(() => ac.abort(), 270000);
     try {
       const parts = selectedImage.split(',');
       const base64 = parts[1];
@@ -106,21 +109,30 @@ export default function AdStudio() { useAnalytics(); useAnalytics();
           originalImage: selectedImage,
           imageBase64: base64,
           imageMimeType: mime,
-        })
+        }),
+        signal: ac.signal,
       });
 
-      if (!response.ok) throw new Error("Image generation failed");
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.detail || data.error || `HTTP ${response.status}`);
+      }
 
       const url =
+        (data.imageBase64 && data.mimeType ? `data:${data.mimeType};base64,${data.imageBase64}` : null) ||
         data.imageUrl ||
-        (data.imageBase64 && data.mimeType ? `data:${data.mimeType};base64,${data.imageBase64}` : null);
-      if (!url) throw new Error("No image in response");
+        null;
+      if (!url) throw new Error(data.detail || data.error || 'No image in response');
       setGeneratedImages(prev => ({ ...prev, [index]: url }));
     } catch (error: any) {
-      console.error("Error generating image:", error);
-      alert(`Image generation failed: ${error.message}`);
+      console.error('Error generating image:', error);
+      const msg =
+        error?.name === 'AbortError'
+          ? 'Generation timed out (~4.5 min). Try again or verify API keys on the server.'
+          : error.message;
+      alert(`Image generation failed: ${msg}`);
     } finally {
+      clearTimeout(genTimeout);
       setGeneratingIndices(prev => {
         const next = new Set(prev);
         next.delete(index);
@@ -133,8 +145,10 @@ export default function AdStudio() { useAnalytics(); useAnalytics();
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
-        setSelectedImage(event.target?.result as string);
+      reader.onload = async (event) => {
+        const raw = event.target?.result as string;
+        const scaled = await downscaleDataUrl(raw, 1600, 0.82);
+        setSelectedImage(scaled);
       };
       reader.readAsDataURL(file);
     }

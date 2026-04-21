@@ -1860,6 +1860,47 @@ function buildDefaultAdImagePrompt({ headline, bodyText, platform, visualStyle }
   return lines.join('\n');
 }
 
+/** Default true: Gemini image is usually faster than Kie async poll; set AD_BRIEF_TRY_GEMINI_FIRST=false to prefer Kie. */
+const AD_BRIEF_TRY_GEMINI_FIRST = process.env.AD_BRIEF_TRY_GEMINI_FIRST !== 'false';
+
+async function resolveAdBriefCreativeImage(textPrompt, rawB64, mime) {
+  let img = null;
+
+  if (AD_BRIEF_TRY_GEMINI_FIRST) {
+    if (GEMINI_API_KEY) {
+      img = await callGeminiImageOutput(textPrompt, rawB64, mime);
+      if (!img) {
+        console.warn('[GEN-IMAGE] Retrying Gemini without reference image.');
+        img = await callGeminiImageOutput(textPrompt, null, mime);
+      }
+    }
+    if (!img && KIE_API_KEY) {
+      img = await callKie4oImageOutput(textPrompt, rawB64, mime);
+      if (!img) {
+        console.warn('[GEN-IMAGE] Kie text-only fallback.');
+        img = await callKie4oImageOutput(textPrompt, null, mime);
+      }
+    }
+    return img;
+  }
+
+  if (KIE_API_KEY) {
+    img = await callKie4oImageOutput(textPrompt, rawB64, mime);
+  }
+  if (!img && GEMINI_API_KEY) {
+    img = await callGeminiImageOutput(textPrompt, rawB64, mime);
+  }
+  if (!img && GEMINI_API_KEY) {
+    console.warn('[GEN-IMAGE] Retrying Gemini without reference image.');
+    img = await callGeminiImageOutput(textPrompt, null, mime);
+  }
+  if (!img && KIE_API_KEY && !GEMINI_API_KEY) {
+    console.warn('[GEN-IMAGE] Kie text-only fallback (no reference image).');
+    img = await callKie4oImageOutput(textPrompt, null, mime);
+  }
+  return img;
+}
+
 app.post('/api/ad-brief/generate-image', async (req, res) => {
   const {
     prompt: clientPrompt,
@@ -1899,21 +1940,7 @@ app.post('/api/ad-brief/generate-image', async (req, res) => {
   const textPrompt = `${AD_BRIEF_PLACEMENT_DIRECTIVE}\n\n--- CREATIVE DIRECTION ---\n${userDirection}`;
 
   try {
-    let img = null;
-    if (KIE_API_KEY) {
-      img = await callKie4oImageOutput(textPrompt, rawB64, mime);
-    }
-    if (!img && GEMINI_API_KEY) {
-      img = await callGeminiImageOutput(textPrompt, rawB64, mime);
-    }
-    if (!img && GEMINI_API_KEY) {
-      console.warn('[GEN-IMAGE] Retrying Gemini without reference image.');
-      img = await callGeminiImageOutput(textPrompt, null, mime);
-    }
-    if (!img && KIE_API_KEY && !GEMINI_API_KEY) {
-      console.warn('[GEN-IMAGE] Kie text-only fallback (no reference image).');
-      img = await callKie4oImageOutput(textPrompt, null, mime);
-    }
+    const img = await resolveAdBriefCreativeImage(textPrompt, rawB64, mime);
     if (!img) {
       return res.status(500).json({
         error: 'Generation failed',
