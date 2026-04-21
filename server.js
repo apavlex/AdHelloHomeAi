@@ -1783,8 +1783,6 @@ app.post('/api/generate-mockup', async (req, res) => {
     return res.status(503).json({ error: 'No AI provider configured. Set KIE_API_KEY or GEMINI_API_KEY.' });
   }
 
-  const model = process.env.GEMINI_MOCKUP_MODEL || 'gemini-2.5-flash';
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
   const systemInstruction = `You are a senior UI designer.
 Output only raw HTML with Tailwind utility classes.
 Return code inside exactly one root <div>...</div>.
@@ -1806,117 +1804,24 @@ ${previousHtml}`
     : `${pageContext}\n${styleContext}\n${prompt}`.trim();
 
   try {
-    // Prefer Kie when configured; if it fails/empties, gracefully fall back to Gemini.
-    if (KIE_API_KEY) {
-      try {
-        const kieResult = await callKie(userPrompt, systemInstruction, [], { jsonMode: false });
-        if (kieResult && typeof kieResult === 'string' && kieResult.trim().length > 0) {
-          const cleaned = normalizeMockupHtml(kieResult);
-          if (!cleaned) {
-            console.warn('[MOCKUP] Kie normalized to empty; falling back to Gemini.');
-          } else {
-            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-            res.setHeader('Transfer-Encoding', 'chunked');
-            res.setHeader('Cache-Control', 'no-cache, no-transform');
-
-            // Simulate streamed chunks so existing live-preview UX remains responsive.
-            const chunkSize = 180;
-            for (let i = 0; i < cleaned.length; i += chunkSize) {
-              res.write(cleaned.slice(i, i + chunkSize));
-              await sleep(12);
-            }
-            res.end();
-            return;
-          }
-        }
-        console.warn('[MOCKUP] Kie returned empty response; falling back to Gemini.');
-      } catch (kieErr) {
-        console.warn('[MOCKUP] Kie failed; falling back to Gemini.', kieErr?.message || kieErr);
-      }
-    }
-
-    if (!GEMINI_API_KEY) {
-      return res.status(502).json({
-        error: 'Kie failed and Gemini is not configured.',
-      });
-    }
-
-    const geminiRes = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: systemInstruction }]
-        },
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: userPrompt }]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.6,
-          topP: 0.9,
-          maxOutputTokens: 8192
-        }
-      })
-    });
-
-    if (!geminiRes.ok || !geminiRes.body) {
-      const details = await geminiRes.text().catch(() => '');
-      return res.status(geminiRes.status || 500).json({
-        error: 'Failed to generate mockup.',
-        details: details.slice(0, 600)
-      });
-    }
-
+    // Use the existing provider orchestrator (Kie -> Gemini fallback) for reliability.
+    const aiResult = await callAI(userPrompt, systemInstruction, [], false);
+    const cleaned = normalizeMockupHtml(aiResult || '');
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Transfer-Encoding', 'chunked');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
 
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let wroteContent = false;
-
-    for await (const chunk of geminiRes.body) {
-      buffer += decoder.decode(chunk, { stream: true });
-
-      let boundary = buffer.indexOf('\n\n');
-      while (boundary !== -1) {
-        const event = buffer.slice(0, boundary);
-        buffer = buffer.slice(boundary + 2);
-
-        const dataLines = event
-          .split('\n')
-          .filter((line) => line.startsWith('data:'))
-          .map((line) => line.slice(5).trim())
-          .filter(Boolean);
-
-        for (const dataLine of dataLines) {
-          if (dataLine === '[DONE]') continue;
-          try {
-            const parsed = JSON.parse(dataLine);
-            const textParts = parsed?.candidates?.[0]?.content?.parts || [];
-            for (const part of textParts) {
-              if (typeof part?.text === 'string' && part.text.length > 0) {
-                const normalized = normalizeMockupHtml(part.text);
-                if (normalized) {
-                  res.write(normalized);
-                  wroteContent = true;
-                }
-              }
-            }
-          } catch (_) {
-            // Ignore malformed stream chunks; keep relay alive.
-          }
-        }
-
-        boundary = buffer.indexOf('\n\n');
-      }
+    if (!cleaned) {
+      res.write(`<div class="min-h-screen bg-neutral-950 text-white flex items-center justify-center p-8"><div class="max-w-lg text-center"><p class="text-xl font-semibold">Generation returned no markup</p><p class="mt-2 text-neutral-400">Try refining your prompt or regenerate.</p></div></div>`);
+      res.end();
+      return;
     }
 
-    if (!wroteContent) {
-      res.write(`<div class="min-h-screen bg-neutral-950 text-white flex items-center justify-center p-8"><div class="max-w-lg text-center"><p class="text-xl font-semibold">Generation returned no markup</p><p class="mt-2 text-neutral-400">Try refining your prompt or regenerate.</p></div></div>`);
+    // Simulate streaming chunks so the current frontend continues to update live.
+    const chunkSize = 180;
+    for (let i = 0; i < cleaned.length; i += chunkSize) {
+      res.write(cleaned.slice(i, i + chunkSize));
+      await sleep(12);
     }
     res.end();
   } catch (error) {
