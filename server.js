@@ -1771,31 +1771,40 @@ ${previousHtml}`
     : `${pageContext}\n${styleContext}\n${prompt}`.trim();
 
   try {
-    // Prefer Kie when configured to avoid Gemini model availability mismatches.
+    // Prefer Kie when configured; if it fails/empties, gracefully fall back to Gemini.
     if (KIE_API_KEY) {
-      const kieResult = await callKie(userPrompt, systemInstruction, [], { jsonMode: false });
-      if (!kieResult) {
-        throw new Error('Kie returned empty response.');
+      try {
+        const kieResult = await callKie(userPrompt, systemInstruction, [], { jsonMode: false });
+        if (kieResult && typeof kieResult === 'string' && kieResult.trim().length > 0) {
+          const cleaned = cleanAIResponse(kieResult)
+            .replace(/^```html\s*/i, '')
+            .replace(/^```\s*/i, '')
+            .replace(/```$/i, '')
+            .trim();
+
+          res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+          res.setHeader('Transfer-Encoding', 'chunked');
+          res.setHeader('Cache-Control', 'no-cache, no-transform');
+
+          // Simulate streamed chunks so existing live-preview UX remains responsive.
+          const chunkSize = 180;
+          for (let i = 0; i < cleaned.length; i += chunkSize) {
+            res.write(cleaned.slice(i, i + chunkSize));
+            await sleep(12);
+          }
+          res.end();
+          return;
+        }
+        console.warn('[MOCKUP] Kie returned empty response; falling back to Gemini.');
+      } catch (kieErr) {
+        console.warn('[MOCKUP] Kie failed; falling back to Gemini.', kieErr?.message || kieErr);
       }
+    }
 
-      const cleaned = cleanAIResponse(kieResult)
-        .replace(/^```html\s*/i, '')
-        .replace(/^```\s*/i, '')
-        .replace(/```$/i, '')
-        .trim();
-
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.setHeader('Transfer-Encoding', 'chunked');
-      res.setHeader('Cache-Control', 'no-cache, no-transform');
-
-      // Simulate streamed chunks so existing live-preview UX remains responsive.
-      const chunkSize = 180;
-      for (let i = 0; i < cleaned.length; i += chunkSize) {
-        res.write(cleaned.slice(i, i + chunkSize));
-        await sleep(12);
-      }
-      res.end();
-      return;
+    if (!GEMINI_API_KEY) {
+      return res.status(502).json({
+        error: 'Kie failed and Gemini is not configured.',
+      });
     }
 
     const geminiRes = await fetch(endpoint, {
