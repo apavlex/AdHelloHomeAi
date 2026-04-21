@@ -1,6 +1,6 @@
 import React from 'react';
 import SEO from './components/SEO';
-import MockupCanvas from './components/MockupCanvas';
+import MockupImageCanvas from './components/MockupImageCanvas';
 import { SITE_ORIGIN } from './lib/site';
 
 export default function VibeBuilderPage() {
@@ -8,10 +8,10 @@ export default function VibeBuilderPage() {
     <>
       <SEO
         title="Vibe Design Builder — AdHello.ai"
-        description="Generate live website mockups with AI and Tailwind."
+        description="Generate visual website mockup images with AI."
         canonical={`${SITE_ORIGIN}/vibe-builder`}
       />
-      <MockupCanvas />
+      <MockupImageCanvas />
     </>
   );
 }

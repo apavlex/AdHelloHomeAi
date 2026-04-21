@@ -1765,6 +1765,52 @@ function normalizeMockupHtml(raw) {
   return cleaned;
 }
 
+function buildLocalMockupFallback({ prompt, pageType, siteName }) {
+  const lower = String(prompt || '').toLowerCase();
+  const isDark = /dark|black|modern|luxury/.test(lower);
+  const accent = /blue|hvac|tech/.test(lower)
+    ? 'bg-blue-500'
+    : /green|landscape|eco|flooring/.test(lower)
+      ? 'bg-green-500'
+      : /red|roof|emergency/.test(lower)
+        ? 'bg-red-500'
+        : 'bg-amber-400';
+  const pageTitleMap = {
+    home: 'Home',
+    services: 'Services',
+    about: 'About',
+    contact: 'Contact',
+  };
+  const title = pageTitleMap[pageType] || 'Landing Page';
+  const brand = siteName || 'Smart Site';
+  const body = isDark ? 'bg-neutral-950 text-white' : 'bg-neutral-50 text-neutral-900';
+  const card = isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200';
+
+  return `<div class="${body} min-h-screen">
+  <header class="border-b ${isDark ? 'border-neutral-800' : 'border-neutral-200'}">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <p class="font-bold text-lg">${escapeHtml(brand)}</p>
+      <button class="${accent} text-white px-4 py-2 rounded-lg font-semibold">Get Quote</button>
+    </div>
+  </header>
+  <main class="max-w-6xl mx-auto px-6 py-12 space-y-10">
+    <section class="space-y-4">
+      <p class="text-xs uppercase tracking-widest ${isDark ? 'text-neutral-400' : 'text-neutral-500'}">Fallback Preview</p>
+      <h1 class="text-4xl md:text-5xl font-extrabold">${escapeHtml(brand)} ${title}</h1>
+      <p class="${isDark ? 'text-neutral-300' : 'text-neutral-600'} max-w-2xl">
+        AI providers are temporarily unavailable, so this instant fallback mockup was generated locally from your prompt.
+      </p>
+      <p class="text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}">Prompt: ${escapeHtml(prompt).slice(0, 220)}</p>
+    </section>
+    <section class="grid md:grid-cols-3 gap-5">
+      <div class="${card} border rounded-xl p-5"><h3 class="font-bold mb-2">Section 01</h3><p class="${isDark ? 'text-neutral-300' : 'text-neutral-600'} text-sm">Primary offer and trust headline.</p></div>
+      <div class="${card} border rounded-xl p-5"><h3 class="font-bold mb-2">Section 02</h3><p class="${isDark ? 'text-neutral-300' : 'text-neutral-600'} text-sm">Service highlights and outcomes.</p></div>
+      <div class="${card} border rounded-xl p-5"><h3 class="font-bold mb-2">Section 03</h3><p class="${isDark ? 'text-neutral-300' : 'text-neutral-600'} text-sm">CTA strip and conversion prompt.</p></div>
+    </section>
+  </main>
+</div>`;
+}
+
 app.post('/api/generate-mockup', async (req, res) => {
   const { prompt, previousHtml, mode, pageType, styleMemory } = req.body || {};
   if (!prompt || typeof prompt !== 'string') {
@@ -1806,16 +1852,18 @@ ${previousHtml}`
   try {
     // Use the existing provider orchestrator (Kie -> Gemini fallback) for reliability.
     const aiResult = await callAI(userPrompt, systemInstruction, [], false);
-    const cleaned = normalizeMockupHtml(aiResult || '');
+    let cleaned = normalizeMockupHtml(aiResult || '');
+    if (!cleaned) {
+      console.warn('[MOCKUP] AI unavailable, using local fallback mockup.');
+      cleaned = buildLocalMockupFallback({
+        prompt,
+        pageType,
+        siteName: req.body?.siteName
+      });
+    }
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Transfer-Encoding', 'chunked');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
-
-    if (!cleaned) {
-      res.write(`<div class="min-h-screen bg-neutral-950 text-white flex items-center justify-center p-8"><div class="max-w-lg text-center"><p class="text-xl font-semibold">Generation returned no markup</p><p class="mt-2 text-neutral-400">Try refining your prompt or regenerate.</p></div></div>`);
-      res.end();
-      return;
-    }
 
     // Simulate streaming chunks so the current frontend continues to update live.
     const chunkSize = 180;
@@ -1830,6 +1878,63 @@ ${previousHtml}`
       return res.status(500).json({ error: 'Mockup generation failed.' });
     }
     res.end();
+  }
+});
+
+app.post('/api/generate-mockup-image', async (req, res) => {
+  const { prompt } = req.body || {};
+  if (!prompt || typeof prompt !== 'string') {
+    return res.status(400).json({ error: 'prompt is required' });
+  }
+
+  const retryAfter = isMockupRateLimited(getClientIp(req));
+  if (retryAfter > 0) {
+    return res.status(429).json({
+      error: 'Rate limit exceeded. Please try again shortly.',
+      retryAfterSeconds: retryAfter
+    });
+  }
+
+  const imagePrompt = `You are a senior website art director.
+Create a polished, modern website mockup screenshot for this request:
+${prompt}
+
+Requirements:
+- Show a realistic full webpage layout (hero, sections, CTA).
+- Clean typography, modern spacing, clear hierarchy.
+- Professional conversion-focused design.
+- No watermarks or UI from other products.
+- Output one final image only.`;
+
+  try {
+    let imageUrl = null;
+
+    if (KIE_API_KEY) {
+      try {
+        imageUrl = await callKie4oImageOutput(imagePrompt, null, 'image/png');
+      } catch (kieErr) {
+        console.warn('[MOCKUP-IMAGE] Kie image failed:', kieErr?.message || kieErr);
+      }
+    }
+
+    if (!imageUrl && GEMINI_API_KEY) {
+      try {
+        imageUrl = await callGeminiImageOutput(imagePrompt, null, 'image/png');
+      } catch (gemErr) {
+        console.warn('[MOCKUP-IMAGE] Gemini image failed:', gemErr?.message || gemErr);
+      }
+    }
+
+    if (!imageUrl) {
+      return res.status(502).json({
+        error: 'Image generation unavailable right now. Please try again in a minute.'
+      });
+    }
+
+    return res.json({ success: true, imageUrl });
+  } catch (error) {
+    console.error('[MOCKUP-IMAGE] Unexpected error:', error);
+    return res.status(500).json({ error: 'Failed to generate mockup image.' });
   }
 });
 
