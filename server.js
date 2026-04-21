@@ -2,6 +2,10 @@ import express from 'express';
 import 'dotenv/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import os from 'os';
+import { promises as fs } from 'fs';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 // Removed @google/genai import to use native fetch for stability
 import crypto from 'crypto';
 import Database from 'better-sqlite3';
@@ -11,6 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const execFileAsync = promisify(execFile);
 const PORT = process.env.PORT || 8081;
 const DIST_DIR = path.join(__dirname, 'dist');
 const dbPath = path.join(__dirname, 'database.db');
@@ -506,6 +511,41 @@ if (!resend) console.warn('[MAIL] RESEND_API_KEY missing. Email notifications di
 // =====================================================
 // SITE AUDIT
 // =====================================================
+const PSI_API_LIBRARY_URL =
+  'https://console.developers.google.com/apis/library/pagespeedonline.googleapis.com';
+const PSI_CREDENTIALS_URL = 'https://console.cloud.google.com/apis/credentials';
+
+/** When Google returns PERMISSION_DENIED / "blocked", it's almost always GCP key or API enablement — not the customer's URL. */
+function derivePsiSetupHint(psiError) {
+  if (!psiError || typeof psiError !== 'string') return null;
+  const lower = psiError.toLowerCase();
+  if (
+    lower.includes('blocked') ||
+    lower.includes('permission_denied') ||
+    lower.includes('permission denied') ||
+    lower.includes('not enabled') ||
+    lower.includes('api key not valid') ||
+    lower.includes('invalid apikey') ||
+    lower.includes('requests to this api') ||
+    lower.includes('has been disabled')
+  ) {
+    return {
+      title: 'PageSpeed API access is blocked',
+      steps: [
+        'Open Google Cloud → APIs & Services → Library and enable PageSpeed Insights API for the same project as your key.',
+        'Open APIs & Services → Credentials → your API key → API restrictions: allow PageSpeed Insights API (or "Don\'t restrict key" while testing).',
+        'Under Application restrictions: use None (dev) or IP addresses with your server\'s outbound IP. Do not use HTTP referrers only for server-side Node or Cloud Run — Google will block those calls.',
+        'Redeploy with GOOGLE_PSI_API_KEY set to that key and run the audit again.',
+      ],
+      links: [
+        { label: 'Enable PageSpeed Insights API', href: PSI_API_LIBRARY_URL },
+        { label: 'Manage API keys', href: PSI_CREDENTIALS_URL },
+      ],
+    };
+  }
+  return null;
+}
+
 async function getPageSpeedInsights(targetUrl) {
   const psiApiKey = process.env.GOOGLE_PSI_API_KEY || '';
   const keyConfigured = !!psiApiKey;
@@ -592,6 +632,7 @@ function hostnameEntropy(hostname) {
 function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, screenshotBase64, psiOpts = {}) {
   const keyConfigured = !!psiOpts.keyConfigured;
   const psiError = psiOpts.psiError || null;
+  const psiSetupHint = !psiData ? derivePsiSetupHint(psiError) : null;
 
   let hostname = 'site';
   try {
@@ -633,15 +674,19 @@ function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, sc
 
   const summary = psiData
     ? `${actualSsl ? '' : 'CRITICAL: Insecure or missing HTTPS. '}Lighthouse mobile performance is ${psiData.performance}/100; SEO ${psiData.seo}/100. Gaps in structured data and AI-search signals still limit visibility in ChatGPT, Perplexity, and AI Overviews.`
-    : keyConfigured
-      ? `Lighthouse data was unavailable for ${hostname}${psiError ? ` (${psiError})` : ''}. Sub-scores below are estimated from HTTPS checks and domain signals until PageSpeed returns successfully.`
-      : `Google PageSpeed did not return Lighthouse data for ${hostname}. Without GOOGLE_PSI_API_KEY the public PSI quota is very tight — add a PageSpeed Insights API key to your server for reliable measured scores. Current numbers are estimated, not field Lighthouse results.`;
+    : psiSetupHint
+      ? `Lighthouse could not run for ${hostname}: Google blocked PageSpeed API calls from this deployment (API/key configuration — not your website). Sub-scores below are estimated until PageSpeed access is fixed.`
+      : keyConfigured
+        ? `Lighthouse data was unavailable for ${hostname}${psiError ? ` (${psiError.length > 160 ? `${psiError.slice(0, 157)}…` : psiError})` : ''}. Sub-scores below are estimated from HTTPS checks and domain signals until PageSpeed returns successfully.`
+        : `Google PageSpeed did not return Lighthouse data for ${hostname}. Without GOOGLE_PSI_API_KEY the public PSI quota is very tight — add a PageSpeed Insights API key to your server for reliable measured scores. Current numbers are estimated, not field Lighthouse results.`;
 
   const brandAnalysisFallback = psiData
     ? null
-    : keyConfigured
-      ? `We could not complete a Lighthouse scan for ${hostname}${psiError ? `: ${psiError}` : ''}. Narrative sections below may be lighter until PageSpeed succeeds.`
-      : `We could not run a full Lighthouse scan on ${hostname}. Deploy GOOGLE_PSI_API_KEY so audits use Google's mobile Lighthouse scores instead of estimates.`;
+    : psiSetupHint
+      ? 'Google rejected the PageSpeed Insights request. Enable the PageSpeed Insights API and fix API key restrictions (API + application restrictions) for server-side use — see the yellow notice above for steps.'
+      : keyConfigured
+        ? `We could not complete a Lighthouse scan for ${hostname}${psiError ? `: ${psiError.length > 200 ? `${psiError.slice(0, 197)}…` : psiError}` : ''}. Narrative sections below may be lighter until PageSpeed succeeds.`
+        : `We could not run a full Lighthouse scan on ${hostname}. Deploy GOOGLE_PSI_API_KEY so audits use Google's mobile Lighthouse scores instead of estimates.`;
 
   return {
     score,
@@ -653,6 +698,7 @@ function buildFallbackAuditReport(targetUrl, psiData, actualSsl, actualSpeed, sc
       lighthouseAvailable: !!psiData,
       googlePsiApiKeyConfigured: keyConfigured,
       lastError: psiData ? null : psiError,
+      setupHint: psiSetupHint,
     },
     brandAnalysis: psiData
       ? 'Signals from Google mobile crawl suggest room to sharpen positioning and trust cues for AI-powered discovery.'
@@ -1661,6 +1707,237 @@ app.post('/api/ad-brief/generate-image', async (req, res) => {
 });
 
 app.post('/api/stitch-design', (req, res) => res.json({ success: true }));
+
+const MOCKUP_RATE_WINDOW_MS = 60 * 1000;
+const MOCKUP_RATE_MAX_REQUESTS = 6;
+const mockupRateLimit = new Map();
+
+function getClientIp(req) {
+  return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown')
+    .split(',')[0]
+    .trim();
+}
+
+function isMockupRateLimited(ip) {
+  const now = Date.now();
+  const entry = mockupRateLimit.get(ip) || { count: 0, resetAt: now + MOCKUP_RATE_WINDOW_MS };
+  if (now > entry.resetAt) {
+    entry.count = 0;
+    entry.resetAt = now + MOCKUP_RATE_WINDOW_MS;
+  }
+  entry.count += 1;
+  mockupRateLimit.set(ip, entry);
+  return entry.count > MOCKUP_RATE_MAX_REQUESTS ? Math.ceil((entry.resetAt - now) / 1000) : 0;
+}
+
+app.post('/api/generate-mockup', async (req, res) => {
+  const { prompt, previousHtml, mode, pageType, styleMemory } = req.body || {};
+  if (!prompt || typeof prompt !== 'string') {
+    return res.status(400).json({ error: 'prompt is required' });
+  }
+
+  const retryAfter = isMockupRateLimited(getClientIp(req));
+  if (retryAfter > 0) {
+    return res.status(429).json({
+      error: 'Rate limit exceeded. Please try again shortly.',
+      retryAfterSeconds: retryAfter
+    });
+  }
+
+  if (!GEMINI_API_KEY) {
+    return res.status(503).json({ error: 'GEMINI_API_KEY is not configured on server.' });
+  }
+
+  const model = process.env.GEMINI_MOCKUP_MODEL || 'gemini-2.5-flash-lite-preview-06-17';
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
+  const systemInstruction = `You are a senior UI designer.
+Output only raw HTML with Tailwind utility classes.
+Return code inside exactly one root <div>...</div>.
+No markdown, no triple backticks, no explanations, no <html>/<head>/<body>, no scripts.
+Keep semantic structure clean and production-like.`;
+  const pageContext = pageType ? `Target page type: ${pageType}.` : '';
+  const styleContext = styleMemory && typeof styleMemory === 'string' && styleMemory.trim().length > 0
+    ? `Shared style memory (must stay consistent across pages):\n${styleMemory}`
+    : '';
+  const userPrompt = previousHtml && typeof previousHtml === 'string' && previousHtml.trim().length > 0
+    ? `Generation mode: ${mode === 'refine' ? 'refine existing design' : 'new design with context'}.
+${pageContext}
+${styleContext}
+User request:
+${prompt}
+
+Current design HTML to improve:
+${previousHtml}`
+    : `${pageContext}\n${styleContext}\n${prompt}`.trim();
+
+  try {
+    const geminiRes = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: {
+          parts: [{ text: systemInstruction }]
+        },
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: userPrompt }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.6,
+          topP: 0.9,
+          maxOutputTokens: 8192
+        }
+      })
+    });
+
+    if (!geminiRes.ok || !geminiRes.body) {
+      const details = await geminiRes.text().catch(() => '');
+      return res.status(geminiRes.status || 500).json({
+        error: 'Failed to generate mockup.',
+        details: details.slice(0, 600)
+      });
+    }
+
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    for await (const chunk of geminiRes.body) {
+      buffer += decoder.decode(chunk, { stream: true });
+
+      let boundary = buffer.indexOf('\n\n');
+      while (boundary !== -1) {
+        const event = buffer.slice(0, boundary);
+        buffer = buffer.slice(boundary + 2);
+
+        const dataLines = event
+          .split('\n')
+          .filter((line) => line.startsWith('data:'))
+          .map((line) => line.slice(5).trim())
+          .filter(Boolean);
+
+        for (const dataLine of dataLines) {
+          if (dataLine === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(dataLine);
+            const textParts = parsed?.candidates?.[0]?.content?.parts || [];
+            for (const part of textParts) {
+              if (typeof part?.text === 'string' && part.text.length > 0) {
+                res.write(part.text);
+              }
+            }
+          } catch (_) {
+            // Ignore malformed stream chunks; keep relay alive.
+          }
+        }
+
+        boundary = buffer.indexOf('\n\n');
+      }
+    }
+
+    res.end();
+  } catch (error) {
+    console.error('[MOCKUP] stream error:', error);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: 'Mockup generation failed.' });
+    }
+    res.end();
+  }
+});
+
+app.post('/api/export-10web-package', async (req, res) => {
+  const { siteName, pages, metadata } = req.body || {};
+  const requiredPages = ['home', 'services', 'about', 'contact'];
+  const hasPages = pages && requiredPages.every((key) => typeof pages[key] === 'string' && pages[key].trim().length > 0);
+  if (!hasPages) {
+    return res.status(400).json({ error: 'pages.home/services/about/contact are required.' });
+  }
+
+  const safeSiteName = String(siteName || 'adhello-site')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'adhello-site';
+  const packageId = `${safeSiteName}-${Date.now()}`;
+  const tempRoot = path.join(os.tmpdir(), `adhello-10web-${crypto.randomUUID()}`);
+  const packageDir = path.join(tempRoot, packageId);
+  const zipPath = path.join(tempRoot, `${packageId}.zip`);
+
+  const pageDoc = (content, pageTitle) => `<!doctype html>
+<html class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${pageTitle}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' };</script>
+    <style>html,body{margin:0;padding:0;background:#0a0a0a;}</style>
+  </head>
+  <body>
+    ${content}
+  </body>
+</html>`;
+
+  const manifest = {
+    name: siteName || 'AdHello 10Web Export',
+    exportedAt: new Date().toISOString(),
+    generator: 'AdHello Vibe Builder',
+    target: '10web',
+    files: ['home.html', 'services.html', 'about.html', 'contact.html', 'manifest.json', 'README.md'],
+    metadata: metadata || {}
+  };
+
+  const readme = `# 10Web Import Package
+
+This package was generated by AdHello Vibe Builder.
+
+## Files
+- home.html
+- services.html
+- about.html
+- contact.html
+- manifest.json
+
+## 10Web Usage
+1. Create/open your 10Web project.
+2. Use AI Builder custom HTML blocks or page import flow.
+3. Paste/import each page HTML into matching 10Web page.
+4. Re-map navigation links and forms inside 10Web as needed.
+5. Publish.
+
+## Notes
+- Tailwind CDN is included in each page.
+- Pages are generated with shared style memory for visual consistency.
+`;
+
+  try {
+    await fs.mkdir(packageDir, { recursive: true });
+    await Promise.all([
+      fs.writeFile(path.join(packageDir, 'home.html'), pageDoc(pages.home, `${siteName || 'Site'} - Home`), 'utf8'),
+      fs.writeFile(path.join(packageDir, 'services.html'), pageDoc(pages.services, `${siteName || 'Site'} - Services`), 'utf8'),
+      fs.writeFile(path.join(packageDir, 'about.html'), pageDoc(pages.about, `${siteName || 'Site'} - About`), 'utf8'),
+      fs.writeFile(path.join(packageDir, 'contact.html'), pageDoc(pages.contact, `${siteName || 'Site'} - Contact`), 'utf8'),
+      fs.writeFile(path.join(packageDir, 'manifest.json'), JSON.stringify(manifest, null, 2), 'utf8'),
+      fs.writeFile(path.join(packageDir, 'README.md'), readme, 'utf8')
+    ]);
+
+    await execFileAsync('zip', ['-r', zipPath, packageId], { cwd: tempRoot });
+    const zipBuffer = await fs.readFile(zipPath);
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${packageId}.zip"`);
+    res.send(zipBuffer);
+  } catch (error) {
+    console.error('[10WEB-EXPORT] Failed:', error);
+    res.status(500).json({ error: 'Failed to export 10Web package.' });
+  } finally {
+    await fs.rm(tempRoot, { recursive: true, force: true }).catch(() => {});
+  }
+});
 
 app.post('/api/ad-brief/analyze', async (req, res) => {
   const { image, imageBase64, mimeType, service } = req.body;

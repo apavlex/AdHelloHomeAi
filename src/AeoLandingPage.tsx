@@ -1,6 +1,7 @@
 import { useAnalytics } from './hooks/useAnalytics';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import SEO from './components/SEO';
 import { SITE_ORIGIN } from './lib/site';
 import {
@@ -34,6 +35,7 @@ const geoSchema = {
 };
 
 export default function AeoLandingPage() { useAnalytics(); useAnalytics();
+  const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
 
@@ -60,8 +62,8 @@ export default function AeoLandingPage() { useAnalytics(); useAnalytics();
     setOpenFaq(openFaq === index ? null : index);
   };
 
-  const openChat = () => {
-    window.open('https://calendar.app.google/QQsVbiAt4QdCX8mx8', '_blank');
+  const openVibeBuilder = () => {
+    navigate('/vibe-builder');
   };
 
   return (
@@ -91,7 +93,7 @@ export default function AeoLandingPage() { useAnalytics(); useAnalytics();
             <a href="#faq" className="text-sm font-bold text-brand-dark/70 hover:text-brand-dark transition-colors">FAQ</a>
             <a href="#reviews" className="text-sm font-bold text-brand-dark/70 hover:text-brand-dark transition-colors">Reviews</a>
             <button
-              onClick={() => setIsQuizOpen(true)}
+              onClick={openVibeBuilder}
               className="bg-primary hover:bg-primary-hover text-brand-dark px-6 py-3 rounded-full text-sm font-bold transition-all duration-300 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] hover:shadow-[0_0_15px_rgba(243,221,109,0.6)] hover:-translate-y-0.5 hover:scale-105"
             >
               Build My Smart Site
@@ -127,7 +129,7 @@ export default function AeoLandingPage() { useAnalytics(); useAnalytics();
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <button
-              onClick={() => setIsQuizOpen(true)}
+              onClick={openVibeBuilder}
               className="w-full sm:w-auto px-10 py-5 bg-primary hover:bg-primary-hover text-brand-dark text-xl font-bold rounded-full transition-all shadow-[6px_6px_0px_rgba(45,52,54,0.1)] hover:shadow-none hover:translate-y-[4px] flex items-center justify-center gap-2 border-2 border-transparent group"
             >
               <Sparkles className="w-6 h-6 text-brand-dark group-hover:animate-pulse" />
@@ -345,7 +347,7 @@ export default function AeoLandingPage() { useAnalytics(); useAnalytics();
               </p>
 
               <button
-                onClick={() => setIsQuizOpen(true)}
+                onClick={openVibeBuilder}
                 className="w-full py-5 bg-primary hover:bg-primary-hover text-brand-dark text-xl font-bold rounded-full transition-all shadow-[6px_6px_0px_rgba(45,52,54,0.1)] hover:shadow-none hover:translate-y-[4px] border-2 border-transparent flex items-center justify-center gap-3 group"
               >
                 <Sparkles className="w-7 h-7 text-brand-dark group-hover:scale-110 transition-transform" />

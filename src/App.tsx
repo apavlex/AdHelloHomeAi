@@ -43,7 +43,7 @@ import { SiteAudit } from './components/SiteAudit';
 import { AdBrief } from './components/AdBrief';
 import { ROICalculator } from './components/ROICalculator';
 import { SalesChatbot } from './components/SalesChatbot';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { AssessmentCTA } from './components/AssessmentCTA';
 import { Logo } from './components/Logo';
@@ -157,6 +157,7 @@ const PORTFOLIO_EXAMPLES = [
 ];
 
 export default function App() {
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
@@ -231,10 +232,8 @@ export default function App() {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
-  const BOOKING_LINK = "https://calendar.app.google/QQsVbiAt4QdCX8mx8";
-
   const openChat = () => {
-    window.open(BOOKING_LINK, '_blank');
+    navigate('/vibe-builder');
   };
 
   const handleContactSubmit = (e: React.FormEvent<HTMLFormElement>) => {
