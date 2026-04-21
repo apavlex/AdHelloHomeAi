@@ -668,17 +668,46 @@ export function SiteAudit({
                 <p className={`text-xs font-black uppercase tracking-wider mb-1 ${isStudio ? 'text-amber-200' : 'text-amber-800'}`}>
                   Estimated scores — Lighthouse unavailable
                 </p>
-                <p className={`text-sm font-medium leading-snug ${isStudio ? 'text-white/85' : 'text-brand-dark/80'}`}>
-                  {!report.psiMeta.googlePsiApiKeyConfigured ? (
-                    <>
-                      Set <span className="font-mono text-[11px]">GOOGLE_PSI_API_KEY</span> on the server for measured PageSpeed / Lighthouse results. Until then, sub-scores are heuristic (HTTPS + domain signals), not a live crawl.
-                    </>
-                  ) : report.psiMeta.lastError ? (
-                    <>Google PageSpeed returned an error: {report.psiMeta.lastError}. Retry later or verify the URL is reachable.</>
-                  ) : (
-                    <>PageSpeed did not return Lighthouse metrics for this request. Sub-scores are estimated.</>
-                  )}
-                </p>
+                {!report.psiMeta.googlePsiApiKeyConfigured ? (
+                  <p className={`text-sm font-medium leading-snug ${isStudio ? 'text-white/85' : 'text-brand-dark/80'}`}>
+                    Set <span className="font-mono text-[11px]">GOOGLE_PSI_API_KEY</span> on the server for measured PageSpeed / Lighthouse results. Until then, sub-scores are heuristic (HTTPS + domain signals), not a live crawl.
+                  </p>
+                ) : report.psiMeta.setupHint ? (
+                  <div className={`space-y-3 ${isStudio ? 'text-white/85' : 'text-brand-dark/80'}`}>
+                    <p className={`text-sm font-bold ${isStudio ? 'text-amber-100' : 'text-amber-900'}`}>{report.psiMeta.setupHint.title}</p>
+                    <ol className={`text-sm font-medium leading-relaxed list-decimal pl-4 space-y-1.5 ${isStudio ? 'text-white/80' : 'text-brand-dark/80'}`}>
+                      {(report.psiMeta.setupHint.steps as string[]).map((step: string, i: number) => (
+                        <li key={i}>{step}</li>
+                      ))}
+                    </ol>
+                    <div className="flex flex-wrap gap-3 pt-1">
+                      {(report.psiMeta.setupHint.links as { label: string; href: string }[]).map((link: { label: string; href: string }) => (
+                        <a
+                          key={link.href}
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`text-xs font-black uppercase tracking-wide underline underline-offset-2 ${isStudio ? 'text-primary' : 'text-primary'}`}
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                    {report.psiMeta.lastError ? (
+                      <p className={`text-[11px] font-mono leading-snug opacity-70 break-words ${isStudio ? 'text-white/50' : 'text-brand-dark/50'}`}>
+                        Google: {report.psiMeta.lastError}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : report.psiMeta.lastError ? (
+                  <p className={`text-sm font-medium leading-snug ${isStudio ? 'text-white/85' : 'text-brand-dark/80'}`}>
+                    Google PageSpeed returned an error: {report.psiMeta.lastError}. Retry later or verify the URL is reachable.
+                  </p>
+                ) : (
+                  <p className={`text-sm font-medium leading-snug ${isStudio ? 'text-white/85' : 'text-brand-dark/80'}`}>
+                    PageSpeed did not return Lighthouse metrics for this request. Sub-scores are estimated.
+                  </p>
+                )}
               </div>
             )}
 
