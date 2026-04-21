@@ -443,11 +443,17 @@ async function callKie4oImageOutput(prompt, rawBase64, mimeType) {
   const resultUrl = await kie4oPollImageResult(taskId);
   if (!resultUrl) return null;
 
+  // Prefer data URL so the client never depends on third-party CDN fetch rules.
+  // If the server cannot download the result (Render egress, transient CDN, etc.),
+  // return the raw HTTPS URL — browsers can still display it in <img src="...">.
   try {
-    return await remoteImageUrlToDataUrl(resultUrl);
+    const dataUrl = await remoteImageUrlToDataUrl(resultUrl);
+    if (dataUrl) return dataUrl;
+    console.warn('[KIE-4O] Could not convert result to data URL; returning remote URL for client display.');
+    return resultUrl;
   } catch (e) {
-    console.error('[KIE-4O] Download result failed:', e.message);
-    return null;
+    console.warn('[KIE-4O] Download result failed; returning remote URL:', e.message);
+    return resultUrl;
   }
 }
 
