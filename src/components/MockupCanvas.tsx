@@ -693,7 +693,7 @@ Include typography mood, color palette direction, spacing rhythm, border radius 
                 if (e.key === 'Enter') onGenerate();
               }}
             />
-            <Button onClick={onGenerate} className="w-full" disabled={streaming || !prompt.trim()}>
+            <Button onClick={() => onGenerate('fresh')} className="w-full" disabled={streaming || !prompt.trim()}>
               {streaming ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {streaming ? 'Generating...' : 'Generate Mockup'}
             </Button>

@@ -1744,11 +1744,11 @@ app.post('/api/generate-mockup', async (req, res) => {
     });
   }
 
-  if (!GEMINI_API_KEY) {
-    return res.status(503).json({ error: 'GEMINI_API_KEY is not configured on server.' });
+  if (!GEMINI_API_KEY && !KIE_API_KEY) {
+    return res.status(503).json({ error: 'No AI provider configured. Set KIE_API_KEY or GEMINI_API_KEY.' });
   }
 
-  const model = process.env.GEMINI_MOCKUP_MODEL || 'gemini-2.5-flash-lite-preview-06-17';
+  const model = process.env.GEMINI_MOCKUP_MODEL || 'gemini-2.5-flash';
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
   const systemInstruction = `You are a senior UI designer.
 Output only raw HTML with Tailwind utility classes.
@@ -1771,6 +1771,33 @@ ${previousHtml}`
     : `${pageContext}\n${styleContext}\n${prompt}`.trim();
 
   try {
+    // Prefer Kie when configured to avoid Gemini model availability mismatches.
+    if (KIE_API_KEY) {
+      const kieResult = await callKie(userPrompt, systemInstruction, [], { jsonMode: false });
+      if (!kieResult) {
+        throw new Error('Kie returned empty response.');
+      }
+
+      const cleaned = cleanAIResponse(kieResult)
+        .replace(/^```html\s*/i, '')
+        .replace(/^```\s*/i, '')
+        .replace(/```$/i, '')
+        .trim();
+
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Transfer-Encoding', 'chunked');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+
+      // Simulate streamed chunks so existing live-preview UX remains responsive.
+      const chunkSize = 180;
+      for (let i = 0; i < cleaned.length; i += chunkSize) {
+        res.write(cleaned.slice(i, i + chunkSize));
+        await sleep(12);
+      }
+      res.end();
+      return;
+    }
+
     const geminiRes = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
