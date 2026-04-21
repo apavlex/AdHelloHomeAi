@@ -1730,6 +1730,41 @@ function isMockupRateLimited(ip) {
   return entry.count > MOCKUP_RATE_MAX_REQUESTS ? Math.ceil((entry.resetAt - now) / 1000) : 0;
 }
 
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function normalizeMockupHtml(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  let cleaned = cleanAIResponse(raw)
+    .replace(/^```html\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```$/i, '')
+    .trim();
+
+  // If provider returned JSON string, try common fields.
+  if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(cleaned);
+      const candidate = parsed.html || parsed.code || parsed.response || parsed.content || '';
+      if (typeof candidate === 'string' && candidate.trim()) {
+        cleaned = candidate.trim();
+      }
+    } catch (_) {}
+  }
+
+  if (!cleaned) return '';
+  if (!cleaned.includes('<div')) {
+    return `<div class="min-h-screen bg-neutral-950 text-white p-8"><pre class="whitespace-pre-wrap text-sm text-neutral-200">${escapeHtml(cleaned)}</pre></div>`;
+  }
+  return cleaned;
+}
+
 app.post('/api/generate-mockup', async (req, res) => {
   const { prompt, previousHtml, mode, pageType, styleMemory } = req.body || {};
   if (!prompt || typeof prompt !== 'string') {
@@ -1776,24 +1811,23 @@ ${previousHtml}`
       try {
         const kieResult = await callKie(userPrompt, systemInstruction, [], { jsonMode: false });
         if (kieResult && typeof kieResult === 'string' && kieResult.trim().length > 0) {
-          const cleaned = cleanAIResponse(kieResult)
-            .replace(/^```html\s*/i, '')
-            .replace(/^```\s*/i, '')
-            .replace(/```$/i, '')
-            .trim();
+          const cleaned = normalizeMockupHtml(kieResult);
+          if (!cleaned) {
+            console.warn('[MOCKUP] Kie normalized to empty; falling back to Gemini.');
+          } else {
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            res.setHeader('Transfer-Encoding', 'chunked');
+            res.setHeader('Cache-Control', 'no-cache, no-transform');
 
-          res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-          res.setHeader('Transfer-Encoding', 'chunked');
-          res.setHeader('Cache-Control', 'no-cache, no-transform');
-
-          // Simulate streamed chunks so existing live-preview UX remains responsive.
-          const chunkSize = 180;
-          for (let i = 0; i < cleaned.length; i += chunkSize) {
-            res.write(cleaned.slice(i, i + chunkSize));
-            await sleep(12);
+            // Simulate streamed chunks so existing live-preview UX remains responsive.
+            const chunkSize = 180;
+            for (let i = 0; i < cleaned.length; i += chunkSize) {
+              res.write(cleaned.slice(i, i + chunkSize));
+              await sleep(12);
+            }
+            res.end();
+            return;
           }
-          res.end();
-          return;
         }
         console.warn('[MOCKUP] Kie returned empty response; falling back to Gemini.');
       } catch (kieErr) {
@@ -1842,6 +1876,7 @@ ${previousHtml}`
 
     const decoder = new TextDecoder();
     let buffer = '';
+    let wroteContent = false;
 
     for await (const chunk of geminiRes.body) {
       buffer += decoder.decode(chunk, { stream: true });
@@ -1864,7 +1899,11 @@ ${previousHtml}`
             const textParts = parsed?.candidates?.[0]?.content?.parts || [];
             for (const part of textParts) {
               if (typeof part?.text === 'string' && part.text.length > 0) {
-                res.write(part.text);
+                const normalized = normalizeMockupHtml(part.text);
+                if (normalized) {
+                  res.write(normalized);
+                  wroteContent = true;
+                }
               }
             }
           } catch (_) {
@@ -1876,6 +1915,9 @@ ${previousHtml}`
       }
     }
 
+    if (!wroteContent) {
+      res.write(`<div class="min-h-screen bg-neutral-950 text-white flex items-center justify-center p-8"><div class="max-w-lg text-center"><p class="text-xl font-semibold">Generation returned no markup</p><p class="mt-2 text-neutral-400">Try refining your prompt or regenerate.</p></div></div>`);
+    }
     res.end();
   } catch (error) {
     console.error('[MOCKUP] stream error:', error);

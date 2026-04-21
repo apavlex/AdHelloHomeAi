@@ -216,6 +216,9 @@ export default function MockupCanvas() {
       }
 
       const finalHtml = bufferedRef.current;
+      if (!finalHtml.trim()) {
+        throw new Error('Generation completed but returned empty HTML. Please regenerate.');
+      }
       setHtmlCode(finalHtml);
       const diffSummary = summarizeDiff(previousHtmlRef.current, finalHtml);
       const version: MockupVersion = {
@@ -272,6 +275,9 @@ export default function MockupCanvas() {
       const { done, value } = await reader.read();
       if (done) break;
       out += decoder.decode(value, { stream: true });
+    }
+    if (!out.trim()) {
+      throw new Error('Generated page was empty.');
     }
     return out;
   };
