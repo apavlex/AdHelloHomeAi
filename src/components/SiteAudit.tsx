@@ -463,8 +463,9 @@ export function SiteAudit({
     setErrorInfo(null);
 
     try {
+      // PageSpeed Insights often needs 30–60s; then Kie/Gemini adds more. 45s caused false "Analysis Failed".
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000);
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -507,7 +508,11 @@ export function SiteAudit({
 
     } catch (error: any) {
       setStatus('idle');
-      setErrorInfo({ message: "Analysis Failed", detail: error.message });
+      const detail =
+        error?.name === 'AbortError'
+          ? 'The scan took longer than 2 minutes (PageSpeed + AI). Try again or open GET /api/ai-health on your server to verify API keys.'
+          : error.message;
+      setErrorInfo({ message: 'Analysis Failed', detail });
     }
   };
 

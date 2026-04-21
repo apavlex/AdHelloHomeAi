@@ -151,14 +151,22 @@ export default function AdStudio() { useAnalytics(); useAnalytics();
       const base64Data = selectedImage.split(',')[1];
       
       setAnalysisProgress(50);
-      
-      const response = await fetch('/api/ad-brief/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ image: base64Data })
-      });
+
+      const ac = new AbortController();
+      const analyzeTimeout = setTimeout(() => ac.abort(), 180000);
+      let response: Response;
+      try {
+        response = await fetch('/api/ad-brief/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ image: base64Data }),
+          signal: ac.signal,
+        });
+      } finally {
+        clearTimeout(analyzeTimeout);
+      }
 
       if (!response.ok) throw new Error("Analysis failed");
       

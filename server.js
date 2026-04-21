@@ -114,6 +114,8 @@ process.on('uncaughtException', (err) => console.error('[CRITICAL] Uncaught Exce
 process.on('unhandledRejection', (reason) => console.error('[CRITICAL] Unhandled Rejection:', reason));
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+/** Text + vision fallback for audit, ad brief, chat; override if Google deprecates default. */
+const GEMINI_CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || 'gemini-2.0-flash';
 const KIE_API_KEY = process.env.KIE_API_KEY;
 const KIE_CHAT_MODEL = process.env.KIE_CHAT_MODEL || 'gpt-4o';
 const KIE_UPLOAD_BASE = process.env.KIE_UPLOAD_BASE || 'https://kieai.redpandaai.co';
@@ -244,9 +246,19 @@ async function callGemini(prompt, modelName = 'gemini-2.0-flash', base64Image = 
       return null;
     }
     // Handle both text and image responses
-    const part = data.candidates?.[0]?.content?.parts?.[0];
+    const cand0 = data.candidates?.[0];
+    const part = cand0?.content?.parts?.[0];
     if (part?.text) return part.text;
     if (part?.inline_data?.data) return 'data:' + (part.inline_data.mime_type || 'image/png') + ';base64,' + part.inline_data.data;
+    console.warn(
+      '[GEMINI] No text/image in response — model:',
+      modelName,
+      JSON.stringify({
+        finishReason: cand0?.finishReason,
+        promptFeedback: data.promptFeedback,
+        candidateCount: data.candidates?.length ?? 0,
+      }).slice(0, 400)
+    );
     return null;
   } catch (err) {
     console.error('[GEMINI] Fetch Exception:', err.message);
@@ -473,7 +485,7 @@ async function callAI(prompt, systemPrompt = '', history = [], forceJson = false
     });
     if (kieVision) return kieVision;
     console.log('[AI] Kie vision failed or unavailable; falling back to Gemini.');
-    return await callGemini(prompt, 'gemini-2.0-flash', img, forceJson, mime);
+    return await callGemini(prompt, GEMINI_CHAT_MODEL, img, forceJson, mime);
   }
 
   const kieResult = await callKie(prompt, systemPrompt, history, { jsonMode: forceJson });
@@ -491,7 +503,7 @@ async function callAI(prompt, systemPrompt = '', history = [], forceJson = false
     'Assistant:'
   ].filter(Boolean).join('\n\n');
 
-  return await callGemini(fullPrompt, 'gemini-2.0-flash', null, forceJson);
+  return await callGemini(fullPrompt, GEMINI_CHAT_MODEL, null, forceJson);
 }
 
 /** Which AI backends are configured (no secrets exposed). */
@@ -499,6 +511,9 @@ app.get('/api/ai-health', (req, res) => {
   res.json({
     kie: !!KIE_API_KEY,
     gemini: !!GEMINI_API_KEY,
+    googlePageSpeed: !!process.env.GOOGLE_PSI_API_KEY,
+    kieChatModel: process.env.KIE_CHAT_MODEL || 'gpt-4o',
+    geminiChatModel: GEMINI_CHAT_MODEL,
   });
 });
 

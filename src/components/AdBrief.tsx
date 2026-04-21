@@ -293,12 +293,20 @@ PRODUCT PLACEMENT RULES:
 
       setAnalysisProgress(30);
 
-      // Server-side analyze: Kie (KIE_API_KEY) first, then Gemini fallback
-      const response = await fetch('/api/ad-brief/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64Data, mimeType, service: selectedService })
-      });
+      const ac = new AbortController();
+      const analyzeTimeout = setTimeout(() => ac.abort(), 180000);
+      // Server-side analyze: Kie (KIE_API_KEY) first, then Gemini fallback — vision can exceed 60s.
+      let response: Response;
+      try {
+        response = await fetch('/api/ad-brief/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: base64Data, mimeType, service: selectedService }),
+          signal: ac.signal,
+        });
+      } finally {
+        clearTimeout(analyzeTimeout);
+      }
 
       setAnalysisProgress(75);
 
@@ -315,7 +323,11 @@ PRODUCT PLACEMENT RULES:
 
     } catch (error: any) {
       console.error("Analysis failed:", error);
-      alert(`Analysis failed: ${error.message}`);
+      const msg =
+        error?.name === 'AbortError'
+          ? 'Analysis timed out after 3 minutes. Try a smaller image or retry — the AI service may be busy.'
+          : error.message;
+      alert(`Analysis failed: ${msg}`);
       setBriefStep('upload');
     }
   };
