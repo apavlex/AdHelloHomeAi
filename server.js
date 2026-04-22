@@ -267,17 +267,22 @@ async function callGemini(prompt, modelName = 'gemini-2.0-flash', base64Image = 
 }
 
 const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image';
+/** Ad Brief "Nano Banana 2" — try before GEMINI_IMAGE_MODEL / 2.5 in callGeminiImageOutputForAdBrief. */
+const AD_BRIEF_PRIMARY_GEMINI_IMAGE_MODEL =
+  process.env.AD_BRIEF_GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image-preview';
 
 /**
  * Generate or edit ad imagery (image output). Uses responseModalities per Gemini image API.
+ * @param {string|null} modelOverride — e.g. gemini-3.1-flash-image-preview (Nano Banana 2) for Ad Brief.
  */
-async function callGeminiImageOutput(prompt, base64Image = null, imageMimeType = 'image/jpeg') {
+async function callGeminiImageOutput(prompt, base64Image = null, imageMimeType = 'image/jpeg', modelOverride = null) {
   if (!GEMINI_API_KEY) {
     console.warn('[GEMINI] API Key missing. Returning null.');
     return null;
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+  const modelId = (typeof modelOverride === 'string' && modelOverride.trim()) ? modelOverride.trim() : GEMINI_IMAGE_MODEL;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${GEMINI_API_KEY}`;
 
   const parts = [{ text: prompt }];
   if (base64Image) {
@@ -310,8 +315,13 @@ async function callGeminiImageOutput(prompt, base64Image = null, imageMimeType =
       })
     });
     const data = await res.json();
-    if (data.error) {
-      console.warn('[GEMINI-IMAGE] API error:', data.error?.message || JSON.stringify(data.error));
+    if (!res.ok || data.error) {
+      console.warn(
+        '[GEMINI-IMAGE]',
+        modelId,
+        res.status,
+        data.error?.message || data.error || JSON.stringify(data).slice(0, 200)
+      );
       return null;
     }
     const respParts = data.candidates?.[0]?.content?.parts || [];
@@ -514,6 +524,8 @@ app.get('/api/ai-health', (req, res) => {
     googlePageSpeed: !!process.env.GOOGLE_PSI_API_KEY,
     kieChatModel: process.env.KIE_CHAT_MODEL || 'gpt-4o',
     geminiChatModel: GEMINI_CHAT_MODEL,
+    geminiImageModelDefault: GEMINI_IMAGE_MODEL,
+    adBriefGeminiImageModel: AD_BRIEF_PRIMARY_GEMINI_IMAGE_MODEL,
   });
 });
 
@@ -1860,6 +1872,37 @@ function buildDefaultAdImagePrompt({ headline, bodyText, platform, visualStyle }
   return lines.join('\n');
 }
 
+function adBriefGeminiImageModelFallbackChain() {
+  const seen = new Set();
+  const out = [];
+  for (const m of [AD_BRIEF_PRIMARY_GEMINI_IMAGE_MODEL, GEMINI_IMAGE_MODEL, 'gemini-2.5-flash-image']) {
+    const id = String(m || '').trim();
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
+}
+
+/** Try each Gemini image model: with reference image, then text-only (per model). */
+async function callGeminiImageOutputForAdBrief(prompt, base64Image, imageMimeType) {
+  if (!GEMINI_API_KEY) return null;
+  for (const modelId of adBriefGeminiImageModelFallbackChain()) {
+    let img = await callGeminiImageOutput(prompt, base64Image, imageMimeType, modelId);
+    if (img) {
+      console.log('[GEN-IMAGE] Gemini image OK:', modelId);
+      return img;
+    }
+    console.warn('[GEN-IMAGE] Gemini (with ref) no image, model:', modelId);
+    img = await callGeminiImageOutput(prompt, null, imageMimeType, modelId);
+    if (img) {
+      console.log('[GEN-IMAGE] Gemini image OK (no ref):', modelId);
+      return img;
+    }
+  }
+  return null;
+}
+
 /** Default true: Gemini image is usually faster than Kie async poll; set AD_BRIEF_TRY_GEMINI_FIRST=false to prefer Kie. */
 const AD_BRIEF_TRY_GEMINI_FIRST = process.env.AD_BRIEF_TRY_GEMINI_FIRST !== 'false';
 
@@ -1868,11 +1911,7 @@ async function resolveAdBriefCreativeImage(textPrompt, rawB64, mime) {
 
   if (AD_BRIEF_TRY_GEMINI_FIRST) {
     if (GEMINI_API_KEY) {
-      img = await callGeminiImageOutput(textPrompt, rawB64, mime);
-      if (!img) {
-        console.warn('[GEN-IMAGE] Retrying Gemini without reference image.');
-        img = await callGeminiImageOutput(textPrompt, null, mime);
-      }
+      img = await callGeminiImageOutputForAdBrief(textPrompt, rawB64, mime);
     }
     if (!img && KIE_API_KEY) {
       img = await callKie4oImageOutput(textPrompt, rawB64, mime);
@@ -1888,11 +1927,7 @@ async function resolveAdBriefCreativeImage(textPrompt, rawB64, mime) {
     img = await callKie4oImageOutput(textPrompt, rawB64, mime);
   }
   if (!img && GEMINI_API_KEY) {
-    img = await callGeminiImageOutput(textPrompt, rawB64, mime);
-  }
-  if (!img && GEMINI_API_KEY) {
-    console.warn('[GEN-IMAGE] Retrying Gemini without reference image.');
-    img = await callGeminiImageOutput(textPrompt, null, mime);
+    img = await callGeminiImageOutputForAdBrief(textPrompt, rawB64, mime);
   }
   if (!img && KIE_API_KEY && !GEMINI_API_KEY) {
     console.warn('[GEN-IMAGE] Kie text-only fallback (no reference image).');
@@ -1942,9 +1977,19 @@ app.post('/api/ad-brief/generate-image', async (req, res) => {
   try {
     const img = await resolveAdBriefCreativeImage(textPrompt, rawB64, mime);
     if (!img) {
+      const hasGem = !!GEMINI_API_KEY;
+      const hasKie = !!KIE_API_KEY;
+      const detail =
+        !hasGem && !hasKie
+          ? 'No image returned: set GEMINI_API_KEY (Gemini image / Nano Banana 2) and/or KIE_API_KEY on the server.'
+          : !hasGem
+            ? 'No image returned: GEMINI_API_KEY is missing. Kie was tried if KIE_API_KEY is set.'
+            : !hasKie
+              ? 'No image returned: Gemini image failed (quota, model access, or prompt). Add KIE_API_KEY for Kie 4o Image fallback.'
+              : 'No image returned: both Gemini (incl. gemini-3.1-flash-image-preview → fallbacks) and Kie failed. Check logs for [GEMINI-IMAGE] / [KIE-4O].';
       return res.status(500).json({
         error: 'Generation failed',
-        detail: 'No image returned. Set KIE_API_KEY (Kie 4o Image) or GEMINI_API_KEY.',
+        detail,
       });
     }
 
