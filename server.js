@@ -1050,6 +1050,52 @@ function normalizeAdBriefPayload(raw) {
   };
 }
 
+/**
+ * Non-AI safety fallback so Ad Brief UX never hard-fails when providers are unavailable.
+ */
+function buildAdBriefFallback(service = '') {
+  const serviceLabel = typeof service === 'string' && service.trim() ? service.trim() : 'your product';
+  return {
+    productAnalysis: `We could not run AI vision right now, so this is a fast starter brief for ${serviceLabel}. Once AI keys are active, rerun for image-specific insights.`,
+    visualPrompt: `Create a premium 1:1 lifestyle ad featuring the uploaded product as the exact hero item. Show natural product placement, realistic scale, legible headline and CTA overlays, and a clean DTC visual style tailored to ${serviceLabel}.`,
+    targetAudience: [
+      `People currently shopping for ${serviceLabel}`,
+      'Value-conscious buyers comparing quality and trust',
+      'Social-media-first users who respond to visual proof and testimonials',
+    ],
+    marketInsights: [
+      'Strong hooks usually combine a clear problem statement with one immediate benefit.',
+      'Short, concrete claims and visible product context outperform abstract branding copy.',
+      'Simple trust cues (rating, guarantee, social proof) improve click intent on cold traffic.',
+    ],
+    competitiveAdvantages: [
+      'Position the offer around one primary differentiator and one proof point.',
+      'Use product-in-use visuals to reduce buyer uncertainty before the click.',
+      'Keep CTA language direct and outcome-oriented for paid social.',
+    ],
+    adConcepts: [
+      {
+        platform: 'Instagram',
+        headline: `Make ${serviceLabel} easy`,
+        body: `Show the product in a real lifestyle setting with one bold value claim and one proof cue.`,
+        cta: 'See How',
+      },
+      {
+        platform: 'Facebook',
+        headline: `Why buyers choose this ${serviceLabel} option`,
+        body: `Lead with benefit + trust signal, then close with a direct offer and friction-free CTA.`,
+        cta: 'Get Offer',
+      },
+      {
+        platform: 'TikTok',
+        headline: `${serviceLabel} before/after hook`,
+        body: `Use a fast first 2 seconds, show product in context, and end with a strong action prompt.`,
+        cta: 'Try It',
+      },
+    ],
+  };
+}
+
 // --- ANALYTICS PROXY ---
 // Forwards tracking data to Agency OS (leadsos) to bypass DNS/CORS issues
 app.post('/api/track', async (req, res) => {
@@ -2367,9 +2413,24 @@ app.post('/api/ad-brief/analyze', async (req, res) => {
   Be specific, professional, and stay strictly relevant to the uploaded image.`;
 
   try {
+    const hasAnyAi = !!KIE_API_KEY || !!GEMINI_API_KEY;
+    if (!hasAnyAi) {
+      const fallback = buildAdBriefFallback(service);
+      return res.json({
+        ...fallback,
+        degraded: true,
+        degradedReason: 'No AI provider configured. Set KIE_API_KEY or GEMINI_API_KEY on the server.',
+      });
+    }
+
     const aiResponse = await callAI(prompt, '', [], true, { imageBase64: imageData, mimeType: mime });
     if (!aiResponse) {
-      throw new Error('AI analysis failed (empty response). Set KIE_API_KEY (Kie GPT-4o vision) or GEMINI_API_KEY.');
+      const fallback = buildAdBriefFallback(service);
+      return res.json({
+        ...fallback,
+        degraded: true,
+        degradedReason: 'AI analysis provider returned empty response. Check KIE_API_KEY/GEMINI_API_KEY or provider quota.',
+      });
     }
 
     let briefData;
@@ -2387,7 +2448,12 @@ app.post('/api/ad-brief/analyze', async (req, res) => {
     res.json(normalized);
   } catch (error) {
     console.error('[AD-BRIEF] Analysis Error:', error);
-    res.status(500).json({ error: error.message, detail: error.message });
+    const fallback = buildAdBriefFallback(service);
+    res.json({
+      ...fallback,
+      degraded: true,
+      degradedReason: error?.message || 'Ad Brief analysis temporarily unavailable.',
+    });
   }
 });
 

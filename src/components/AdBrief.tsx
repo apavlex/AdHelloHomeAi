@@ -85,6 +85,7 @@ export function AdBrief() {
   const [downloadAdIndex, setDownloadAdIndex] = useState<number | null>(null);
   const [downloadEmail, setDownloadEmail] = useState('');
   const [downloadSubmitting, setDownloadSubmitting] = useState(false);
+  const [analysisNotice, setAnalysisNotice] = useState<string | null>(null);
 
   const handleDownloadWithEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -303,6 +304,7 @@ PRODUCT PLACEMENT RULES:
   const startAnalysis = async () => {
     if (!selectedImage) return;
 
+    setAnalysisNotice(null);
     setBriefStep('analyzing');
     setAnalysisProgress(10);
 
@@ -336,6 +338,10 @@ PRODUCT PLACEMENT RULES:
       }
 
       const data = await response.json();
+      if (data?.degraded && data?.degradedReason) {
+        console.warn('[AD-BRIEF] Degraded analysis:', data.degradedReason);
+        setAnalysisNotice(`Fallback mode: ${data.degradedReason}`);
+      }
       setBriefData(data);
 
       setAnalysisProgress(100);
@@ -354,6 +360,27 @@ PRODUCT PLACEMENT RULES:
 
   return (
     <div className="w-full animate-in fade-in duration-500">
+      {analysisNotice && (
+        <div className="max-w-5xl mx-auto mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-brand-dark">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-wider text-amber-800 mb-1">
+                Ad Brief fallback mode
+              </p>
+              <p className="text-sm font-medium leading-snug">{analysisNotice}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAnalysisNotice(null)}
+              className="inline-flex items-center justify-center w-7 h-7 rounded-full text-amber-900/70 hover:text-amber-900 hover:bg-amber-100 transition-colors"
+              aria-label="Dismiss fallback notice"
+              title="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── GATE ── */}
       {briefStep === 'gate' && (
