@@ -616,7 +616,7 @@ PRODUCT PLACEMENT RULES:
                 strokeDasharray={`${analysisProgress * 3.0159} 301.59`}
               ></circle>
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center animate-spin [animation-duration:2.4s]">
               <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-2xl border border-gray-50">
                 <Sparkles className="w-12 h-12 text-primary animate-pulse" />
               </div>
