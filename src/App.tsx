@@ -219,6 +219,10 @@ export default function App() {
       answer: "Your new smart website will be live in 7 days or less."
     },
     {
+      question: "What is Google Business Profile optimization?",
+      answer: "Your Google Business Profile (GBP) is your listing on Google Maps and local search. It's the #1 factor in whether customers find you or your competitor. We optimize every element — categories, photos, posts, Q&A, and review strategy — so you rank higher and get more calls."
+    },
+    {
       question: "What happens if I need to change something on my site?",
       answer: "Just ask your AI Growth Coach or send us a message. We handle updates for you so you don't have to mess with a clunky website builder."
     },
@@ -285,8 +289,8 @@ export default function App() {
     <div className="selection:bg-primary/40">
       <EventBanner />
       <SEO
-        title="AdHello.ai — AI-Powered Websites &amp; Marketing for Home Service Businesses"
-        description="AdHello.ai builds conversion-optimized websites and AI marketing for local contractors — painters, electricians, plumbers, roofers and more. Get found on Google and AI search engines from day one."
+        title="AdHello.ai — Get More Calls From Google for Home Service Businesses"
+        description="AdHello.ai helps home service businesses get more calls from Google. We optimize your Google Business Profile, build AI-powered websites, and automate lead follow-up. Starting at $97/mo."
         canonical={`${SITE_ORIGIN}/`}
         schema={homeSchema}
       />
@@ -455,7 +459,7 @@ export default function App() {
                     className="px-10 py-5 bg-primary hover:bg-primary-hover text-brand-dark font-bold rounded-full transition-all shadow-[6px_6px_0px_rgba(45,52,54,0.1)] hover:shadow-none hover:translate-y-[4px] flex items-center justify-center gap-2 text-xl w-full sm:w-auto border-2 border-transparent group"
                   >
                     <Sparkles className="w-6 h-6 text-brand-dark group-hover:animate-pulse" />
-                    Build My Smart Site
+                    Get My Free Google Audit
                   </button>
                   <button
                     onClick={scrollToAudit}
@@ -554,9 +558,9 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="flex flex-col items-center gap-2 text-center p-6 rounded-[2rem] bg-warm-cream border border-gray-100 hover:border-primary transition-all">
-              <p className="text-4xl md:text-5xl font-extrabold text-brand-dark">3x</p>
+              <p className="text-4xl md:text-5xl font-extrabold text-brand-dark">40%</p>
               <p className="text-sm font-bold text-brand-dark/60 uppercase tracking-wider">
-                More Calls
+                More Calls in 90 Days
               </p>
             </div>
             <div className="flex flex-col items-center gap-2 text-center p-6 rounded-[2rem] bg-warm-cream border border-gray-100 hover:border-primary transition-all">
@@ -572,9 +576,9 @@ export default function App() {
               </p>
             </div>
             <div className="flex flex-col items-center gap-2 text-center p-6 rounded-[2rem] bg-warm-cream border border-gray-100 hover:border-primary transition-all">
-              <p className="text-4xl md:text-5xl font-extrabold text-brand-dark">Local</p>
+              <p className="text-4xl md:text-5xl font-extrabold text-brand-dark">127+</p>
               <p className="text-sm font-bold text-brand-dark/60 uppercase tracking-wider">
-                Built for Local Markets
+                Businesses Trust AdHello
               </p>
             </div>
           </div>
@@ -594,7 +598,7 @@ export default function App() {
               Meanwhile, the competitor down the street — the one with the newer trucks and busier schedule — isn't smarter than you. They just have a better system.
             </p>
             <p className="text-2xl font-bold text-brand-dark">
-              AdHello is that system.
+              AdHello is that system. We combine Google Business Profile optimization, AI-powered websites, and automated lead follow-up into one platform that works 24/7.
             </p>
           </div>
         </div>
@@ -606,7 +610,7 @@ export default function App() {
               Why AdHello?
             </h2>
             <p className="text-brand-dark/70 text-xl md:text-2xl max-w-2xl mx-auto">
-              Stop losing leads to a slow, outdated website. See the difference a smart, lead-generating site makes.
+              Stop losing leads to competitors with better Google visibility. See the difference an AI-powered growth engine makes.
             </p>
           </div>
 
@@ -685,12 +689,12 @@ export default function App() {
               <div className="text-yellow-500 mb-6 bg-yellow-50 w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <Search className="w-8 h-8" />
               </div>
-              <h3 className="text-2xl font-black text-brand-dark mb-4">SEO & GEO Built In — and Kept Up</h3>
+              <h3 className="text-2xl font-black text-brand-dark mb-4">Google Business Profile Optimization</h3>
               <p className="text-brand-dark/70 text-lg leading-relaxed mb-4">
-                Your site is optimized for Google and AI search from day one — with SEO and GEO (Generative Engine Optimization) best practices built into every page. And we don't stop there. We continuously refine your site over time so your business stays visible as search keeps evolving.
+                Your Google Business Profile is the #1 factor in local search ranking. We optimize every element — categories, photos, posts, Q&A, and review strategy — so you show up first when customers search for your services.
               </p>
               <p className="text-brand-dark/70 text-lg leading-relaxed font-bold italic">
-                Show up on Google, Google Maps, and AI search engines like ChatGPT and Perplexity — from launch and beyond.
+                Show up on Google Maps, Google Search, and AI search engines like ChatGPT and Perplexity — from launch and beyond.
               </p>
             </div>
             <div className="bg-white p-10 rounded-[3rem] border border-gray-100 hover:border-primary transition-all duration-500 group flex flex-col h-full shadow-sm">
@@ -786,7 +790,7 @@ export default function App() {
 
         <div className="max-w-7xl mx-auto px-4 w-full relative z-10">
           <div className="text-center mb-20">
-            <motion.h2 
+              <motion.h2 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -801,7 +805,7 @@ export default function App() {
               transition={{ delay: 0.1 }}
               className="text-xl text-brand-dark/60 max-w-2xl mx-auto font-medium"
             >
-              We build the foundation, you bring the expertise, and together we scale your business into the AI era.
+              We fix your Google visibility, build your AI-powered website, and automate your lead follow-up — so you can focus on what you do best.
             </motion.p>
           </div>
 
@@ -809,22 +813,22 @@ export default function App() {
             {[
               {
                 step: 1,
-                title: "The Professional Foundation",
-                desc: "We build your high-converting, AI-ready website in just 7 days. No tech headaches or complex builders—just a professional, foundational asset that belongs in the modern era.",
+                title: "Google Visibility Audit",
+                desc: "We analyze your Google Business Profile, website, and competitors to find exactly where you're losing leads. You get a free scored audit with specific recommendations.",
                 image: "/website-framework.jpeg",
                 highlight: false
               },
               {
                 step: 2,
-                title: "Capture Every Lead",
-                desc: "Launch your AI receptionist to instantly stop lead leakage. Your intelligent assistant greets visitors, qualifies leads, and books jobs 24/7—while you're on a call or asleep.",
+                title: "AI-Powered Website + GBP Optimization",
+                desc: "We build your high-converting, AI-ready website in 7 days and optimize your Google Business Profile to rank higher on Google Maps and search.",
                 image: getPublicAsset("ai-receptionist.jpg"),
                 highlight: true
               },
               {
                 step: 3,
-                title: "A Scalable Growth Journey",
-                desc: "This is where the real journey begins. We provide the tools, AI-driven insights, and continuous support to help your business grow and become more optimized every single day.",
+                title: "Automated Lead Capture & Follow-Up",
+                desc: "Your AI receptionist captures leads 24/7, qualifies them, and follows up automatically. No more missed calls, no more lost revenue.",
                 image: getPublicAsset("dashboard.jpg"),
                 highlight: false
               }
