@@ -7,13 +7,15 @@ interface Message {
   text: string;
 }
 
+const CHATBOT_URL = import.meta.env.VITE_CHATBOT_URL || '';
+
 export function SalesChatbot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', text: "Hi! I'm your AdHello growth assistant. To help you get the most out of our platform, could you tell me what kind of home service business you're looking to grow?" }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [leadCaptured, setLeadCaptured] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -26,27 +28,45 @@ export function SalesChatbot() {
     }
   }, [messages, isOpen]);
 
+  // Initialize session when chat opens
+  useEffect(() => {
+    if (isOpen && !sessionId && CHATBOT_URL) {
+      fetch(`${CHATBOT_URL}/api/session`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+          setSessionId(data.sessionId);
+          if (data.message) {
+            setMessages([{ role: 'model', text: data.message }]);
+          }
+        })
+        .catch(() => {
+          setMessages([{ role: 'model', text: "Hey there! 👋 Welcome to AdHello. I'm your AI assistant — here to help home service businesses get more calls from Google. What's your name?" }]);
+        });
+    }
+  }, [isOpen, sessionId]);
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
     const userMessage = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+    setMessages((prev: Message[]) => [...prev, { role: 'user', text: userMessage }]);
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chatbot', {
+      const response = await fetch(`${CHATBOT_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, userMessage })
+        body: JSON.stringify({ sessionId, message: userMessage }),
       });
 
       if (!response.ok) throw new Error("Chat request failed");
       const data = await response.json();
-      setMessages(prev => [...prev, { role: 'model', text: data.text }]);
+      setMessages((prev: Message[]) => [...prev, { role: 'model', text: data.text || data.message }]);
+      if (data.leadCaptured) setLeadCaptured(true);
     } catch (error) {
       console.error("Chat error:", error);
-      setMessages(prev => [...prev, { role: 'model', text: "I'm sorry, I'm having a little trouble connecting right now. Please try again or call us at (360) 773-1505!" }]);
+      setMessages((prev: Message[]) => [...prev, { role: 'model', text: "I'm sorry, I'm having a little trouble connecting right now. Please try again or call us at (360) 773-1505!" }]);
     } finally {
       setIsLoading(false);
     }
@@ -145,13 +165,15 @@ export function SalesChatbot() {
             {/* Input */}
             <div className="p-4 bg-white border-t border-gray-100">
               <div className="flex flex-col gap-3">
-                <button 
-                  onClick={() => window.open('https://calendar.app.google/QQsVbiAt4QdCX8mx8', '_blank')}
-                  className="w-full py-2 bg-brand-dark text-white text-xs font-black uppercase tracking-widest rounded-full hover:bg-brand-dark/90 transition-all flex items-center justify-center gap-2"
-                >
-                  <Calendar className="w-3 h-3 text-primary" />
-                  Book Demo Meeting
-                </button>
+                {!leadCaptured && (
+                  <button 
+                    onClick={() => window.open('https://calendar.app.google/QQsVbiAt4QdCX8mx8', '_blank')}
+                    className="w-full py-2 bg-brand-dark text-white text-xs font-black uppercase tracking-widest rounded-full hover:bg-brand-dark/90 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Calendar className="w-3 h-3 text-primary" />
+                    Book Free Audit Call
+                  </button>
+                )}
                 
                 <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 border border-gray-200 focus-within:border-primary transition-colors">
                   <input
