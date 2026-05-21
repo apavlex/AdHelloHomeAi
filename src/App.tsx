@@ -227,6 +227,10 @@ export default function App() {
       answer: "Just ask your AI Growth Coach or send us a message. We handle updates for you so you don't have to mess with a clunky website builder."
     },
     {
+      question: "What is agent-readiness and why does it matter now?",
+      answer: "Google just turned search into an AI agent that compares businesses, recommends providers, and even books services for customers. 'Agent-readiness' means your business is structured so AI agents can find, trust, and recommend you — with proper schema markup, optimized Google Business Profile, strong reviews, and AI-friendly content. Without it, you're invisible to the new way people search."
+    },
+    {
       question: "Am I locked into a contract?",
       answer: "Never. AdHello is flexible. You can choose a month-to-month plan or save significantly with our annual plan (which gives you 2 months free). If you're not getting value, you can cancel anytime."
     }
@@ -271,7 +275,7 @@ export default function App() {
       "telephone": "+1-360-773-1505",
       "description": "AI-powered websites and marketing for local home service businesses — painters, electricians, plumbers, roofers, flooring and movers.",
       "areaServed": { "@type": "GeoCircle", "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 45.5231, "longitude": -122.6765 }, "geoRadius": "80000" },
-      "serviceType": ["Website Design", "Local SEO", "AI Search Optimization", "Lead Generation"]
+      "serviceType": ["Website Design", "Local SEO", "AI Search Optimization", "Agent-Readiness", "Lead Generation"]
     },
     {
       "@context": "https://schema.org",
@@ -448,10 +452,10 @@ export default function App() {
                   The AI Growth Engine for <span className="text-brand-dark font-black">{HERO_VARIANTS[heroIndex].trade}</span>
                 </div>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-brand-dark mb-8 leading-[1.05]">
-                  We Book the Appointments. <span className="hand-underline">You Close the Jobs.</span>
+                  Google Is Now an AI Agent. <span className="hand-underline">Is Your Business Ready?</span>
                 </h1>
                 <p className="text-xl md:text-2xl text-brand-dark/70 mb-10 leading-relaxed max-w-xl">
-                  Stop paying for 'leads' that don't answer. We deploy a custom AI Sales Agent on a high-converting smart website built specifically for your business. You only pay for results.
+                  Google just turned search into an AI agent that compares, recommends, and books services for your customers. If your business isn't agent-ready, you're invisible. AdHello makes you the one AI agents pick — with optimized Google profiles, AI-ready websites, and automated lead capture that works 24/7.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                   <button
@@ -592,13 +596,13 @@ export default function App() {
               The Hard Truth About Home Service Marketing
             </h2>
             <p className="text-brand-dark/70 text-xl mb-6 leading-relaxed">
-              Most home service businesses are losing leads every single day and they don't even know it. Your website looks fine, but it wasn't built to convert. Your phone goes unanswered after hours. You're invisible on AI search tools like ChatGPT and Google's AI overviews. And you're spending money guessing at what marketing actually works.
+              Most home service businesses are losing leads every single day and they don't even know it. Your website looks fine, but it wasn't built to convert. Your phone goes unanswered after hours. You're invisible on AI search tools like ChatGPT and Google's AI overviews.
             </p>
             <p className="text-brand-dark/70 text-xl mb-8 leading-relaxed">
-              Meanwhile, the competitor down the street — the one with the newer trucks and busier schedule — isn't smarter than you. They just have a better system.
+              And now Google just turned search into an <strong>AI agent</strong> — it doesn't just show links anymore, it compares businesses, recommends providers, and even books services for your customers. If your business isn't "agent-ready" structured for AI agents to read, trust, and recommend — you're disappearing from search entirely.
             </p>
             <p className="text-2xl font-bold text-brand-dark">
-              AdHello is that system. We combine Google Business Profile optimization, AI-powered websites, and automated lead follow-up into one platform that works 24/7.
+              AdHello is your agent-readiness engine. We combine Google Business Profile optimization, AI-powered websites built for agent discovery, and automated lead follow-up into one platform that makes you the business AI agents pick — 24/7.
             </p>
           </div>
         </div>
@@ -610,7 +614,7 @@ export default function App() {
               Why AdHello?
             </h2>
             <p className="text-brand-dark/70 text-xl md:text-2xl max-w-2xl mx-auto">
-              Stop losing leads to competitors with better Google visibility. See the difference an AI-powered growth engine makes.
+              Stop losing leads to competitors with better Google visibility — and get ready for the AI agents that are replacing search results.
             </p>
           </div>
 
@@ -666,7 +670,19 @@ export default function App() {
               One platform. One price. Built to grow with you.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="bg-white p-10 rounded-[3rem] border border-gray-100 hover:border-primary transition-all duration-500 group flex flex-col h-full shadow-sm">
+              <div className="text-yellow-500 mb-6 bg-yellow-50 w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <Bot className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-black text-brand-dark mb4">Agent-Readiness Package</h3>
+              <p className="text-brand-dark/70 text-lg leading-relaxed mb-4">
+                Google's AI agents now compare and recommend businesses. We make sure they pick you. Structured data, schema markup, review velocity, and content optimization — all built so AI agents can read, trust, and recommend your business.
+              </p>
+              <p className="text-brand-dark/70 text-lg leading-relaxed font-bold italic">
+                Be the business AI agents recommend — not the one they skip.
+              </p>
+            </div>
             <div className="bg-white p-10 rounded-[3rem] border border-gray-100 hover:border-primary transition-all duration-500 group flex flex-col h-full shadow-sm">
               <div className="text-yellow-500 mb-6 bg-yellow-50 w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <Layout className="w-8 h-8" />
@@ -805,7 +821,7 @@ export default function App() {
               transition={{ delay: 0.1 }}
               className="text-xl text-brand-dark/60 max-w-2xl mx-auto font-medium"
             >
-              We fix your Google visibility, build your AI-powered website, and automate your lead follow-up — so you can focus on what you do best.
+              We fix your Google visibility, build your AI-powered website, and make you agent-ready — so you can focus on what you do best.
             </motion.p>
           </div>
 
@@ -821,7 +837,7 @@ export default function App() {
               {
                 step: 2,
                 title: "AI-Powered Website + GBP Optimization",
-                desc: "We build your high-converting, AI-ready website in 7 days and optimize your Google Business Profile to rank higher on Google Maps and search.",
+                desc: "We build your high-converting, AI-ready website in 7 days, optimize your Google Business Profile, and implement agent-readiness markup so Google's AI agents can find, trust, and recommend your business.",
                 image: getPublicAsset("ai-receptionist.jpg"),
                 highlight: true
               },
@@ -1308,7 +1324,7 @@ export default function App() {
             <span className="hand-underline">Get More Leads.</span>
           </h2>
           <p className="text-white/70 text-2xl md:text-3xl mb-12 max-w-2xl mx-auto">
-            Join the local service businesses that are winning the AI search revolution.
+            Join the local service businesses that are getting ready for AI agents — before their competitors do.
           </p>
           <div className="inline-block bg-white/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 text-white text-lg font-medium mb-12">
             <span className="inline-block w-3 h-3 bg-primary rounded-full mr-3 animate-pulse"></span>

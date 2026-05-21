@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: adhello-ai
+    runtime: node
+    buildCommand: npm run build && npm run start
+    startCommand: node server.js
+    plan: free
+    region: oregon
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8080
