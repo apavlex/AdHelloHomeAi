@@ -330,7 +330,7 @@ export default function App() {
                   onClick={openChat}
                   className="bg-primary hover:bg-primary-hover text-brand-dark text-sm font-bold px-6 py-3 rounded-full transition-all duration-300 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] hover:shadow-[0_0_15px_rgba(243,221,109,0.6)] hover:-translate-y-0.5 hover:scale-105 flex items-center gap-2"
                 >
-                  Build My Smart Site
+                  Get My Free AI Readiness Assessment
                 </button>
               </div>
             </div>
@@ -374,7 +374,7 @@ export default function App() {
                 }}
                 className="flex bg-primary hover:bg-primary-hover text-brand-dark text-base font-bold px-6 py-3 rounded-full transition-all duration-300 hover:shadow-[0_0_15px_rgba(243,221,109,0.6)] hover:-translate-y-0.5 hover:scale-105 items-center justify-center gap-2 mt-2"
               >
-                Build My Smart Site
+                Get My Free AI Readiness Assessment
               </button>
             </nav>
           </div>
@@ -463,7 +463,7 @@ export default function App() {
                     className="px-10 py-5 bg-primary hover:bg-primary-hover text-brand-dark font-bold rounded-full transition-all shadow-[6px_6px_0px_rgba(45,52,54,0.1)] hover:shadow-none hover:translate-y-[4px] flex items-center justify-center gap-2 text-xl w-full sm:w-auto border-2 border-transparent group"
                   >
                     <Sparkles className="w-6 h-6 text-brand-dark group-hover:animate-pulse" />
-                    Get My Free Google Audit
+                    Get My Free AI Readiness Assessment
                   </button>
                   <button
                     onClick={scrollToAudit}
@@ -1336,7 +1336,7 @@ export default function App() {
               className="bg-primary hover:bg-primary-hover text-brand-dark font-extrabold py-5 px-12 rounded-full shadow-[0px_0px_20px_rgba(243,221,109,0.3)] hover:shadow-[0px_0px_30px_rgba(243,221,109,0.5)] transition-all transform hover:scale-105 flex items-center justify-center gap-3 text-xl md:text-2xl group"
             >
               <Sparkles className="w-8 h-8 text-brand-dark group-hover:scale-110 transition-transform" />
-              Build My Smart Site
+              Get My Free AI Readiness Assessment
             </button>
           </div>
         </div>
