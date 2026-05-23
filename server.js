@@ -1829,6 +1829,57 @@ app.post('/api/lead', async (req, res) => {
     await syncLeadToAgencyOS({ ...req.body, bizName: auditData?.companyName });
     await syncLeadToAttio({ ...req.body, bizName: auditData?.companyName });
 
+    // Send email notification to Alex
+    if (resend) {
+      const is1kRequest = source === 'adhello_ai_readiness_1k';
+      const score = auditData?.score || 0;
+      const website = siteUrl || auditData?.url || 'N/A';
+      const bizName = auditData?.companyName || name;
+
+      const subject = is1kRequest
+        ? `🎯 $1k Assessment Request: ${bizName} (Score: ${score})`
+        : `🔥 New Lead: ${bizName}`;
+
+      const html = is1kRequest ? `
+        <div style="font-family: sans-serif; padding: 20px; color: #1a1a2e;">
+          <h2 style="color: #f3dd6d;">🎯 Full AI Readiness Assessment Requested</h2>
+          <p style="font-size: 16px;">Someone just requested the <strong>$1,000 Full AI Readiness Blueprint</strong>.</p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+          <p><strong>Business:</strong> ${bizName}</p>
+          <p><strong>Website:</strong> <a href="${website}">${website}</a></p>
+          <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+          <p><strong>Audit Score:</strong> <span style="font-size: 24px; font-weight: bold; color: ${score >= 70 ? '#22c55e' : score >= 50 ? '#eab308' : '#ef4444'};">${score}/100</span></p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+          <h3>Next Steps:</h3>
+          <ol style="line-height: 1.8;">
+            <li>Research <a href="${website}">${website}</a> — check their site, competitors, and AI visibility</li>
+            <li>Prepare findings: what's broken, what's missing, what AI engines say about them</li>
+            <li>Email ${email} with your assessment + CTA for the $1,000 blueprint</li>
+          </ol>
+          <br />
+          <a href="${website}" style="display: inline-block; padding: 12px 24px; background: #f3dd6d; color: #1a1a2e; text-decoration: none; border-radius: 8px; font-weight: bold;">Research This Business →</a>
+          <a href="mailto:${email}" style="display: inline-block; padding: 12px 24px; background: #1a1a2e; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-left: 10px;">Email Them →</a>
+        </div>
+      ` : `
+        <div style="font-family: sans-serif; padding: 20px; color: #1a1a2e;">
+          <h2 style="color: #6366f1;">New Lead Captured</h2>
+          <p><strong>Business:</strong> ${bizName}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Website:</strong> ${website}</p>
+          <p><strong>Source:</strong> ${source || 'adhello.ai'}</p>
+          <br />
+          <a href="https://adhello.ai" style="display: inline-block; padding: 10px 20px; background: #6366f1; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">View Dashboard</a>
+        </div>
+      `;
+
+      resend.emails.send({
+        from: 'AdHello leads <onboarding@resend.dev>',
+        to: 'alex@adhello.ai',
+        subject,
+        html,
+      }).catch(err => console.error('[MAIL] Error sending lead email:', err));
+    }
+
     res.json({ id, success: true });
   } catch (error) {
     console.error('[LEADS] Error:', error);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Globe, Eye, Target, Sparkles, CheckCircle2, Circle, Loader2, Wrench, AlertTriangle, XCircle, Share2, Download, Link as LinkIcon, Copy, Check, Bot, ShieldCheck, ShieldX, ShieldAlert, BarChart3, Zap, TrendingUp, Lock, Palette, Layout, MousePointerClick, ChevronRight, Calendar } from 'lucide-react';
+import { Search, Globe, Eye, Target, Sparkles, CheckCircle2, Circle, Loader2, Wrench, AlertTriangle, XCircle, Share2, Download, Link as LinkIcon, Copy, Check, Bot, ShieldCheck, ShieldX, ShieldAlert, BarChart3, Zap, TrendingUp, Lock, Palette, Layout, MousePointerClick, ChevronRight, Calendar, ArrowRight } from 'lucide-react';
 
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
@@ -338,6 +338,11 @@ export function SiteAudit({
   const [stitchResult, setStitchResult] = useState<{ title: string, downloadUrl?: string, screenshotUrl?: string } | null>(null);
   const [stitchError, setStitchError] = useState<string | null>(null);
 
+  // $1k Full Assessment request
+  const [k1000Email, setK1000Email] = useState('');
+  const [k1000Submitting, setK1000Submitting] = useState(false);
+  const [k1000Confirmed, setK1000Confirmed] = useState(false);
+
   const getBusinessName = () => {
     if (!report?.url) return 'Your Business';
     try {
@@ -445,6 +450,28 @@ export function SiteAudit({
     setModalSubmitting(false);
     setModalDone(true);
     setTimeout(() => setShowEmailModal(false), 2000);
+  };
+
+  const handleK1000Submit = async () => {
+    if (!k1000Email.trim()) return;
+    setK1000Submitting(true);
+    try {
+      await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: getBusinessName(),
+          email: k1000Email.trim(),
+          siteUrl: report?.url || url,
+          title: getBusinessName(),
+          totalScore: report?.score || 0,
+          auditData: report,
+          source: 'adhello_ai_readiness_1k',
+        }),
+      });
+    } catch (_) {}
+    setK1000Submitting(false);
+    setK1000Confirmed(true);
   };
 
   const handleScan = async (e: React.FormEvent) => {
@@ -972,16 +999,51 @@ export function SiteAudit({
                   Unlock My Strategic Blueprint ($27)
                 </button>
                 
-                <div className="flex flex-col gap-3">
-                  <button
-                    onClick={() => { window.open('https://calendar.app.google/QQsVbiAt4QdCX8mx8', '_blank'); }}
-                    className={`text-base font-black underline underline-offset-8 decoration-2 ${isStudio ? 'text-white/60 hover:text-white' : 'text-brand-dark/60 hover:text-brand-dark'}`}
-                  >
-                    Or, book a Free Scale Session for a managed $1k+ build
-                  </button>
-                  <p className={`text-[10px] font-bold uppercase tracking-[0.25em] ${isStudio ? 'text-white/20' : 'text-brand-dark/20'}`}>
-                    Available for businesses generating $100k+ in revenue
-                  </p>
+                {/* $1k Full Assessment CTA */}
+                <div className="w-full max-w-md">
+                  {k1000Confirmed ? (
+                    <div className={`rounded-2xl p-6 border-2 border-green-500/30 ${isStudio ? 'bg-green-500/10' : 'bg-green-50'}`}>
+                      <div className="flex items-center justify-center gap-3 mb-2">
+                        <CheckCircle2 className="w-6 h-6 text-green-500" />
+                        <p className={`text-lg font-black ${isStudio ? 'text-green-300' : 'text-green-700'}`}>Request Received!</p>
+                      </div>
+                      <p className={`text-sm font-medium ${isStudio ? 'text-white/60' : 'text-brand-dark/60'}`}>
+                        Alex is researching {getBusinessName()}. You'll receive a detailed AI Readiness Assessment with findings and recommendations within 24 hours.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className={`rounded-2xl p-6 border-2 border-primary/20 ${isStudio ? 'bg-primary/5' : 'bg-primary/5'}`}>
+                      <h4 className={`text-xl font-black mb-2 ${isStudio ? 'text-white' : 'text-brand-dark'}`}>
+                        Get the Full AI Readiness Blueprint
+                      </h4>
+                      <p className={`text-sm font-medium mb-4 ${isStudio ? 'text-white/50' : 'text-brand-dark/50'}`}>
+                        Alex will personally research your business, analyze your competitive landscape, and deliver a comprehensive AI Readiness Assessment with a 30-day action plan.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          type="email"
+                          value={k1000Email}
+                          onChange={(e) => setK1000Email(e.target.value)}
+                          placeholder="your@email.com"
+                          className={`flex-1 rounded-xl py-3 px-4 font-bold border-2 bg-white text-brand-dark border-gray-200 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm ${isStudio ? 'bg-[#121417] text-white border-white/10 placeholder:text-white/30' : ''}`}
+                        />
+                        <button
+                          onClick={handleK1000Submit}
+                          disabled={k1000Submitting || !k1000Email.trim()}
+                          className="bg-brand-dark hover:bg-black text-white font-black py-3 px-6 rounded-xl transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50 shrink-0"
+                        >
+                          {k1000Submitting ? (
+                            <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
+                          ) : (
+                            <>Request Full Assessment — $1,000 <ArrowRight className="w-4 h-4" /></>
+                          )}
+                        </button>
+                      </div>
+                      <p className={`text-[10px] font-bold uppercase tracking-[0.2em] mt-3 ${isStudio ? 'text-white/20' : 'text-brand-dark/20'}`}>
+                        Includes competitive benchmark · AI citation audit · 30-day roadmap · strategy call
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
