@@ -13,6 +13,7 @@ import FulfillmentPage from './components/FulfillmentPage.tsx';
 import StrategyResultsPage from './components/StrategyResultsPage.tsx';
 import VipPage from './VipPage.tsx';
 import VibeBuilderPage from './VibeBuilderPage.tsx';
+import LocalAdNetworkPage from './LocalAdNetworkPage.tsx';
 import { AnalyticsWrapper } from './components/AnalyticsWrapper';
 import './index.css';
 
@@ -71,6 +72,10 @@ const router = createBrowserRouter([
       {
         path: "/about",
         element: <AboutPage />,
+      },
+      {
+        path: "/local-ad-network",
+        element: <LocalAdNetworkPage />,
       },
       {
         path: "/geo",
