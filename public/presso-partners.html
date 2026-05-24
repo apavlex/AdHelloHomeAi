@@ -147,6 +147,56 @@
       align-items: center
     }
 
+    .nav-hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      z-index: 101;
+    }
+
+    .nav-hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--brand-dark);
+      margin: 5px 0;
+      transition: all .3s;
+    }
+
+    .nav-mobile-menu {
+      display: none;
+      position: fixed;
+      top: 70px;
+      left: 0;
+      right: 0;
+      background: rgba(255, 252, 245, .98);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(243, 221, 109, .2);
+      padding: 1.5rem;
+      flex-direction: column;
+      gap: 1.25rem;
+      z-index: 99;
+    }
+
+    .nav-mobile-menu.open {
+      display: flex;
+    }
+
+    .nav-mobile-menu .nav-link {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .nav-mobile-menu .btn-nav {
+      display: inline-flex;
+      text-align: center;
+      justify-content: center;
+    }
+
     .nav-link {
       font-size: .85rem;
       font-weight: 700;
@@ -1043,6 +1093,14 @@
     }
 
     @media(max-width:900px) {
+      .nav-right {
+        display: none
+      }
+
+      .nav-hamburger {
+        display: block;
+      }
+
       .nav-right .nav-link {
         display: none
       }
@@ -1089,6 +1147,41 @@
       .vs-head,
       .vs-row {
         grid-template-columns: 1fr
+      }
+
+      .vs-head {
+        display: none;
+      }
+
+      .vs-row {
+        grid-template-columns: 1fr;
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        margin-bottom: .75rem;
+        overflow: hidden;
+      }
+
+      .vs-row .vs-cell {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: .6rem .85rem;
+        font-size: .8rem;
+        gap: 1rem;
+      }
+
+      .vs-row .vs-cell::before {
+        content: attr(data-label);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        font-size: .65rem;
+        color: var(--muted);
+        flex-shrink: 0;
+      }
+
+      .vs-row.hl .vs-cell {
+        background: rgba(243, 221, 109, .12);
       }
 
       .excl-inner {
@@ -1392,17 +1485,26 @@
           src="https://f01ee64f4c46d2e4f03e.cdn6.editmysite.com/uploads/b/f01ee64f4c46d2e4f03e22fd5e239aa0f5121d27e10352b03a79881e91ed230c/Presso%20Floral%20Logo%20Black%20Transparent_1598929958.png?width=2400&optimize=medium"
           style="height:38px;width:38px;border-radius:50%;object-fit:contain;display:block">
       </div>
-      <div style="display:flex;gap:24px;align-items:center">
+      <div class="nav-right">
         <a href="presso-home.html"
-          style="font-size:13px;font-weight:700;color:rgba(45,52,54,.55);text-decoration:none;font-family:Inter,sans-serif">Home</a><a
+          style="font-size:13px;font-weight:700;color:rgba(45,52,54,.55);text-decoration:none;font-family:Inter,sans-serif" class="nav-link">Home</a><a
           href="presso-partners.html"
-          style="font-size:13px;font-weight:700;color:rgba(45,52,54,.9);text-decoration:none;font-family:Inter,sans-serif">Local
+          style="font-size:13px;font-weight:700;color:rgba(45,52,54,.9);text-decoration:none;font-family:Inter,sans-serif" class="nav-link">Local
           Sponsors</a><a href="presso-brands.html"
-          style="font-size:13px;font-weight:700;color:rgba(45,52,54,.55);text-decoration:none;font-family:Inter,sans-serif">Brands</a><a
+          style="font-size:13px;font-weight:700;color:rgba(45,52,54,.55);text-decoration:none;font-family:Inter,sans-serif" class="nav-link">Brands</a><a
           href="https://adhello.ai"
-          style="margin-left:24px;background:#f3dd6d;color:#2d3436;font-size:12px;font-weight:800;padding:8px 20px;border-radius:999px;text-decoration:none;font-family:Inter,sans-serif;box-shadow:4px 4px 0 rgba(45,52,54,.1)">Back
+          style="margin-left:24px;background:#f3dd6d;color:#2d3436;font-size:12px;font-weight:800;padding:8px 20px;border-radius:999px;text-decoration:none;font-family:Inter,sans-serif;box-shadow:4px 4px 0 rgba(45,52,54,.1)" class="btn-nav">Back
           to AdHello</a>
       </div>
+      <button class="nav-hamburger" id="navHamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav-mobile-menu" id="navMobileMenu">
+      <a href="presso-home.html" class="nav-link">Home</a>
+      <a href="presso-partners.html" class="nav-link">Local Sponsors</a>
+      <a href="presso-brands.html" class="nav-link">Brands</a>
+      <a href="https://adhello.ai" class="btn-nav">Back to AdHello</a>
     </div>
   </nav>
   </div>
@@ -1779,39 +1881,39 @@
           <div class="vs-hc">Trackable</div>
         </div>
         <div class="vs-row">
-          <div class="vs-cell">Google PPC</div>
-          <div class="vs-cell">$3–20 / click</div>
-          <div class="vs-cell">Searching, distracted</div>
-          <div class="vs-cell">2 sec</div>
-          <div class="vs-cell">Yes</div>
+          <div class="vs-cell" data-label="Channel">Google PPC</div>
+          <div class="vs-cell" data-label="Cost">$3–20 / click</div>
+          <div class="vs-cell" data-label="Audience mindset">Searching, distracted</div>
+          <div class="vs-cell" data-label="Dwell time">2 sec</div>
+          <div class="vs-cell" data-label="Trackable">Yes</div>
         </div>
         <div class="vs-row">
-          <div class="vs-cell">Facebook / Instagram ad</div>
-          <div class="vs-cell">$1–5 / click</div>
-          <div class="vs-cell">Scrolling, ignoring</div>
-          <div class="vs-cell">1 sec</div>
-          <div class="vs-cell">Yes</div>
+          <div class="vs-cell" data-label="Channel">Facebook / Instagram ad</div>
+          <div class="vs-cell" data-label="Cost">$1–5 / click</div>
+          <div class="vs-cell" data-label="Audience mindset">Scrolling, ignoring</div>
+          <div class="vs-cell" data-label="Dwell time">1 sec</div>
+          <div class="vs-cell" data-label="Trackable">Yes</div>
         </div>
         <div class="vs-row">
-          <div class="vs-cell">Billboard</div>
-          <div class="vs-cell">$500–2k / mo</div>
-          <div class="vs-cell">Driving, distracted</div>
-          <div class="vs-cell">3 sec</div>
-          <div class="vs-cell">No</div>
+          <div class="vs-cell" data-label="Channel">Billboard</div>
+          <div class="vs-cell" data-label="Cost">$500–2k / mo</div>
+          <div class="vs-cell" data-label="Audience mindset">Driving, distracted</div>
+          <div class="vs-cell" data-label="Dwell time">3 sec</div>
+          <div class="vs-cell" data-label="Trackable">No</div>
         </div>
         <div class="vs-row">
-          <div class="vs-cell">Direct mail</div>
-          <div class="vs-cell">$0.50–2 / piece</div>
-          <div class="vs-cell">Skeptical, bulk mail</div>
-          <div class="vs-cell">None</div>
-          <div class="vs-cell">Barely</div>
+          <div class="vs-cell" data-label="Channel">Direct mail</div>
+          <div class="vs-cell" data-label="Cost">$0.50–2 / piece</div>
+          <div class="vs-cell" data-label="Audience mindset">Skeptical, bulk mail</div>
+          <div class="vs-cell" data-label="Dwell time">None</div>
+          <div class="vs-cell" data-label="Trackable">Barely</div>
         </div>
         <div class="vs-row hl">
-          <div class="vs-cell">✦ Presso sponsor</div>
-          <div class="vs-cell">~$3–5 / impression</div>
-          <div class="vs-cell">Relaxed, receptive, local</div>
-          <div class="vs-cell">20–40 min</div>
-          <div class="vs-cell">Yes — adhello.ai</div>
+          <div class="vs-cell" data-label="Channel">✦ Presso sponsor</div>
+          <div class="vs-cell" data-label="Cost">~$3–5 / impression</div>
+          <div class="vs-cell" data-label="Audience mindset">Relaxed, receptive, local</div>
+          <div class="vs-cell" data-label="Dwell time">20–40 min</div>
+          <div class="vs-cell" data-label="Trackable">Yes — adhello.ai</div>
         </div>
       </div>
     </div>
@@ -2055,6 +2157,23 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       }).catch(err => console.log("Analytics sync failed:", err));
+    })();
+  </script>
+
+  <script>
+    (function() {
+      var hamburger = document.getElementById('navHamburger');
+      var mobileMenu = document.getElementById('navMobileMenu');
+      if (hamburger && mobileMenu) {
+        hamburger.addEventListener('click', function() {
+          mobileMenu.classList.toggle('open');
+        });
+        mobileMenu.querySelectorAll('a').forEach(function(a) {
+          a.addEventListener('click', function() {
+            mobileMenu.classList.remove('open');
+          });
+        });
+      }
     })();
   </script>
 
