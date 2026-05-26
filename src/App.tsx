@@ -46,6 +46,7 @@ import { SalesChatbot } from './components/SalesChatbot';
 import { Link, useNavigate } from 'react-router-dom';
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { AssessmentCTA } from './components/AssessmentCTA';
+import { DiscoveryCall } from './components/DiscoveryCall';
 import { Logo } from './components/Logo';
 import { SatisfactionGuarantee } from './components/SatisfactionGuarantee';
 import SEO from './components/SEO';
@@ -58,7 +59,7 @@ const getPublicAsset = (path: string) => {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   const cleanBase = base.endsWith('/') ? base : `${base}/`;
   // Add a cache buster version string because the browser aggressively caches 404s for old missing paths
-  return `${cleanBase}${cleanPath}?v=2.8`;
+  return `${cleanBase}${cleanPath}?v=2.9`;
 };
 
 const HERO_VARIANTS = [
@@ -520,6 +521,8 @@ export default function App() {
           <ChevronDown className="w-10 h-10" />
         </div>
       </section >
+
+      <DiscoveryCall />
 
       <section className="py-12 bg-white relative overflow-hidden border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 w-full">

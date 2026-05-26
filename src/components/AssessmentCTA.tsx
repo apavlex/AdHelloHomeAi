@@ -34,7 +34,7 @@ export function AssessmentCTA() {
             </div>
           </div>
           <div className="flex-shrink-0">
-            
+            <a
               href="https://x.com/messages/compose?recipient_id=adhello"
               target="_blank"
               rel="noopener noreferrer"
