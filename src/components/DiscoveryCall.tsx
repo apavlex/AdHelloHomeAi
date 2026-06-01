@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, Clock, Wrench, Headphones, Sparkles, CheckCircle2 } from 'lucide-react';
+import { BOOK_CTA, BOOK_URL } from '../constants/bookCta';
 
 export function DiscoveryCall() {
   return (
@@ -33,9 +34,9 @@ export function DiscoveryCall() {
             <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Headphones className="w-7 h-7" />
             </div>
-            <h3 className="text-xl font-black text-brand-dark mb-3">1. Free Assessment</h3>
+            <h3 className="text-xl font-black text-brand-dark mb-3">{BOOK_CTA.title}</h3>
             <p className="text-brand-dark/70 leading-relaxed mb-4">
-              A 30-minute call. We learn your marketing stack, channels, and goals. You see exactly where AI agents fit — and what's possible in 5 days.
+              {BOOK_CTA.description}
             </p>
             <div className="flex items-center gap-2 text-sm font-bold text-brand-dark/50">
               <Clock className="w-4 h-4" /> 30 minutes, no commitment
@@ -79,8 +80,11 @@ export function DiscoveryCall() {
           <div className="grid md:grid-cols-5 gap-8 items-center">
             <div className="md:col-span-3">
               <h3 className="text-2xl md:text-3xl font-black text-brand-dark mb-3">
-                First marketing agents deployed in 5 business days.
+                {BOOK_CTA.title}
               </h3>
+              <p className="text-brand-dark/70 text-lg mb-4 max-w-2xl">
+                {BOOK_CTA.description}
+              </p>
               <div className="flex flex-wrap gap-4 text-sm font-bold text-brand-dark/60">
                 <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Data pipelines & warehouse included</span>
                 <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Hands-on setup for sources, agents, dashboards</span>
@@ -89,12 +93,12 @@ export function DiscoveryCall() {
             </div>
             <div className="md:col-span-2 flex justify-end">
               <a
-                href="https://calendar.app.google/QQsVbiAt4QdCX8mx8"
+                href={BOOK_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 bg-primary hover:bg-primary-hover text-brand-dark font-black text-lg px-8 py-4 rounded-full transition-all shadow-[6px_6px_0px_rgba(45,52,54,0.1)] hover:shadow-none hover:translate-y-[4px] group"
               >
-                Book a Discovery Call
+                {BOOK_CTA.buttonLabel}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </a>
             </div>

@@ -47,6 +47,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { AssessmentCTA } from './components/AssessmentCTA';
 import { DiscoveryCall } from './components/DiscoveryCall';
+import { BOOK_CTA, BOOK_URL } from './constants/bookCta';
 import { Logo } from './components/Logo';
 import { SatisfactionGuarantee } from './components/SatisfactionGuarantee';
 import SEO from './components/SEO';
@@ -1345,7 +1346,7 @@ export default function App() {
         </div>
       </section>
 
-
+      <AssessmentCTA />
 
       <footer className="bg-warm-cream text-brand-dark/60 py-12 border-t border-brand-dark/5">
         <div className="max-w-7xl mx-auto px-4">
@@ -1427,8 +1428,8 @@ export default function App() {
                   </a>
                 </li>
                 <li>
-                  <a className="hover:text-primary-dark transition-colors" href="https://calendar.app.google/QQsVbiAt4QdCX8mx8" target="_blank" rel="noopener noreferrer">
-                    Book Demo Today
+                  <a className="hover:text-primary-dark transition-colors" href={BOOK_URL} target="_blank" rel="noopener noreferrer">
+                    {BOOK_CTA.title}
                   </a>
                 </li>
                 <li>

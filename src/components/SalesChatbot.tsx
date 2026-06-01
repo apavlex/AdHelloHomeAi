@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, X, Send, Phone, Loader2, Sparkles, Calendar } from 'lucide-react';
+import { BOOK_CTA, BOOK_URL } from '../constants/bookCta';
 
 interface Message {
   role: 'user' | 'model';
@@ -167,11 +168,16 @@ export function SalesChatbot() {
               <div className="flex flex-col gap-3">
                 {!leadCaptured && (
                   <button 
-                    onClick={() => window.open('https://calendar.app.google/QQsVbiAt4QdCX8mx8', '_blank')}
-                    className="w-full py-2 bg-brand-dark text-white text-xs font-black uppercase tracking-widest rounded-full hover:bg-brand-dark/90 transition-all flex items-center justify-center gap-2"
+                    onClick={() => window.open(BOOK_URL, '_blank')}
+                    className="w-full py-2 bg-brand-dark text-white text-xs font-black uppercase tracking-widest rounded-full hover:bg-brand-dark/90 transition-all flex flex-col items-center justify-center gap-0.5"
                   >
-                    <Calendar className="w-3 h-3 text-primary" />
-                    Book Free Audit Call
+                    <span className="flex items-center justify-center gap-2">
+                      <Calendar className="w-3 h-3 text-primary" />
+                      {BOOK_CTA.buttonLabel}
+                    </span>
+                    <span className="text-[9px] font-semibold normal-case tracking-normal text-white/70 leading-tight px-2">
+                      {BOOK_CTA.description}
+                    </span>
                   </button>
                 )}
                 

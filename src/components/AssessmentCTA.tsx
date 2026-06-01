@@ -1,6 +1,7 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Calendar } from 'lucide-react';
 import { getPublicAsset } from '../App';
+import { BOOK_CTA, BOOK_URL } from '../constants/bookCta';
 
 export function AssessmentCTA() {
   return (
@@ -26,25 +27,23 @@ export function AssessmentCTA() {
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-base md:text-lg font-black leading-tight tracking-tight text-white">
-                Get a <span className="text-primary">free website review</span> from AdHello
+                {BOOK_CTA.title}
               </h2>
               <p className="text-xs md:text-sm font-medium text-white/50">
-                Strategy Team at AdHello.ai — Message us on X and we'll personally review your site.
+                {BOOK_CTA.description}
               </p>
             </div>
           </div>
           <div className="flex-shrink-0">
             <a
-              href="https://x.com/messages/compose?recipient_id=adhello"
+              href={BOOK_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="group relative bg-primary hover:bg-white text-brand-dark px-4 py-2 md:px-5 md:py-2.5 rounded-lg font-black text-[10px] md:text-xs transition-all duration-300 shadow-lg hover:shadow-primary/20 flex items-center justify-center gap-2 overflow-hidden"
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-              <svg className="w-3.5 h-3.5 relative" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.258 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/>
-              </svg>
-              <span className="relative">GET YOUR REVIEW</span>
+              <Calendar className="w-3.5 h-3.5 relative" />
+              <span className="relative uppercase">{BOOK_CTA.buttonLabel}</span>
               <div className="w-4 h-4 rounded-full bg-brand-dark text-white flex items-center justify-center group-hover:bg-brand-dark transition-colors relative">
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
               </div>
