@@ -120,6 +120,11 @@ const KIE_API_KEY = process.env.KIE_API_KEY;
 const KIE_CHAT_MODEL = process.env.KIE_CHAT_MODEL || 'gpt-4o';
 const KIE_UPLOAD_BASE = process.env.KIE_UPLOAD_BASE || 'https://kieai.redpandaai.co';
 
+// OpenRouter (free AI) — primary provider
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free';
+const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -188,6 +193,71 @@ async function callKie(prompt, systemPrompt = '', history = [], options = {}) {
     return text || null;
   } catch (err) {
     console.error('[KIE] Fetch Exception:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Helper to call OpenRouter (free AI) via OpenAI-compatible API.
+ */
+async function callOpenRouter(prompt, systemPrompt = '', history = [], options = {}) {
+  if (!OPENROUTER_API_KEY) return null;
+
+  const jsonMode = options.jsonMode === true || options.forceJson === true;
+  const imageBase64 = options.imageBase64;
+  const mimeType = options.mimeType || 'image/jpeg';
+
+  const messages = [];
+  if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+
+  (history || []).forEach((m) => {
+    let role = m.role || 'user';
+    if (role === 'model') role = 'assistant';
+    messages.push({ role, content: m.content || m.text || '' });
+  });
+
+  if (imageBase64) {
+    const raw = imageBase64.includes('base64,') ? imageBase64.split('base64,')[1] : imageBase64;
+    const dataUrl = `data:${mimeType};base64,${raw}`;
+    messages.push({
+      role: 'user',
+      content: [
+        { type: 'text', text: prompt },
+        { type: 'image_url', image_url: { url: dataUrl } },
+      ],
+    });
+  } else {
+    messages.push({ role: 'user', content: prompt });
+  }
+
+  try {
+    const body = {
+      model: OPENROUTER_MODEL,
+      messages,
+      temperature: 0.7,
+      ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
+    };
+
+    const res = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': 'https://adhello.ai',
+        'X-Title': 'AdHello.ai',
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      console.warn('[OPENROUTER] Chat error:', data.error?.message || data.msg || data.error || res.status);
+      return null;
+    }
+    const text = data.choices?.[0]?.message?.content;
+    return text || null;
+  } catch (err) {
+    console.error('[OPENROUTER] Fetch Exception:', err.message);
     return null;
   }
 }
@@ -487,6 +557,18 @@ async function callAI(prompt, systemPrompt = '', history = [], forceJson = false
   const img = visionOpts?.imageBase64 || visionOpts?.imageData;
   const mime = visionOpts?.mimeType || 'image/jpeg';
 
+  // Primary: OpenRouter (free AI)
+  if (OPENROUTER_API_KEY) {
+    const orResult = await callOpenRouter(prompt, systemPrompt, history, {
+      jsonMode: forceJson,
+      imageBase64: img,
+      mimeType: mime,
+    });
+    if (orResult) return orResult;
+    console.log('[AI] OpenRouter failed or unavailable; trying fallbacks.');
+  }
+
+  // Fallback 1: Kie.ai
   if (img) {
     const kieVision = await callKie(prompt, systemPrompt, history, {
       jsonMode: forceJson,
@@ -494,24 +576,25 @@ async function callAI(prompt, systemPrompt = '', history = [], forceJson = false
       mimeType: mime,
     });
     if (kieVision) return kieVision;
-    console.log('[AI] Kie vision failed or unavailable; falling back to Gemini.');
+    console.log('[AI] Kie vision failed; falling back to Gemini.');
     return await callGemini(prompt, GEMINI_CHAT_MODEL, img, forceJson, mime);
   }
 
   const kieResult = await callKie(prompt, systemPrompt, history, { jsonMode: forceJson });
   if (kieResult) return kieResult;
 
+  // Fallback 2: Gemini
   console.log(`[AI] Falling back to Gemini (JSON: ${forceJson})...`);
-  const historyText = (history || []).map(m => 
+  const historyText = (history || []).map(m =>
     `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content || m.text || ''}`
-  ).join('\n\n');
+  ).join('\\n\\n');
 
   const fullPrompt = [
     systemPrompt,
-    historyText ? 'Conversation History:\n' + historyText : '',
+    historyText ? 'Conversation History:\\n' + historyText : '',
     'User: ' + prompt,
     'Assistant:'
-  ].filter(Boolean).join('\n\n');
+  ].filter(Boolean).join('\\n\\n');
 
   return await callGemini(fullPrompt, GEMINI_CHAT_MODEL, null, forceJson);
 }
@@ -519,9 +602,11 @@ async function callAI(prompt, systemPrompt = '', history = [], forceJson = false
 /** Which AI backends are configured (no secrets exposed). */
 app.get('/api/ai-health', (req, res) => {
   res.json({
+    openrouter: !!OPENROUTER_API_KEY,
     kie: !!KIE_API_KEY,
     gemini: !!GEMINI_API_KEY,
     googlePageSpeed: !!process.env.GOOGLE_PSI_API_KEY,
+    openrouterModel: OPENROUTER_MODEL,
     kieChatModel: process.env.KIE_CHAT_MODEL || 'gpt-4o',
     geminiChatModel: GEMINI_CHAT_MODEL,
     geminiImageModelDefault: GEMINI_IMAGE_MODEL,
