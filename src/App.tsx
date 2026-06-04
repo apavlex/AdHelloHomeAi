@@ -69,13 +69,6 @@ const HERO_VARIANTS = [
     image: getPublicAsset("electrician.jpg")
   },
   {
-    trade: "Flooring",
-    tagline: "Built for Flooring Specialists",
-    headline: "Showcase your craftsmanship, capture more leads.",
-    subheadline: "Your work speaks for itself—your website should too. AdHello builds a stunning, lead-focused site that turns gallery visits into installation jobs.",
-    image: getPublicAsset("flooring-workers.jpg")
-  },
-  {
     trade: "Painters",
     tagline: "Built for Professional Painters",
     headline: "Turn more estimates into booked jobs.",
@@ -120,12 +113,6 @@ const PORTFOLIO_EXAMPLES = [
       "Conversion Copywriting",
       "Premium UI Design"
     ]
-  },
-  {
-    id: 'flooring',
-    name: 'Flooring',
-    beforeImage: getPublicAsset('templates/flooring-before.png'),
-    afterImage: getPublicAsset('templates/flooring-after.png')
   }
 ];
 
@@ -246,7 +233,7 @@ export default function App() {
       "name": "AdHello.ai",
       "url": `${SITE_ORIGIN}/`,
       "telephone": "+1-360-773-1505",
-      "description": "AI-powered websites and marketing for local home service businesses — electricians, flooring specialists, painters, and movers.",
+      "description": "AI-powered websites and marketing for local home service businesses — electricians, painters, and movers.",
       "areaServed": { "@type": "GeoCircle", "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 45.5231, "longitude": -122.6765 }, "geoRadius": "80000" },
       "serviceType": ["Website Design", "Local SEO", "AI Search Optimization", "Agent-Readiness", "Lead Generation"]
     },
@@ -254,9 +241,9 @@ export default function App() {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
-        { "@type": "Question", "name": "What is AdHello.ai?", "acceptedAnswer": { "@type": "Answer", "text": "AdHello.ai builds AI-powered websites and handles local SEO and GEO for home service businesses — electricians, flooring specialists, painters, and movers." } },
+        { "@type": "Question", "name": "What is AdHello.ai?", "acceptedAnswer": { "@type": "Answer", "text": "AdHello.ai builds AI-powered websites and handles local SEO and GEO for home service businesses — electricians, painters, and movers." } },
         { "@type": "Question", "name": "How does AdHello.ai get more leads for contractors?", "acceptedAnswer": { "@type": "Answer", "text": "AdHello.ai builds a professional website optimized for Google and AI search engines like ChatGPT and Perplexity, so local customers find your business first." } },
-        { "@type": "Question", "name": "Does AdHello.ai work for painters and electricians?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. AdHello.ai specializes in home service businesses including electricians, flooring specialists, painters, and movers." } },
+        { "@type": "Question", "name": "Does AdHello.ai work for painters and electricians?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. AdHello.ai specializes in home service businesses including electricians, painters, and movers." } },
         { "@type": "Question", "name": "What is GEO and why does it matter for contractors?", "acceptedAnswer": { "@type": "Answer", "text": "GEO (Generative Engine Optimization) makes your business appear as a trusted answer in AI-powered search results on ChatGPT, Perplexity, and Google AI Overviews — not just traditional search." } }
       ]
     }
@@ -445,7 +432,7 @@ export default function App() {
                     See How It Works
                   </button>
                 </div>
-                <p className="text-sm font-bold text-brand-dark/40 ml-4 mt-2">No long-term contracts. Setup in 7 days. Built for Electricians, Flooring, Painters &amp; Movers.</p>
+                <p className="text-sm font-bold text-brand-dark/40 ml-4 mt-2">No long-term contracts. Setup in 7 days. Built for Electricians, Painters &amp; Movers.</p>
               </div>
             </div>
             <div className="hidden lg:flex relative order-1 lg:order-2 flex-col items-center justify-center h-[500px] lg:h-[650px]">
@@ -1066,12 +1053,10 @@ export default function App() {
             >
               {[
                 { title: "Electricians", icon: <Zap className="w-8 h-8 text-primary" /> },
-                { title: "Flooring", icon: <Layout className="w-8 h-8 text-primary" /> },
                 { title: "Painters", icon: <Paintbrush className="w-8 h-8 text-primary" /> },
                 { title: "Movers", icon: <Truck className="w-8 h-8 text-primary" /> }
               ].concat([
                 { title: "Electricians", icon: <Zap className="w-8 h-8 text-primary" /> },
-                { title: "Flooring", icon: <Layout className="w-8 h-8 text-primary" /> },
                 { title: "Painters", icon: <Paintbrush className="w-8 h-8 text-primary" /> },
                 { title: "Movers", icon: <Truck className="w-8 h-8 text-primary" /> }
               ]).map((niche, i) => (
@@ -1124,7 +1109,7 @@ export default function App() {
                 </div>
                 <div>
                   <h4 className="font-black text-brand-dark">Jessica R.</h4>
-                  <p className="text-sm text-brand-dark/60 font-bold">Flooring Contractor, Vancouver WA</p>
+                  <p className="text-sm text-brand-dark/60 font-bold">Moving Company Owner, Portland OR</p>
                 </div>
               </div>
             </div>
