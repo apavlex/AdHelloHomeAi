@@ -62,17 +62,10 @@ export const getPublicAsset = (path: string) => {
 
 const HERO_VARIANTS = [
   {
-    trade: "HVAC",
-    tagline: "Built for HVAC Services",
-    headline: "Get more HVAC leads with a website built for comfort.",
-    subheadline: "Your smart website works for you 24/7. It automatically optimizes your content, improves your rank, and finds new leads while you're fixing an AC.",
-    image: getPublicAsset("HVAC.jpeg")
-  },
-  {
     trade: "Electrical",
     tagline: "Built for Electrical Services",
     headline: "Power up your business with more electrical leads.",
-    subheadline: "While you’re wiring a panel, AdHello is working on autopilot—optimizing your site, boosting your search rank, and finding new lead opportunities automatically.",
+    subheadline: "While you're wiring a panel, AdHello is working on autopilot—optimizing your site, boosting your search rank, and finding new lead opportunities automatically.",
     image: getPublicAsset("electrician.jpg")
   },
   {
@@ -83,25 +76,18 @@ const HERO_VARIANTS = [
     image: getPublicAsset("flooring-workers.jpg")
   },
   {
-    trade: "HVAC",
-    tagline: "Built for HVAC Professionals",
-    headline: "Capture emergency calls 24/7 on autopilot.",
-    subheadline: "When a furnace breaks at midnight, your AI receptionist is there to book the job. No more missed calls, no more lost revenue. Just a booked schedule.",
-    image: getPublicAsset("HVAC.jpeg")
+    trade: "Painters",
+    tagline: "Built for Professional Painters",
+    headline: "Turn more estimates into booked jobs.",
+    subheadline: "Your website showcases your best work and captures leads while you're on the job site. AdHello handles the digital heavy lifting so you can focus on painting.",
+    image: getPublicAsset("painters.jpg")
   },
   {
-    trade: "Plumbing",
-    tagline: "Built for Plumbing Services",
-    headline: "Fill your plumbing schedule with high-quality leads.",
-    subheadline: "Put your marketing on autopilot. AdHello handles the technical stuff, constantly improving your rank and suggesting growth strategies so you can focus on the pipes.",
-    image: getPublicAsset("plumbers.jpeg")
-  },
-  {
-    trade: "Roofing",
-    tagline: "Built for Roofing Contractors",
-    headline: "Turn storm chasers into long-term growth.",
-    subheadline: "Don't just wait for the next storm. Build a dominant local brand that generates roofing leads year-round with AdHello's AI-driven growth engine.",
-    image: getPublicAsset("roofing.jpeg")
+    trade: "Movers",
+    tagline: "Built for Moving Companies",
+    headline: "Move more customers with a website that works.",
+    subheadline: "From local moves to long-distance relocations, your website captures bookings 24/7 while your crew does what they do best.",
+    image: getPublicAsset("movers.jpg")
   }
 ];
 
@@ -136,22 +122,10 @@ const PORTFOLIO_EXAMPLES = [
     ]
   },
   {
-    id: 'hvac',
-    name: 'HVAC',
-    beforeImage: null,
-    afterImage: getPublicAsset('templates/template-joes-home.png')
-  },
-  {
-    id: 'plumbing',
-    name: 'Plumbing',
-    beforeImage: getPublicAsset('templates/plumbing-before.png'),
-    afterImage: getPublicAsset('templates/plumbing-after.png')
-  },
-  {
-    id: 'roofing',
-    name: 'Roofing',
-    beforeImage: null,
-    afterImage: getPublicAsset('templates/template-roofing-light.png')
+    id: 'flooring',
+    name: 'Flooring',
+    beforeImage: getPublicAsset('templates/flooring-before.png'),
+    afterImage: getPublicAsset('templates/flooring-after.png')
   }
 ];
 
@@ -272,7 +246,7 @@ export default function App() {
       "name": "AdHello.ai",
       "url": `${SITE_ORIGIN}/`,
       "telephone": "+1-360-773-1505",
-      "description": "AI-powered websites and marketing for local home service businesses — painters, electricians, plumbers, roofers, flooring and movers.",
+      "description": "AI-powered websites and marketing for local home service businesses — electricians, flooring specialists, painters, and movers.",
       "areaServed": { "@type": "GeoCircle", "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 45.5231, "longitude": -122.6765 }, "geoRadius": "80000" },
       "serviceType": ["Website Design", "Local SEO", "AI Search Optimization", "Agent-Readiness", "Lead Generation"]
     },
@@ -280,9 +254,9 @@ export default function App() {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
-        { "@type": "Question", "name": "What is AdHello.ai?", "acceptedAnswer": { "@type": "Answer", "text": "AdHello.ai builds AI-powered websites and handles local SEO and GEO for home service businesses — painters, electricians, plumbers, roofers, flooring companies, and movers." } },
+        { "@type": "Question", "name": "What is AdHello.ai?", "acceptedAnswer": { "@type": "Answer", "text": "AdHello.ai builds AI-powered websites and handles local SEO and GEO for home service businesses — electricians, flooring specialists, painters, and movers." } },
         { "@type": "Question", "name": "How does AdHello.ai get more leads for contractors?", "acceptedAnswer": { "@type": "Answer", "text": "AdHello.ai builds a professional website optimized for Google and AI search engines like ChatGPT and Perplexity, so local customers find your business first." } },
-        { "@type": "Question", "name": "Does AdHello.ai work for painters and electricians?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. AdHello.ai specializes in home service businesses including painters, electricians, plumbers, HVAC, roofers, flooring contractors, and movers." } },
+        { "@type": "Question", "name": "Does AdHello.ai work for painters and electricians?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. AdHello.ai specializes in home service businesses including electricians, flooring specialists, painters, and movers." } },
         { "@type": "Question", "name": "What is GEO and why does it matter for contractors?", "acceptedAnswer": { "@type": "Answer", "text": "GEO (Generative Engine Optimization) makes your business appear as a trusted answer in AI-powered search results on ChatGPT, Perplexity, and Google AI Overviews — not just traditional search." } }
       ]
     }
@@ -471,7 +445,7 @@ export default function App() {
                     See How It Works
                   </button>
                 </div>
-                <p className="text-sm font-bold text-brand-dark/40 ml-4 mt-2">No long-term contracts. Setup in 7 days. Built for Electrical, Flooring, HVAC, Plumbing, Roofing &amp; More.</p>
+                <p className="text-sm font-bold text-brand-dark/40 ml-4 mt-2">No long-term contracts. Setup in 7 days. Built for Electricians, Flooring, Painters &amp; Movers.</p>
               </div>
             </div>
             <div className="hidden lg:flex relative order-1 lg:order-2 flex-col items-center justify-center h-[500px] lg:h-[650px]">
@@ -1150,7 +1124,7 @@ export default function App() {
                 </div>
                 <div>
                   <h4 className="font-black text-brand-dark">Jessica R.</h4>
-                  <p className="text-sm text-brand-dark/60 font-bold">HVAC Owner, Portland OR</p>
+                  <p className="text-sm text-brand-dark/60 font-bold">Flooring Contractor, Vancouver WA</p>
                 </div>
               </div>
             </div>
