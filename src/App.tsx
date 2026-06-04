@@ -961,7 +961,7 @@ export default function App() {
                   <span className="inline-flex w-7 h-7 rounded-full bg-brand-dark text-primary items-center justify-center">
                     <ArrowRight className="w-4 h-4" />
                   </span>
-                  BOOK VIP SESSION — $1,997
+                  BOOK VIP SESSION
                 </Link>
               </div>
             </div>
