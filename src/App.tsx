@@ -66,21 +66,21 @@ const HERO_VARIANTS = [
     tagline: "Built for Electrical Services",
     headline: "Power up your business with more electrical leads.",
     subheadline: "While you're wiring a panel, AdHello is working on autopilot—optimizing your site, boosting your search rank, and finding new lead opportunities automatically.",
-    image: getPublicAsset("electrician.jpg")
+    image: getPublicAsset("hero_electrician.jpg")
   },
   {
     trade: "Painters",
     tagline: "Built for Professional Painters",
     headline: "Turn more estimates into booked jobs.",
     subheadline: "Your website showcases your best work and captures leads while you're on the job site. AdHello handles the digital heavy lifting so you can focus on painting.",
-    image: getPublicAsset("ai-receptionist.jpg")
+    image: getPublicAsset("HVAC.jpeg")
   },
   {
     trade: "Movers",
     tagline: "Built for Moving Companies",
     headline: "Move more customers with a website that works.",
     subheadline: "From local moves to long-distance relocations, your website captures bookings 24/7 while your crew does what they do best.",
-    image: getPublicAsset("website-framework.jpg")
+    image: getPublicAsset("hero_movers.jpg")
   }
 ];
 
