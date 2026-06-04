@@ -73,7 +73,7 @@ const HERO_VARIANTS = [
     tagline: "Built for Professional Painters",
     headline: "Turn more estimates into booked jobs.",
     subheadline: "Your website showcases your best work and captures leads while you're on the job site. AdHello handles the digital heavy lifting so you can focus on painting.",
-    image: getPublicAsset("HVAC.jpeg")
+    image: getPublicAsset("hero_painters.jpg")
   },
   {
     trade: "Movers",
