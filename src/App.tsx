@@ -52,7 +52,7 @@ import { EventBanner } from './components/EventBanner';
 import { SITE_ORIGIN } from './lib/site';
 
 // Helper to resolve public assets correctly in all environments (root or sub-paths)
-const getPublicAsset = (path: string) => {
+export const getPublicAsset = (path: string) => {
   const base = import.meta.env.BASE_URL || '/';
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   const cleanBase = base.endsWith('/') ? base : `${base}/`;
