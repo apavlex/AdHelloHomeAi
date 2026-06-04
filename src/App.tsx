@@ -650,18 +650,12 @@ export default function App() {
                 <Layout className="w-8 h-8" />
               </div>
               <h3 className="text-2xl font-black text-brand-dark mb-4">Your Smart Website</h3>
-              <p className="text-brand-dark/70 text-lg leading-relaxed">
+              <p className="text-brand-dark/70 text-lg leading-relaxed mb-4">
                 A professionally built, mobile-first website designed specifically for home service businesses. Not a template you drag and drop yourself — a real, lead-focused site we build for you, live in 7 days. Optimized for Google, Google Maps, and AI search so customers find you first.
               </p>
-              <div className="mt-6 pt-6 border-t border-gray-100">
-                <h4 className="text-lg font-black text-brand-dark mb-2 flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5 text-yellow-500" />
-                  AI Webchat (Your 24/7 Receptionist)
-                </h4>
-                <p className="text-brand-dark/70 text-lg leading-relaxed">
-                  Never miss a lead again. AdHello's webchat answers customer questions, captures contact info, and qualifies leads — even at 2am when you are asleep. It's like having a receptionist who never takes a day off and never has a bad morning.
-                </p>
-              </div>
+              <p className="text-brand-dark/70 text-lg leading-relaxed font-bold italic">
+                Plus AI Webchat — your 24/7 receptionist that answers questions, captures leads, and qualifies customers even at 2am.
+              </p>
             </div>
             <div className="bg-white p-10 rounded-[3rem] border border-gray-100 hover:border-primary transition-all duration-500 group flex flex-col h-full shadow-sm">
               <div className="text-yellow-500 mb-6 bg-yellow-50 w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
