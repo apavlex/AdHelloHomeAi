@@ -73,14 +73,14 @@ const HERO_VARIANTS = [
     tagline: "Built for Professional Painters",
     headline: "Turn more estimates into booked jobs.",
     subheadline: "Your website showcases your best work and captures leads while you're on the job site. AdHello handles the digital heavy lifting so you can focus on painting.",
-    image: getPublicAsset("painters.jpg")
+    image: getPublicAsset("ai-receptionist.jpg")
   },
   {
     trade: "Movers",
     tagline: "Built for Moving Companies",
     headline: "Move more customers with a website that works.",
     subheadline: "From local moves to long-distance relocations, your website captures bookings 24/7 while your crew does what they do best.",
-    image: getPublicAsset("movers.jpg")
+    image: getPublicAsset("website-framework.jpg")
   }
 ];
 
@@ -453,7 +453,7 @@ export default function App() {
                         src={HERO_VARIANTS[heroIndex].image}
                         referrerPolicy="no-referrer"
                         loading="eager"
-                        onError={(e) => { e.currentTarget.src = '/ai-receptionist.jpg'; }}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent flex flex-col justify-end p-10 pb-14">
                         <div className="inline-block bg-primary text-brand-dark text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full mb-3 w-fit">
