@@ -1072,55 +1072,6 @@ export default function App() {
           </div>
         </div>
       )}
-      <section className="py-24 bg-white" id="niches">
-        <div className="max-w-7xl mx-auto px-4 w-full">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-brand-dark mb-6 tracking-tight">
-              Built for the Trades. Built for You.
-            </h2>
-          </div>
-          <div className="relative overflow-hidden py-10">
-            {/* Gradient masks for smooth edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-24 md:w-48 bg-gradient-to-r from-white to-transparent z-10"></div>
-            <div className="absolute right-0 top-0 bottom-0 w-24 md:w-48 bg-gradient-to-l from-white to-transparent z-10"></div>
-
-            <motion.div 
-              className="flex gap-6 w-max"
-              animate={{ x: ["0%", "-50%"] }}
-              transition={{ 
-                duration: 40, 
-                repeat: Infinity, 
-                ease: "linear" 
-              }}
-            >
-              {[
-                { title: "Plumbers", icon: <Droplets className="w-8 h-8 text-primary" /> },
-                { title: "HVAC", icon: <ThermometerSnowflake className="w-8 h-8 text-primary" /> },
-                { title: "Electricians", icon: <Zap className="w-8 h-8 text-primary" /> },
-                { title: "Roofers", icon: <Home className="w-8 h-8 text-primary" /> },
-                { title: "Flooring", icon: <Layout className="w-8 h-8 text-primary" /> },
-                { title: "Painters", icon: <Paintbrush className="w-8 h-8 text-primary" /> },
-                { title: "Movers", icon: <Truck className="w-8 h-8 text-primary" /> }
-              ].concat([
-                { title: "Plumbers", icon: <Droplets className="w-8 h-8 text-primary" /> },
-                { title: "HVAC", icon: <ThermometerSnowflake className="w-8 h-8 text-primary" /> },
-                { title: "Electricians", icon: <Zap className="w-8 h-8 text-primary" /> },
-                { title: "Roofers", icon: <Home className="w-8 h-8 text-primary" /> },
-                { title: "Flooring", icon: <Layout className="w-8 h-8 text-primary" /> },
-                { title: "Painters", icon: <Paintbrush className="w-8 h-8 text-primary" /> },
-                { title: "Movers", icon: <Truck className="w-8 h-8 text-primary" /> }
-              ]).map((niche, i) => (
-                <div key={i} className="bg-warm-cream p-8 rounded-3xl text-center border border-gray-100 hover:border-primary transition-all duration-300 group flex flex-col items-center gap-4 min-w-[220px]">
-                  <div className="p-4 bg-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform duration-300">
-                    {niche.icon}
-                  </div>
-                  <h3 className="text-xl font-black text-brand-dark">{niche.title}</h3>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-        </div>
-      </section>
       <section className="py-24 bg-yellow-50" id="testimonials">
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="text-center mb-16">
