@@ -412,10 +412,10 @@ export default function App() {
                   The AI Growth Engine for <span className="text-brand-dark font-black">{HERO_VARIANTS[heroIndex].trade}</span>
                 </div>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-brand-dark mb-8 leading-[1.05]">
-                  Google Is Now an AI Agent. <span className="hand-underline">Is Your Business Ready?</span>
+                  Your Business is Losing Customers Every Day
                 </h1>
                 <p className="text-xl md:text-2xl text-brand-dark/70 mb-10 leading-relaxed max-w-xl">
-                  Google just turned search into an AI agent that compares, recommends, and books services for your customers. If your business isn't agent-ready, you're invisible. AdHello makes you the one AI agents pick — with optimized Google profiles, AI-ready websites, and automated lead capture that works 24/7.
+                  Right now, you're missing 62% of your after-hours calls and ignoring 78% of your chat messages. Our AI Agents plug the leaks in your business, responding to every lead instantly and rescuing up to $200k in "no-show" revenue, completely on autopilot.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                   <button
