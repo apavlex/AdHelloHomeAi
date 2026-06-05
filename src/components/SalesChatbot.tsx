@@ -1,208 +1,30 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { MessageCircle, X, Send, Phone, Loader2, Sparkles, Calendar } from 'lucide-react';
-import { BOOK_CTA, BOOK_URL } from '../constants/bookCta';
-
-interface Message {
-  role: 'user' | 'model';
-  text: string;
-}
-
-const CHATBOT_URL = import.meta.env.VITE_CHATBOT_URL || '';
+import { useEffect } from 'react';
 
 export function SalesChatbot() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [leadCaptured, setLeadCaptured] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
-    if (isOpen) {
-      scrollToBottom();
-    }
-  }, [messages, isOpen]);
+    // Load GHL chat widget script
+    const script = document.createElement('script');
+    script.src = 'https://beta.leadconnectorhq.com/loader.js';
+    script.setAttribute('data-resources-url', 'https://beta.leadconnectorhq.com/chat-widget/loader.js');
+    script.setAttribute('data-widget-id', '6a210b859f5b0cd19a698e2a');
+    script.async = true;
+    document.body.appendChild(script);
 
-  // Initialize session when chat opens
-  useEffect(() => {
-    if (isOpen && !sessionId && CHATBOT_URL) {
-      fetch(`${CHATBOT_URL}/api/session`, { method: 'POST' })
-        .then(r => r.json())
-        .then(data => {
-          setSessionId(data.sessionId);
-          if (data.message) {
-            setMessages([{ role: 'model', text: data.message }]);
-          }
-        })
-        .catch(() => {
-          setMessages([{ role: 'model', text: "Hey there! 👋 Welcome to AdHello. I'm your AI assistant — here to help home service businesses get more calls from Google. What's your name?" }]);
-        });
-    }
-  }, [isOpen, sessionId]);
+    return () => {
+      // Cleanup: remove script and any GHL widget elements
+      document.body.removeChild(script);
+      const widget = document.querySelector('[data-chat-widget]');
+      if (widget) widget.remove();
+    };
+  }, []);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage = input.trim();
-    setInput('');
-    setMessages((prev: Message[]) => [...prev, { role: 'user', text: userMessage }]);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch(`${CHATBOT_URL}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, message: userMessage }),
-      });
-
-      if (!response.ok) throw new Error("Chat request failed");
-      const data = await response.json();
-      setMessages((prev: Message[]) => [...prev, { role: 'model', text: data.text || data.message }]);
-      if (data.leadCaptured) setLeadCaptured(true);
-    } catch (error) {
-      console.error("Chat error:", error);
-      setMessages((prev: Message[]) => [...prev, { role: 'model', text: "I'm sorry, I'm having a little trouble connecting right now. Please try again or call us at (360) 773-1505!" }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // GHL widget injects its own floating button and chat window
+  // We just need the container div for the widget
   return (
-    <>
-      {/* Floating Chat Button */}
-      <div className="fixed bottom-6 right-6 z-[9999]">
-        <motion.button
-          onClick={() => setIsOpen(!isOpen)}
-          animate={!isOpen ? { 
-            scale: [1, 1.08, 1],
-          } : { scale: 1 }}
-          transition={{ 
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          whileHover={{ scale: 1.15 }}
-          whileTap={{ scale: 0.9 }}
-          className={`p-4 rounded-full shadow-2xl flex items-center justify-center transition-colors ${
-            isOpen ? 'bg-brand-dark text-white' : 'bg-primary text-brand-dark'
-          }`}
-        >
-          {isOpen ? <X className="w-8 h-8" /> : <MessageCircle className="w-8 h-8" />}
-        </motion.button>
-      </div>
-
-      {/* Chat Window */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 w-[90vw] md:w-[400px] h-[600px] max-h-[70vh] bg-white rounded-[2rem] shadow-2xl z-[9999] flex flex-col overflow-hidden border border-gray-100"
-          >
-            {/* Header */}
-            <div className="bg-primary p-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
-                  <Sparkles className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-black text-brand-dark">AdHello Assistant</h3>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-[10px] font-bold text-brand-dark/60 uppercase tracking-wider">Online</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <a 
-                  href="tel:3607731505" 
-                  target="_top"
-                  className="p-2 bg-white hover:bg-gray-50 rounded-full transition-all shadow-sm text-green-600 group"
-                  title="Call Us Now"
-                >
-                  <Phone className="w-5 h-5 group-hover:animate-bounce" />
-                </a>
-                <button onClick={() => setIsOpen(false)} className="text-brand-dark/40 hover:text-brand-dark p-1">
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-warm-cream/30">
-              {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] p-4 rounded-2xl text-sm font-medium leading-relaxed shadow-sm ${
-                      msg.role === 'user'
-                        ? 'bg-brand-dark text-white rounded-tr-none'
-                        : 'bg-white text-brand-dark border border-gray-100 rounded-tl-none'
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-white p-4 rounded-2xl rounded-tl-none border border-gray-100 shadow-sm">
-                    <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input */}
-            <div className="p-4 bg-white border-t border-gray-100">
-              <div className="flex flex-col gap-3">
-                {!leadCaptured && (
-                  <button 
-                    onClick={() => window.open(BOOK_URL, '_blank')}
-                    className="w-full py-2 bg-brand-dark text-white text-xs font-black uppercase tracking-widest rounded-full hover:bg-brand-dark/90 transition-all flex flex-col items-center justify-center gap-0.5"
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      <Calendar className="w-3 h-3 text-primary" />
-                      {BOOK_CTA.buttonLabel}
-                    </span>
-                    <span className="text-[9px] font-semibold normal-case tracking-normal text-white/70 leading-tight px-2">
-                      {BOOK_CTA.description}
-                    </span>
-                  </button>
-                )}
-                
-                <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 border border-gray-200 focus-within:border-primary transition-colors">
-                  <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder="Ask me anything..."
-                    className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none outline-none text-sm font-medium py-2"
-                  />
-                  <button
-                    onClick={handleSend}
-                    disabled={isLoading || !input.trim()}
-                    className="p-2 bg-primary text-brand-dark rounded-full hover:bg-primary-hover transition-colors disabled:opacity-50"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+    <div
+      data-chat-widget
+      data-widget-id="6a210b859f5b0cd19a698e2a"
+      data-location-id="VUxgZqbJwIhEiUvG8ZbQ"
+    />
   );
 }
