@@ -281,7 +281,7 @@ export default function App() {
               </nav>
               <div className="flex items-center gap-8">
                 <a
-                  href="https://app.adhello.ai/login"
+                  href="https://crm.adhello.ai/"
                   className="text-sm font-extrabold text-brand-dark hover:text-primary transition-colors"
                 >
                   Sign In
@@ -323,7 +323,7 @@ export default function App() {
               </Link>
               <a
                 className="text-base font-bold text-center text-brand-dark hover:text-primary transition-colors mt-2"
-                href="https://app.adhello.ai/login"
+                href="https://crm.adhello.ai/"
               >
                 Sign In
               </a>
