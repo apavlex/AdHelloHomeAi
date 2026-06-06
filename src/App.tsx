@@ -201,10 +201,18 @@ export default function App() {
   };
 
   const openChat = () => {
-    const api = (window as any).LC_API;
-    if (api?.open_chat) {
-      api.open_chat();
+    // GHL chat widget uses shadow DOM — click the bubble button inside it
+    const chatEl = document.querySelector('chat-widget');
+    if (chatEl?.shadowRoot) {
+      const bubble = chatEl.shadowRoot.querySelector('.lc_text-widget--bubble');
+      if (bubble) {
+        (bubble as HTMLElement).click();
+        return;
+      }
     }
+    // Fallback: LC_API if available
+    ((window as any).LC_API?.open_chat)?.();
+    ((window as any).LC_API?.openChatWidget)?.();
   };
 
   const handleContactSubmit = (e: React.FormEvent<HTMLFormElement>) => {
