@@ -194,3 +194,114 @@
   .bg-yellow-500 { background-color: #eab308 !important; }
   .bg-red-500 { background-color: #ef4444 !important; }
 }
+
+/* GHL Prospecting Widget — branded form styles */
+.hl_form-builder--main,
+[class*="hl_form-builder"],
+[class*="prospecting"],
+[class*="lc-form"] {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
+}
+
+/* Input fields */
+.hl_form-builder--main input:not([type="submit"]):not([type="checkbox"]):not([type="radio"]),
+.hl_form-builder--main textarea,
+.hl_form-builder--main select,
+[class*="hl_form"] input:not([type="submit"]):not([type="checkbox"]):not([type="radio"]),
+[class*="hl_form"] textarea,
+[class*="hl_form"] select,
+[class*="prospecting"] input:not([type="submit"]):not([type="checkbox"]):not([type="radio"]),
+[class*="prospecting"] textarea,
+[class*="prospecting"] select {
+  border: 1.5px solid rgba(45, 52, 54, 0.15) !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+  font-size: 15px !important;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
+  background: #fff !important;
+  color: #2d3436 !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  outline: none !important;
+}
+
+.hl_form-builder--main input:not([type="submit"]):not([type="checkbox"]):not([type="radio"]):focus,
+.hl_form-builder--main textarea:focus,
+.hl_form-builder--main select:focus,
+[class*="hl_form"] input:focus,
+[class*="hl_form"] textarea:focus,
+[class*="hl_form"] select:focus,
+[class*="prospecting"] input:focus,
+[class*="prospecting"] textarea:focus,
+[class*="prospecting"] select:focus {
+  border-color: #f3dd6d !important;
+  box-shadow: 0 0 0 3px rgba(243, 221, 109, 0.25) !important;
+}
+
+/* Submit buttons */
+.hl_form-builder--main button[type="submit"],
+.hl_form-builder--main input[type="submit"],
+[class*="hl_form"] button[type="submit"],
+[class*="hl_form"] input[type="submit"],
+[class*="prospecting"] button[type="submit"],
+[class*="prospecting"] input[type="submit"],
+[class*="lc-form"] button[type="submit"] {
+  background: #f3dd6d !important;
+  background-color: #f3dd6d !important;
+  color: #2d3436 !important;
+  font-weight: 800 !important;
+  font-size: 16px !important;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 14px 28px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+.hl_form-builder--main button[type="submit"]:hover,
+.hl_form-builder--main input[type="submit"]:hover,
+[class*="hl_form"] button[type="submit"]:hover,
+[class*="prospecting"] button[type="submit"]:hover {
+  background: #e6ce5c !important;
+  background-color: #e6ce5c !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(243, 221, 109, 0.4) !important;
+}
+
+/* Labels */
+.hl_form-builder--main label,
+[class*="hl_form"] label,
+[class*="prospecting"] label {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  color: #2d3436 !important;
+  margin-bottom: 6px !important;
+}
+
+/* Form container / card */
+.hl_form-builder--main,
+[class*="hl_form-builder"] {
+  background: #fff !important;
+  border-radius: 24px !important;
+  padding: 32px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06) !important;
+  border: 1px solid rgba(45, 52, 54, 0.06) !important;
+}
+
+/* Headings inside the form */
+.hl_form-builder--main h1,
+.hl_form-builder--main h2,
+.hl_form-builder--main h3,
+[class*="hl_form"] h1,
+[class*="hl_form"] h2,
+[class*="hl_form"] h3,
+[class*="prospecting"] h1,
+[class*="prospecting"] h2,
+[class*="prospecting"] h3 {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
+  font-weight: 800 !important;
+  color: #2d3436 !important;
+}
