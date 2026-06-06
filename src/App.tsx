@@ -34,7 +34,7 @@ import {
   Paintbrush,
   Truck
 } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SiteAudit } from './components/SiteAudit';
 import { AdBrief } from './components/AdBrief';
@@ -200,22 +200,59 @@ export default function App() {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
+  const [chatReady, setChatReady] = useState(false);
+  const chatAttemptRef = useRef(0);
+
+  // Watch for GHL widget ready
+  useEffect(() => {
+    const check = () => {
+      // LeadConnector/GHL exposes LC_API after chat loads
+      const api = (window as any).LC_API;
+      if (api?.open_chat) {
+        setChatReady(true);
+        return;
+      }
+      // Also try to detect the injected chat bubble
+      const bubble = document.querySelector('[id*="chat-widget"] button, [class*="lc-chat"] button');
+      if (bubble) {
+        setChatReady(true);
+        return;
+      }
+      if (chatAttemptRef.current < 30) {
+        chatAttemptRef.current++;
+        setTimeout(check, 1000);
+      }
+    };
+    // Start checking after GHL loader has had time to inject
+    setTimeout(check, 2000);
+  }, []);
+
   const openChat = () => {
-    // Try to open GHL chat widget
-    const triggers = [
-      () => { document.querySelector('[class*="lc-chat"]')?.closest('button')?.click(); },
-      () => { document.querySelector('#chat-widget-button')?.click(); },
-      () => { 
-        const widget = document.querySelector('[data-chat-widget]');
-        if (widget) widget.dispatchEvent(new CustomEvent('open-chat', { bubbles: true }));
-        // Also try clicking any iframe button that GHL injects
-        const bubble = document.querySelector('.lc-chat-bubble, .chat-widget-bubble, [class*="chat-widget"] button');
-        if (bubble) (bubble as HTMLElement).click();
-      },
-    ];
-    for (const fn of triggers) {
-      try { fn(); } catch {}
+    // Primary: LeadConnector official API
+    if ((window as any).LC_API?.open_chat) {
+      (window as any).LC_API.open_chat();
+      return;
     }
+    // Fallback: click the injected chat bubble
+    const bubble = document.querySelector(
+      '[id*="chat-widget"] button, [class*="lc-chat"] button, [class*="chat-widget"] [class*="bubble"]'
+    ) as HTMLElement;
+    if (bubble) {
+      bubble.click();
+      return;
+    }
+    // Last resort: find any iframe the widget injects and postMessage
+    const iframe = document.querySelector('iframe[id*="chat"], iframe[title*="chat"], iframe[class*="lc"]') as HTMLIFrameElement;
+    if (iframe?.contentWindow) {
+      iframe.contentWindow.postMessage({ type: 'OPEN_CHAT' }, '*');
+      return;
+    }
+    // Widget not loaded yet — wait and retry once
+    console.log('Chat widget not ready, retrying in 2s...');
+    setTimeout(() => {
+      ((window as any).LC_API?.open_chat)?.();
+      (document.querySelector('[id*="chat-widget"] button, [class*="lc-chat"] button') as HTMLElement)?.click();
+    }, 2000);
   };
 
   const handleContactSubmit = (e: React.FormEvent<HTMLFormElement>) => {
