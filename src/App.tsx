@@ -870,6 +870,7 @@ export default function App() {
           </div>
         </div>
       </section>
+      {/* Site Audit & Ad Brief hidden for now
       <section className="bg-warm-cream py-16" id="studio">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-center mb-6">
@@ -920,6 +921,7 @@ export default function App() {
           </AnimatePresence>
         </div>
       </section>
+      */}
 
       <section className="bg-warm-cream py-6 text-brand-dark overflow-hidden relative">
         <div className="max-w-7xl mx-auto px-4 relative z-10">

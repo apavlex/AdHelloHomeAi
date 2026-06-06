@@ -58,14 +58,14 @@ export function DiscoveryCall() {
           </div>
 
           {/* Do it for them (Premium) */}
-          <div className="bg-brand-dark rounded-[2rem] p-8 border border-brand-dark text-white relative overflow-hidden group">
+          <div className="bg-white rounded-[2rem] p-8 border-2 border-primary text-brand-dark relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2" />
             <div className="relative z-10">
               <div className="w-14 h-14 rounded-2xl bg-primary/20 text-primary flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Wrench className="w-7 h-7" />
               </div>
-              <h3 className="text-xl font-black text-white mb-3">3. We Do It For You</h3>
-              <p className="text-white/60 leading-relaxed mb-4">
+              <h3 className="text-xl font-black text-brand-dark mb-3">3. We Do It For You</h3>
+              <p className="text-brand-dark/60 leading-relaxed mb-4">
                 Premium engagement. Our engineers deploy, configure, and manage your AI marketing agents — data pipelines, warehouse, hosting, and all. Fully managed.
               </p>
               <div className="flex items-center gap-2 text-sm font-bold text-primary">
