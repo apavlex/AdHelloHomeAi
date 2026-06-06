@@ -299,7 +299,7 @@ export default function App() {
                 </a>
                 <button
                   onClick={openChat}
-                  className="bg-primary hover:bg-primary-hover text-brand-dark text-sm font-bold px-6 py-3 rounded-full transition-all duration-300 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] hover:shadow-[0_0_15px_rgba(243,221,109,0.6)] hover:-translate-y-0.5 hover:scale-105 flex items-center gap-2"
+                  className="bg-primary hover:bg-primary-hover text-brand-dark text-sm font-bold px-6 py-3 rounded-xl transition-all duration-300 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] hover:shadow-[0_0_15px_rgba(243,221,109,0.6)] hover:-translate-y-0.5 hover:scale-105 flex items-center gap-2"
                 >
                   Start a Conversation
                 </button>
@@ -343,7 +343,7 @@ export default function App() {
                   setIsMobileMenuOpen(false);
                   openChat();
                 }}
-                className="flex bg-primary hover:bg-primary-hover text-brand-dark text-base font-bold px-6 py-3 rounded-full transition-all duration-300 hover:shadow-[0_0_15px_rgba(243,221,109,0.6)] hover:-translate-y-0.5 hover:scale-105 items-center justify-center gap-2 mt-2"
+                className="flex bg-primary hover:bg-primary-hover text-brand-dark text-base font-bold px-6 py-3 rounded-xl transition-all duration-300 hover:shadow-[0_0_15px_rgba(243,221,109,0.6)] hover:-translate-y-0.5 hover:scale-105 items-center justify-center gap-2 mt-2"
               >
                 Start a Conversation
               </button>
@@ -368,7 +368,7 @@ export default function App() {
               repeatType: "reverse",
               ease: "easeInOut",
             }}
-            className="absolute top-[10%] left-[5%] w-80 h-80 bg-primary/40 rounded-full blur-[100px]"
+            className="absolute top-[10%] left-[5%] w-80 h-80 bg-primary/40 rounded-xl blur-[100px]"
           />
           <motion.div
             animate={{
@@ -383,7 +383,7 @@ export default function App() {
               repeatType: "reverse",
               ease: "easeInOut",
             }}
-            className="absolute bottom-[10%] right-[10%] w-[600px] h-[600px] bg-yellow-300/40 rounded-full blur-[140px]"
+            className="absolute bottom-[10%] right-[10%] w-[600px] h-[600px] bg-yellow-300/40 rounded-xl blur-[140px]"
           />
           <motion.div
             animate={{
@@ -397,7 +397,7 @@ export default function App() {
               repeatType: "reverse",
               ease: "easeInOut",
             }}
-            className="absolute top-[20%] right-[20%] w-64 h-64 bg-primary/30 rounded-full blur-[90px]"
+            className="absolute top-[20%] right-[20%] w-64 h-64 bg-primary/30 rounded-xl blur-[90px]"
           />
           <motion.div
             animate={{
@@ -411,7 +411,7 @@ export default function App() {
               repeatType: "reverse",
               ease: "linear",
             }}
-            className="absolute bottom-[30%] left-[30%] w-96 h-96 bg-yellow-100/30 rounded-full blur-[110px]"
+            className="absolute bottom-[30%] left-[30%] w-96 h-96 bg-yellow-100/30 rounded-xl blur-[110px]"
           />
         </div>
 
@@ -419,7 +419,7 @@ export default function App() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="text-left order-2 lg:order-1 relative h-auto lg:h-[450px] flex flex-col justify-center">
               <div className="flex flex-col justify-center">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-100 text-yellow-800 text-sm font-bold mb-6 border border-yellow-200 w-fit transition-all duration-500">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-yellow-100 text-yellow-800 text-sm font-bold mb-6 border border-yellow-200 w-fit transition-all duration-500">
                   The AI Growth Engine for <span className="text-brand-dark font-black">{HERO_VARIANTS[heroIndex].trade}</span>
                 </div>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-brand-dark mb-8 leading-[1.05]">
@@ -431,14 +431,14 @@ export default function App() {
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                   <button
                     onClick={openChat}
-                    className="px-10 py-5 bg-primary hover:bg-primary-hover text-brand-dark font-bold rounded-full transition-all shadow-[6px_6px_0px_rgba(45,52,54,0.1)] hover:shadow-none hover:translate-y-[4px] flex items-center justify-center gap-2 text-xl w-full sm:w-auto border-2 border-transparent group"
+                    className="px-8 py-4 bg-primary hover:bg-primary-hover text-brand-dark font-bold rounded-xl transition-all shadow-[6px_6px_0px_rgba(45,52,54,0.1)] hover:shadow-none hover:translate-y-[4px] flex items-center justify-center gap-2 text-lg w-full sm:w-auto border-2 border-transparent group"
                   >
                     <MessageCircle className="w-6 h-6 text-brand-dark group-hover:animate-pulse" />
                     Start a Conversation
                   </button>
                   <button
                     onClick={scrollToAudit}
-                    className="px-10 py-5 bg-white hover:bg-gray-50 text-brand-dark font-bold rounded-full transition-all shadow-[6px_6px_0px_rgba(45,52,54,0.1)] hover:shadow-none hover:translate-y-[4px] flex items-center justify-center gap-2 text-xl w-full sm:w-auto border-2 border-brand-dark/5"
+                    className="px-8 py-4 bg-white hover:bg-gray-50 text-brand-dark font-bold rounded-xl transition-all shadow-[6px_6px_0px_rgba(45,52,54,0.1)] hover:shadow-none hover:translate-y-[4px] flex items-center justify-center gap-2 text-lg w-full sm:w-auto border-2 border-brand-dark/5"
                   >
                     See How It Works
                   </button>
@@ -467,7 +467,7 @@ export default function App() {
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent flex flex-col justify-end p-10 pb-14">
-                        <div className="inline-block bg-primary text-brand-dark text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full mb-3 w-fit">
+                        <div className="inline-block bg-primary text-brand-dark text-xs font-black uppercase tracking-wider px-3 py-1 rounded-xl mb-3 w-fit">
                           {HERO_VARIANTS[heroIndex].tagline}
                         </div>
                         <h3 className="text-white text-3xl font-bold mb-2 leading-tight">
@@ -628,8 +628,8 @@ export default function App() {
             </AnimatePresence>
             
             {/* Decorative Elements */}
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-yellow-200 rounded-full mix-blend-multiply filter blur-2xl opacity-60 pointer-events-none"></div>
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary rounded-full mix-blend-multiply filter blur-2xl opacity-40 pointer-events-none"></div>
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-yellow-200 rounded-xl mix-blend-multiply filter blur-2xl opacity-60 pointer-events-none"></div>
+            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary rounded-xl mix-blend-multiply filter blur-2xl opacity-40 pointer-events-none"></div>
           </div>
         </div>
       </section>
@@ -739,7 +739,7 @@ export default function App() {
             >
               <div className="bg-white/5 backdrop-blur-xl p-8 rounded-[3rem] border border-white/10 shadow-2xl">
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
                     <Zap className="w-6 h-6 text-brand-dark" />
                   </div>
                   <div>
@@ -760,16 +760,16 @@ export default function App() {
                 </div>
               </div>
               {/* Decorative elements */}
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
-              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-xl blur-3xl"></div>
+              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary/20 rounded-xl blur-3xl"></div>
             </motion.div>
           </div>
         </div>
       </section>
       <section className="py-24 bg-yellow-50/30 relative overflow-hidden" id="how-it-works">
         {/* Background decorative elements */}
-        <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-200/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
+        <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-xl blur-3xl -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-200/10 rounded-xl blur-3xl translate-x-1/3 translate-y-1/3" />
 
         <div className="max-w-7xl mx-auto px-4 w-full relative z-10">
           <div className="text-center mb-20">
@@ -873,10 +873,10 @@ export default function App() {
       <section className="bg-warm-cream py-16" id="studio">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-center mb-6">
-            <div className="bg-white/50 backdrop-blur-sm p-1.5 rounded-full flex items-center border border-brand-dark/5 shadow-2xl">
+            <div className="bg-white/50 backdrop-blur-sm p-1.5 rounded-xl flex items-center border border-brand-dark/5 shadow-2xl">
               <button
                 onClick={() => setActiveStudioTab('audit')}
-                className={`flex items-center gap-2 px-8 py-3 rounded-full text-sm font-black transition-all ${
+                className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-black transition-all ${
                   activeStudioTab === 'audit' ? 'bg-white text-brand-dark shadow-xl scale-105' : 'text-brand-dark/40 hover:text-brand-dark/60'
                 }`}
               >
@@ -885,7 +885,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveStudioTab('brief')}
-                className={`flex items-center gap-2 px-8 py-3 rounded-full text-sm font-black transition-all ${
+                className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-black transition-all ${
                   activeStudioTab === 'brief' ? 'bg-white text-brand-dark shadow-xl scale-105' : 'text-brand-dark/40 hover:text-brand-dark/60'
                 }`}
               >
@@ -948,7 +948,7 @@ export default function App() {
               <div className="shrink-0">
                 <Link
                   to="/vip"
-                  className="bg-primary hover:bg-primary-hover text-brand-dark px-8 py-4 rounded-full font-black text-lg transition-all hover:scale-105 flex items-center gap-3 shadow-[0_20px_50px_rgba(250,218,91,0.35)] animate-pulse hover:animate-none"
+                  className="bg-primary hover:bg-primary-hover text-brand-dark px-6 py-3 rounded-xl font-black text-lg transition-all hover:scale-105 flex items-center gap-3 shadow-[0_20px_50px_rgba(250,218,91,0.35)] animate-pulse hover:animate-none"
                 >
                   <span className="inline-flex w-7 h-7 rounded-full bg-brand-dark text-primary items-center justify-center">
                     <ArrowRight className="w-4 h-4" />
@@ -1135,13 +1135,13 @@ export default function App() {
               <span className={`text-sm font-black transition-colors ${billingCycle === 'monthly' ? 'text-brand-dark' : 'text-brand-dark/40'}`}>Monthly</span>
               <button 
                 onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annual' : 'monthly')}
-                className="w-16 h-8 bg-brand-dark rounded-full relative p-1 transition-all duration-300"
+                className="w-16 h-8 bg-brand-dark rounded-xl relative p-1 transition-all duration-300"
               >
                 <div className={`w-6 h-6 bg-primary rounded-full transition-transform duration-300 ${billingCycle === "annual" ? "translate-x-8" : "translate-x-0"}`}></div>
               </button>
               <div className="flex items-center gap-2">
                 <span className={`text-sm font-black transition-colors ${billingCycle === 'annual' ? 'text-brand-dark' : 'text-brand-dark/40'}`}>Annual (optional)</span>
-                <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">2 Months Free</span>
+                <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-xl uppercase tracking-wider">2 Months Free</span>
               </div>
             </div>
             </div>
@@ -1149,7 +1149,7 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Tier 1 */}
             <div className="bg-warm-cream rounded-[3rem] p-10 flex flex-col h-full border-2 border-primary relative">
-              <div className="absolute top-0 right-10 transform -translate-y-1/2 bg-primary text-brand-dark font-black px-6 py-2 rounded-full text-sm tracking-widest uppercase shadow-lg">
+              <div className="absolute top-0 right-10 transform -translate-y-1/2 bg-primary text-brand-dark font-black px-6 py-2 rounded-xl text-sm tracking-widest uppercase shadow-lg">
                 Most Popular
               </div>
               <h3 className="text-3xl font-black text-brand-dark mb-2">Starter</h3>
@@ -1173,14 +1173,14 @@ export default function App() {
                 <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> AI Growth Coach</li>
                 <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-primary font-black">•</span> Hosting & updates included</li>
               </ul>
-              <button onClick={openChat} className="w-full py-4 bg-brand-dark hover:bg-brand-dark/90 text-white font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
+              <button onClick={openChat} className="w-full py-4 bg-brand-dark hover:bg-brand-dark/90 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg">
                 Start Here
               </button>
             </div>
 
             {/* Tier 2 */}
             <div className="bg-white rounded-[3rem] p-10 flex flex-col h-full border border-gray-100 relative opacity-80">
-              <div className="absolute top-0 right-10 transform -translate-y-1/2 bg-gray-200 text-brand-dark/60 font-black px-6 py-2 rounded-full text-sm tracking-widest uppercase">
+              <div className="absolute top-0 right-10 transform -translate-y-1/2 bg-gray-200 text-brand-dark/60 font-black px-6 py-2 rounded-xl text-sm tracking-widest uppercase">
                 Coming Soon
               </div>
               <h3 className="text-3xl font-black text-brand-dark mb-2">Growth</h3>
@@ -1196,14 +1196,14 @@ export default function App() {
                 <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Advanced analytics & competitor tracking</li>
                 <li className="flex items-start gap-3 text-brand-dark font-bold"><span className="text-gray-300 font-black">•</span> Credits system — use what you need, buy more as you grow</li>
               </ul>
-              <button onClick={openChat} className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg">
+              <button onClick={openChat} className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-brand-dark font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg">
                 Join the Waitlist
               </button>
             </div>
 
             {/* Tier 3 */}
             <div className="bg-brand-dark rounded-[3rem] p-10 flex flex-col h-full border border-brand-dark relative">
-              <div className="absolute top-0 right-10 transform -translate-y-1/2 bg-white text-brand-dark font-black px-6 py-2 rounded-full text-sm tracking-widest uppercase">
+              <div className="absolute top-0 right-10 transform -translate-y-1/2 bg-white text-brand-dark font-black px-6 py-2 rounded-xl text-sm tracking-widest uppercase">
                 By Application
               </div>
               <h3 className="text-3xl font-black text-white mb-2">The Autonomous Sales Office</h3>
@@ -1221,7 +1221,7 @@ export default function App() {
                 <li className="flex items-start gap-3 text-white font-bold"><span className="text-white/30 font-black">•</span> Agent Automation</li>
               </ul>
               <p className="text-white/50 text-sm mb-6 italic">This isn't for everyone — it's for businesses serious about dominating their local market.</p>
-              <button onClick={openChat} className="w-full py-4 bg-white hover:bg-gray-100 text-brand-dark font-bold rounded-full transition-all flex items-center justify-center gap-2 text-lg mt-auto">
+              <button onClick={openChat} className="w-full py-4 bg-white hover:bg-gray-100 text-brand-dark font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg mt-auto">
                 Apply for Managed
               </button>
             </div>
@@ -1275,8 +1275,8 @@ export default function App() {
 
       <section className="py-24 bg-brand-dark relative overflow-hidden text-center flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-        <div className="absolute top-0 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 left-0 w-64 h-64 bg-primary/10 rounded-xl blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/10 rounded-xl blur-3xl"></div>
         <div className="max-w-4xl mx-auto px-4 relative z-10">
           <h2 className="text-5xl md:text-7xl font-extrabold text-white mb-8">
             Stop Guessing. <br />
@@ -1285,14 +1285,14 @@ export default function App() {
           <p className="text-white/70 text-2xl md:text-3xl mb-12 max-w-2xl mx-auto">
             Join the local service businesses that are getting ready for AI agents — before their competitors do.
           </p>
-          <div className="inline-block bg-white/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 text-white text-lg font-medium mb-12">
+          <div className="inline-block bg-white/10 backdrop-blur-md px-6 py-3 rounded-xl border border-white/10 text-white text-lg font-medium mb-12">
             <span className="inline-block w-3 h-3 bg-primary rounded-full mr-3 animate-pulse"></span>
             No long-term contracts. Cancel anytime.
           </div>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <button
               onClick={openChat}
-              className="bg-primary hover:bg-primary-hover text-brand-dark font-extrabold py-5 px-12 rounded-full shadow-[0px_0px_20px_rgba(243,221,109,0.3)] hover:shadow-[0px_0px_30px_rgba(243,221,109,0.5)] transition-all transform hover:scale-105 flex items-center justify-center gap-3 text-xl md:text-2xl group"
+              className="bg-primary hover:bg-primary-hover text-brand-dark font-extrabold py-5 px-12 rounded-xl shadow-[0px_0px_20px_rgba(243,221,109,0.3)] hover:shadow-[0px_0px_30px_rgba(243,221,109,0.5)] transition-all transform hover:scale-105 flex items-center justify-center gap-3 text-xl md:text-2xl group"
             >
               <Sparkles className="w-8 h-8 text-brand-dark group-hover:scale-110 transition-transform" />
               Start a Conversation
