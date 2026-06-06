@@ -19,11 +19,11 @@ export function DiscoveryCall() {
             Marketing Agents Live in 5 Business Days
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-brand-dark mb-6 leading-[1.1] tracking-tight">
-            Forward-Deployed Engineers.<br />
-            <span className="text-primary">Not a Generic Playbook.</span>
+            AI Employees. Live in 5 Business Days.<br />
+            <span className="text-primary">Hands-On Setup. Zero Guesswork.</span>
           </h2>
           <p className="text-xl md:text-2xl text-brand-dark/70 max-w-3xl mx-auto leading-relaxed">
-            Our engineers embed with your team, wire your data stack, and deploy AI agents on our infrastructure — scoped to your channels, your leads, your growth.
+            We embed with your team, connect your tools, and deploy AI employees built around your channels, your leads, and your growth — not a one-size-fits-all template.
           </p>
         </div>
 
