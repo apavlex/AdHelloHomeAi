@@ -23,7 +23,7 @@ export function DiscoveryCall() {
             <span className="text-primary">Hands-On Setup. Zero Guesswork.</span>
           </h2>
           <p className="text-xl md:text-2xl text-brand-dark/70 max-w-3xl mx-auto leading-relaxed">
-            We embed with your team, connect your tools, and deploy AI employees built around your channels, your leads, and your growth — not a one-size-fits-all template.
+            We work with your team, connect your tools, and deploy AI employees built around your channels, your leads, and your growth — not a one-size-fits-all template.
           </p>
         </div>
 
